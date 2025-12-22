@@ -1,0 +1,37 @@
+package com.example.calview.core.data.repository
+
+import com.example.calview.core.data.local.MealDao
+import com.example.calview.core.data.local.MealEntity
+import kotlinx.coroutines.flow.Flow
+import java.util.Calendar
+import javax.inject.Inject
+
+class MealRepositoryImpl @Inject constructor(
+    private val mealDao: MealDao
+) : MealRepository {
+
+    override fun getAllMeals(): Flow<List<MealEntity>> = mealDao.getAllMeals()
+
+    override fun getMealsForToday(): Flow<List<MealEntity>> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        val startOfDay = calendar.timeInMillis
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        val endOfDay = calendar.timeInMillis
+        
+        return mealDao.getMealsForDate(startOfDay, endOfDay)
+    }
+
+    override suspend fun logMeal(meal: MealEntity) {
+        mealDao.insertMeal(meal)
+    }
+
+    override suspend fun deleteMeal(meal: MealEntity) {
+        mealDao.deleteMeal(meal)
+    }
+}

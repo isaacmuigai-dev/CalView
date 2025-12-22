@@ -21,4 +21,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "CalView"
 include(":app")
+include(":feature-onboarding")
+include(":feature-dashboard")
+include(":feature-scanner")
+include(":feature-trends")
+include(":core-ai")
+include(":core-data")
+include(":core-ui")
  
