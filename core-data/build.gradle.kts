@@ -48,4 +48,7 @@ dependencies {
     
     # Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    
+    # DataStore
+    implementation(libs.androidx.datastore)
 }

@@ -2,6 +2,8 @@ package com.example.calview.core.data.di
 
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.MealRepositoryImpl
+import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.repository.UserPreferencesRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindMealRepository(
         mealRepositoryImpl: MealRepositoryImpl
     ): MealRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserPreferencesRepository(
+        userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 }

@@ -1,17 +1,49 @@
 package com.example.calview.feature.onboarding
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.calview.core.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel @Inject constructor() : ViewModel() {
+class OnboardingViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
+
+    fun completeOnboarding(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            val age = currentYear - state.birthYear
+            
+            userPreferencesRepository.saveUserProfile(
+                goal = state.goal,
+                gender = state.gender,
+                age = age,
+                weight = state.weight,
+                height = (state.heightFt * 12 + state.heightIn) // Simple inch conversion
+            )
+            
+            userPreferencesRepository.saveRecommendedMacros(
+                calories = state.recommendedCalories,
+                protein = state.recommendedProtein,
+                carbs = state.recommendedCarbs,
+                fats = state.recommendedFats
+            )
+            
+            userPreferencesRepository.setOnboardingComplete(true)
+            onComplete()
+        }
+    }
 
     fun onGenderSelected(gender: String) {
         _uiState.value = _uiState.value.copy(gender = gender)

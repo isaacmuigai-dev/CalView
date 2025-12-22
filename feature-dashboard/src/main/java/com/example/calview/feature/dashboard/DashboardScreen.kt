@@ -29,6 +29,18 @@ fun DashboardScreen(
     onScroll: (() -> Unit)? = null
 ) {
     val state by viewModel.dashboardState.collectAsState()
+    
+    DashboardContent(
+        state = state,
+        onScroll = onScroll
+    )
+}
+
+@Composable
+fun DashboardContent(
+    state: DashboardState,
+    onScroll: (() -> Unit)? = null
+) {
     val pagerState = rememberPagerState(pageCount = { 3 })
 
     LazyColumn(
@@ -55,9 +67,9 @@ fun DashboardScreen(
                     0 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         CaloriesCard(state.remainingCalories)
                         com.example.calview.feature.dashboard.components.MacroStatsRow(
-                            protein = 116,
-                            carbs = 203,
-                            fats = 47
+                            protein = state.proteinG,
+                            carbs = state.carbsG,
+                            fats = state.fatsG
                         )
                     }
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -120,6 +132,22 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    DashboardContent(
+        state = DashboardState(
+            remainingCalories = 1705,
+            proteinG = 117,
+            carbsG = 203,
+            fatsG = 47,
+            meals = emptyList()
+        )
+    )
 }
 
 @Composable

@@ -66,4 +66,10 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(48.dp))
         }
     }
+}import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun WelcomeScreenPreview() {
+    WelcomeScreen(onGetStarted = {}, onSignIn = {})
 }

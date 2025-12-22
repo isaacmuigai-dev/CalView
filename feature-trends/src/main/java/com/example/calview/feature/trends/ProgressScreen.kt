@@ -33,6 +33,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun ProgressScreen() {
+    ProgressContent(
+        bmi = 19.21f,
+        currentWeight = "119 lb",
+        goalWeight = "119 lbs"
+    )
+}
+
+@Composable
+fun ProgressContent(
+    bmi: Float,
+    currentWeight: String,
+    goalWeight: String
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,12 +59,24 @@ fun ProgressScreen() {
 
         TotalCaloriesCard()
         
-        YourBMICard(bmi = 19.21f)
+        YourBMICard(bmi = bmi)
 
-        GoalProgressCard()
+        GoalProgressCard(current = currentWeight, goal = goalWeight)
         
         Spacer(modifier = Modifier.height(80.dp)) // Leave space for FAB/BottomBar
     }
+}
+
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun ProgressScreenPreview() {
+    ProgressContent(
+        bmi = 19.21f,
+        currentWeight = "119 lb",
+        goalWeight = "119 lbs"
+    )
 }
 
 @Composable
@@ -262,7 +287,7 @@ fun BMILabel(color: Color, label: String) {
 }
 
 @Composable
-fun GoalProgressCard() {
+fun GoalProgressCard(current: String, goal: String) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Reusing existing goal progress logic with minor updates
@@ -290,11 +315,11 @@ fun GoalProgressCard() {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("My Weight", color = Color.Gray, fontSize = 14.sp)
-                    Text("119 lb", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(current, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                    Text("Goal", color = Color.Gray, fontSize = 14.sp)
-                   Text("119 lbs", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                   Text(goal, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

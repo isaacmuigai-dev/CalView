@@ -22,6 +22,25 @@ fun AccomplishmentsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    AccomplishmentsContent(
+        selectedAccomplishments = uiState.accomplishments,
+        onAccomplishmentToggle = { text ->
+            val current = uiState.accomplishments.toMutableList()
+            if (current.contains(text)) current.remove(text) else current.add(text)
+            viewModel.onAccomplishmentsSelected(current)
+        },
+        onBack = onBack,
+        onContinue = onContinue
+    )
+}
+
+@Composable
+fun AccomplishmentsContent(
+    selectedAccomplishments: List<String>,
+    onAccomplishmentToggle: (String) -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit
+) {
     val options = listOf(
         "Eat and live healthier" to Icons.Default.Apple,
         "Boost my energy and mood" to Icons.Default.LightMode,
@@ -31,21 +50,17 @@ fun AccomplishmentsScreen(
 
     OnboardingTemplate(
         title = "What would you like to accomplish?",
-        progress = 0.15f, // Early in the flow
+        progress = 0.15f,
         onBack = onBack,
         onContinue = onContinue,
-        canContinue = uiState.accomplishments.isNotEmpty()
+        canContinue = selectedAccomplishments.isNotEmpty()
     ) {
         options.forEach { (text, icon) ->
-            val isSelected = uiState.accomplishments.contains(text)
+            val isSelected = selectedAccomplishments.contains(text)
             CalAICard(
                 title = text,
                 isSelected = isSelected,
-                onClick = {
-                    val current = uiState.accomplishments.toMutableList()
-                    if (isSelected) current.remove(text) else current.add(text)
-                    viewModel.onAccomplishmentsSelected(current)
-                },
+                onClick = { onAccomplishmentToggle(text) },
                 leadingContent = {
                     Box(
                         modifier = Modifier
@@ -65,4 +80,17 @@ fun AccomplishmentsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun AccomplishmentsScreenPreview() {
+    AccomplishmentsContent(
+        selectedAccomplishments = listOf("Eat and live healthier"),
+        onAccomplishmentToggle = {},
+        onBack = {},
+        onContinue = {}
+    )
 }

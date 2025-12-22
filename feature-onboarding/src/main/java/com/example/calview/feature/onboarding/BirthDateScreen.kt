@@ -17,6 +17,23 @@ fun BirthDateScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    BirthDateContent(
+        birthMonth = uiState.birthMonth,
+        birthDay = uiState.birthDay,
+        birthYear = uiState.birthYear,
+        onDateChanged = { m, d, y -> viewModel.onBirthDateChanged(m, d, y) },
+        onNext = onNext
+    )
+}
+
+@Composable
+fun BirthDateContent(
+    birthMonth: Int,
+    birthDay: Int,
+    birthYear: Int,
+    onDateChanged: (Int, Int, Int) -> Unit,
+    onNext: () -> Unit
+) {
     val months = DateFormatSymbols().months.toList().filter { it.isNotEmpty() }
     val days = (1..31).map { it.toString().padStart(2, '0') }
     val years = (1940..2024).map { it.toString() }
@@ -39,20 +56,20 @@ fun BirthDateScreen(
             ) {
                 StandardWheelPicker(
                     items = months,
-                    initialIndex = uiState.birthMonth - 1,
-                    onItemSelected = { viewModel.onBirthDateChanged(it + 1, uiState.birthDay, uiState.birthYear) },
+                    initialIndex = birthMonth - 1,
+                    onItemSelected = { onDateChanged(it + 1, birthDay, birthYear) },
                     modifier = Modifier.weight(1.5f)
                 )
                 StandardWheelPicker(
                     items = days,
-                    initialIndex = uiState.birthDay - 1,
-                    onItemSelected = { viewModel.onBirthDateChanged(uiState.birthMonth, it + 1, uiState.birthYear) },
+                    initialIndex = birthDay - 1,
+                    onItemSelected = { onDateChanged(birthMonth, it + 1, birthYear) },
                     modifier = Modifier.weight(1f)
                 )
                 StandardWheelPicker(
                     items = years,
-                    initialIndex = years.indexOf(uiState.birthYear.toString()),
-                    onItemSelected = { viewModel.onBirthDateChanged(uiState.birthMonth, uiState.birthDay, years[it].toInt()) },
+                    initialIndex = years.indexOf(birthYear.toString()).coerceAtLeast(0),
+                    onItemSelected = { onDateChanged(birthMonth, birthDay, years[it].toInt()) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -65,4 +82,18 @@ fun BirthDateScreen(
             )
         }
     }
+}
+
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun BirthDateScreenPreview() {
+    BirthDateContent(
+        birthMonth = 2,
+        birthDay = 2,
+        birthYear = 1998,
+        onDateChanged = { _, _, _ -> },
+        onNext = {}
+    )
 }

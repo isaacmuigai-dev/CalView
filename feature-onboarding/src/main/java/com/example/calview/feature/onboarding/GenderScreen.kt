@@ -17,25 +17,51 @@ fun GenderScreen(
     onContinue: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    
+    GenderContent(
+        selectedGender = uiState.gender,
+        onGenderSelected = { viewModel.onGenderSelected(it) },
+        onBack = onBack,
+        onContinue = onContinue
+    )
+}
 
+@Composable
+fun GenderContent(
+    selectedGender: String,
+    onGenderSelected: (String) -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit
+) {
     OnboardingTemplate(
         title = "Choose your Gender",
         subtitle = "This will be used to calibrate your custom plan.",
         progress = 0.3f,
         onBack = onBack,
         onContinue = onContinue,
-        canContinue = uiState.gender.isNotEmpty()
+        canContinue = selectedGender.isNotEmpty()
     ) {
         val options = listOf("Female", "Male", "Other")
         options.forEach { option ->
             OnboardingOption(
                 text = option,
-                isSelected = uiState.gender == option,
-                onClick = { viewModel.onGenderSelected(option) }
+                isSelected = selectedGender == option,
+                onClick = { onGenderSelected(option) }
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GenderScreenPreview() {
+    GenderContent(
+        selectedGender = "Female",
+        onGenderSelected = {},
+        onBack = {},
+        onContinue = {}
+    )
 }
 
 @Composable

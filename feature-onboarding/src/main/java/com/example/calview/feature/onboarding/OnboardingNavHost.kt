@@ -163,8 +163,8 @@ fun OnboardingNavHost(
         }
         composable("one_time_offer") {
             OneTimeOfferScreen(
-                onStartTrial = onOnboardingComplete,
-                onClose = onOnboardingComplete
+                onStartTrial = { viewModel.completeOnboarding(onOnboardingComplete) },
+                onClose = { viewModel.completeOnboarding(onOnboardingComplete) }
             )
         }
     }

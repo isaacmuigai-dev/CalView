@@ -25,6 +25,17 @@ import com.example.calview.core.ui.components.CalAICard
 
 @Composable
 fun SettingsScreen() {
+    SettingsContent(
+        userName = "Isaac muigai",
+        ageStr = "27 years old"
+    )
+}
+
+@Composable
+fun SettingsContent(
+    userName: String,
+    ageStr: String
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,7 +44,7 @@ fun SettingsScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ProfileHeader()
+        ProfileHeader(name = userName, age = ageStr)
         
         InviteFriendsCard()
         
@@ -51,8 +62,19 @@ fun SettingsScreen() {
     }
 }
 
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
 @Composable
-fun ProfileHeader() {
+fun SettingsScreenPreview() {
+    SettingsContent(
+        userName = "Isaac muigai",
+        ageStr = "27 years old"
+    )
+}
+
+@Composable
+fun ProfileHeader(name: String, age: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color.White,
@@ -73,8 +95,8 @@ fun ProfileHeader() {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text("Isaac muigai", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("27 years old", fontSize = 14.sp, color = Color.Gray)
+                Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(age, fontSize = 14.sp, color = Color.Gray)
             }
         }
     }

@@ -22,6 +22,29 @@ fun HeightWeightScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    HeightWeightContent(
+        isMetric = uiState.isMetric,
+        heightFt = uiState.heightFt,
+        heightIn = uiState.heightIn,
+        weight = uiState.weight,
+        onUnitToggle = { viewModel.onUnitToggle(it) },
+        onHeightChanged = { ft, inches -> viewModel.onHeightChanged(ft, inches) },
+        onWeightChanged = { viewModel.onWeightChanged(it) },
+        onNext = onNext
+    )
+}
+
+@Composable
+fun HeightWeightContent(
+    isMetric: Boolean,
+    heightFt: Int,
+    heightIn: Int,
+    weight: Float,
+    onUnitToggle: (Boolean) -> Unit,
+    onHeightChanged: (Int, Int) -> Unit,
+    onWeightChanged: (Float) -> Unit,
+    onNext: () -> Unit
+) {
     val ftItems = (2..8).map { "$it ft" }
     val inItems = (0..11).map { "$it in" }
     val weightItems = (50..400).map { "$it lb" }
@@ -37,8 +60,8 @@ fun HeightWeightScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             UnitToggle(
-                isMetric = uiState.isMetric,
-                onToggle = { viewModel.onUnitToggle(it) },
+                isMetric = isMetric,
+                onToggle = onUnitToggle,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -57,14 +80,14 @@ fun HeightWeightScreen(
                     Row {
                         StandardWheelPicker(
                             items = ftItems,
-                            initialIndex = uiState.heightFt - 2,
-                            onItemSelected = { viewModel.onHeightChanged(it + 2, uiState.heightIn) },
+                            initialIndex = (heightFt - 2).coerceAtLeast(0),
+                            onItemSelected = { onHeightChanged(it + 2, heightIn) },
                             modifier = Modifier.width(80.dp)
                         )
                         StandardWheelPicker(
                             items = inItems,
-                            initialIndex = uiState.heightIn,
-                            onItemSelected = { viewModel.onHeightChanged(uiState.heightFt, it) },
+                            initialIndex = heightIn.coerceIn(0, 11),
+                            onItemSelected = { onHeightChanged(heightFt, it) },
                             modifier = Modifier.width(80.dp)
                         )
                     }
@@ -80,8 +103,8 @@ fun HeightWeightScreen(
                     )
                     StandardWheelPicker(
                         items = weightItems,
-                        initialIndex = weightItems.indexOf("${uiState.weight.toInt()} lb"),
-                        onItemSelected = { viewModel.onWeightChanged(it.toFloat() + 50) },
+                        initialIndex = weightItems.indexOf("${weight.toInt()} lb").coerceAtLeast(0),
+                        onItemSelected = { onWeightChanged(it.toFloat() + 50) },
                         modifier = Modifier.width(100.dp)
                     )
                 }
@@ -95,4 +118,21 @@ fun HeightWeightScreen(
             )
         }
     }
+}
+
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun HeightWeightScreenPreview() {
+    HeightWeightContent(
+        isMetric = false,
+        heightFt = 5,
+        heightIn = 6,
+        weight = 150f,
+        onUnitToggle = {},
+        onHeightChanged = { _, _ -> },
+        onWeightChanged = {},
+        onNext = {}
+    )
 }
