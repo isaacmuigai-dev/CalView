@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "81536221642",
+    "project_id": "calviewai",
+    "storage_bucket": "calviewai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:81536221642:android:50caf5e94a2903da364f33",
+        "android_client_info": {
+          "package_name": "com.example.calview"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8l3HkgEJKdPRnqixWmw7UFt2KQK438jE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
