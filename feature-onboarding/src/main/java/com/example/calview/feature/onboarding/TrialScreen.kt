@@ -17,6 +17,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import androidx.compose.material.icons.filled.Apple
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 
 @Composable
 fun TrialScreen(
@@ -125,7 +128,4 @@ fun TrialScreen(
     }
 }
 
-import androidx.compose.material.icons.filled.Apple
-import androidx.compose.ui.draw.clip
-
-import androidx.compose.foundation.border
+// imports moved to top

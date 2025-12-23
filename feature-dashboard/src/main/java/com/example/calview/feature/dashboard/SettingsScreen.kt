@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAICard
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SettingsScreen() {
@@ -62,7 +63,7 @@ fun SettingsContent(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
+// imports moved to top
 
 @Preview(showBackground = true)
 @Composable

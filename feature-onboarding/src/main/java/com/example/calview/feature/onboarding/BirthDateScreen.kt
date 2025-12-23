@@ -9,6 +9,7 @@ import com.example.calview.core.ui.components.CalAIButton
 import com.example.calview.core.ui.components.StandardWheelPicker
 import com.example.calview.feature.onboarding.components.OnboardingTemplate
 import java.text.DateFormatSymbols
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun BirthDateScreen(
@@ -84,7 +85,7 @@ fun BirthDateContent(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
+// imports moved to top
 
 @Preview(showBackground = true)
 @Composable

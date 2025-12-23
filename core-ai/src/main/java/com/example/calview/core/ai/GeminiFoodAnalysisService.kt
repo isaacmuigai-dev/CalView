@@ -2,6 +2,9 @@ package com.example.calview.core.ai
 
 import android.graphics.Bitmap
 import com.example.calview.core.ai.model.FoodAnalysisResponse
+import com.example.calview.core.ai.model.FoodItem
+import com.example.calview.core.ai.model.Macros
+import com.example.calview.core.ai.model.NutritionalData
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.serialization.json.Json
@@ -61,14 +64,14 @@ class GeminiFoodAnalysisService @Inject constructor(
     private fun createMockResponse(): FoodAnalysisResponse {
         return FoodAnalysisResponse(
             detected_items = listOf(
-                FoodAnalysisResponse.FoodItem(
+                FoodItem(
                     name = "Grilled Chicken Salad",
                     estimated_weight_g = 350,
                     calories = 450,
-                    macros = FoodAnalysisResponse.Macros(p = 35, c = 12, f = 25)
+                    macros = Macros(p = 35, c = 12, f = 25)
                 )
             ),
-            total = FoodAnalysisResponse.NutritionTotal(
+            total = NutritionalData(
                 calories = 450,
                 protein = 35,
                 carbs = 12,

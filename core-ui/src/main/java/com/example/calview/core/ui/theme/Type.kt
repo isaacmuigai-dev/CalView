@@ -7,6 +7,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 // Default typography using Inter/Poppins style (System defaults for now, can be updated with actual fonts)
+val Inter = FontFamily.SansSerif
+
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,

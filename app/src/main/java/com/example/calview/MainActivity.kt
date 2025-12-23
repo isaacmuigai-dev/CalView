@@ -5,13 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.FabPosition
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,15 +29,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.calview.core.ui.theme.CalViewTheme
-import com.example.calview.feature.dashboard.DashboardScreen
+import com.example.calview.ui.theme.CalViewTheme
+import com.example.calview.ui.screens.DashboardScreen
 import com.example.calview.feature.dashboard.DashboardViewModel
-import com.example.calview.feature.dashboard.SettingsScreen
+import com.example.calview.ui.screens.SettingsScreen
 import com.example.calview.feature.onboarding.OnboardingNavHost
-import com.example.calview.feature.scanner.ScannerScreen
+import com.example.calview.ui.screens.ScannerScreen
 import com.example.calview.feature.scanner.ScannerViewModel
-import com.example.calview.feature.trends.ProgressScreen
+import com.example.calview.ui.screens.ProgressScreen
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.compose.ui.tooling.preview.Preview
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -78,12 +87,6 @@ fun AppNavigation() {
         }
     }
 }
-
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.foundation.shape.CircleShape
-import com.example.calview.feature.trends.ProgressScreen
 
 @Composable
 fun MainTabs(onScanClick: () -> Unit) {

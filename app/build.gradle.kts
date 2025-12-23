@@ -45,6 +45,7 @@ android {
 }
 
 dependencies {
+    // Core Android/Compose
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
     implementation(project(":core-ai"))
@@ -61,16 +62,42 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    // Firebase Crashlytics
     implementation(libs.firebase.crashlytics)
-    
-    # Hilt
+
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    # Navigation
+    // Navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlinx.serialization-json)
+
+    // Room (from former core-data)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // DataStore (from former core-data)
+    implementation(libs.androidx.datastore)
+
+    // Google AI (Gemini) (from former core-ai)
+    implementation(libs.google.ai.client)
+
+    // Coroutines (used in core-data/core-ai)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // Serialization (from core-ai and app)
+    implementation(libs.kotlinx.serialization.json)
+
+    // CameraX (from feature-scanner)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

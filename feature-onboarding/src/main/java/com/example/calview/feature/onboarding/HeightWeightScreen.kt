@@ -14,6 +14,7 @@ import com.example.calview.core.ui.components.StandardWheelPicker
 import com.example.calview.core.ui.components.UnitToggle
 import com.example.calview.core.ui.theme.Inter
 import com.example.calview.feature.onboarding.components.OnboardingTemplate
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun HeightWeightScreen(
@@ -120,7 +121,7 @@ fun HeightWeightContent(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
+// imports moved to top
 
 @Preview(showBackground = true)
 @Composable

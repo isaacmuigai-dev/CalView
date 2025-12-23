@@ -2,10 +2,15 @@ package com.example.calview.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val CalAIGreen = Color(0xFF32CD32)
+val PureWhite = Color(0xFFFFFFFF)
+val OffWhite = Color(0xFFF8F8F8)
+val DarkGrey = Color(0xFF1C1C1E)
+val MediumGrey = Color(0xFF8E8E93)
+val LightGrey = Color(0xFFE5E5EA)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val ProteinColor = Color(0xFFFF5252)
+val CarbsColor = Color(0xFFFFAB40)
+val FatsColor = Color(0xFF448AFF)
+
+val ShadowColor = Color(0xFFE0E0E0)

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.feature.onboarding.components.OnboardingTemplate
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AccomplishmentsScreen(
@@ -82,7 +83,7 @@ fun AccomplishmentsContent(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
+// imports moved to top
 
 @Preview(showBackground = true)
 @Composable

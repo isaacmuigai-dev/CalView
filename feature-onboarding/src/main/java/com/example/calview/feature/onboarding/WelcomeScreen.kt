@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import com.example.calview.core.ui.components.CalAIButton
 import com.example.calview.core.ui.theme.Inter
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun WelcomeScreen(
@@ -66,7 +67,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(48.dp))
         }
     }
-}import androidx.compose.ui.tooling.preview.Preview
+}
 
 @Preview(showBackground = true)
 @Composable

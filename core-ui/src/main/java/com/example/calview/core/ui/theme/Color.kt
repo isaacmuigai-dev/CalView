@@ -3,6 +3,7 @@ package com.example.calview.core.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val CalAIGreen = Color(0xFF32CD32)
+val Avocado = Color(0xFF568203)
 val PureWhite = Color(0xFFFFFFFF)
 val OffWhite = Color(0xFFF8F8F8)
 val DarkGrey = Color(0xFF1C1C1E)

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.core.ui.components.CalAIButton
 import com.example.calview.feature.onboarding.components.OnboardingTemplate
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun DietPreferenceScreen(
@@ -68,5 +69,4 @@ fun DietPreferenceScreen(
 
 private data class DietOption(val name: String, val icon: String)
 
-// Need to import sp from unit
-import androidx.compose.ui.unit.sp
+// imports moved to top

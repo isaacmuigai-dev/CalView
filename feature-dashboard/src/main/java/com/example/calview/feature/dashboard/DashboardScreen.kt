@@ -21,7 +21,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAICard
-import com.example.calview.feature.dashboard.components.CalorieRing
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Restaurant
 
 @Composable
 fun DashboardScreen(
@@ -134,7 +143,7 @@ fun DashboardContent(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
+// imports moved to top
 
 @Preview(showBackground = true)
 @Composable
@@ -273,15 +282,7 @@ val RecentMealIcon: ImageVector
     @Composable
     get() = Icons.Default.Restaurant // Fallback
 
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.HealthAndSafety
-import androidx.compose.material.icons.filled.DirectionsWalk
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.ui.text.style.TextAlign
+// imports moved to top
 
 @Composable
 fun HeaderSection() {
