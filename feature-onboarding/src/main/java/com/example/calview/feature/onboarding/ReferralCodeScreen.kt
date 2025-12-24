@@ -46,8 +46,9 @@ fun ReferralCodeScreen(
                     onValueChange = { viewModel.onReferralCodeChanged(it) },
                     placeholder = { Text("Referral Code", color = Color.LightGray) },
                     modifier = Modifier.weight(1f),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent,
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),

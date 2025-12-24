@@ -43,7 +43,7 @@ fun AccomplishmentsContent(
     onContinue: () -> Unit
 ) {
     val options = listOf(
-        "Eat and live healthier" to Icons.Default.Apple,
+        "Eat and live healthier" to Icons.Default.Restaurant,
         "Boost my energy and mood" to Icons.Default.LightMode,
         "Stay motivated and consistent" to Icons.Default.FitnessCenter,
         "Feel better about my body" to Icons.Default.SelfImprovement
