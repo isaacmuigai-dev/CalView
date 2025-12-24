@@ -28,18 +28,6 @@ fun OnboardingNavHost(
             AccomplishmentsScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("ratings") }
-            )
-        }
-        composable("ratings") {
-            RatingsScreen(
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("trust") }
-            )
-        }
-        composable("trust") {
-            TrustScreen(
-                onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate("transition") }
             )
         }
@@ -82,14 +70,7 @@ fun OnboardingNavHost(
             SourceScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("referral") }
-            )
-        }
-        composable("referral") {
-            ReferralCodeScreen(
-                viewModel = viewModel,
-                onContinue = { navController.navigate("generation") },
-                onBack = { navController.popBackStack() }
+                onContinue = { navController.navigate("generation") }
             )
         }
         composable("generation") {
@@ -118,24 +99,9 @@ fun OnboardingNavHost(
         composable("create_account") {
             CreateAccountScreen(
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("trial") }
-            )
-        }
-        composable("trial") {
-            TrialScreen(
-                onContinue = { navController.navigate("discount_spin") }
-            )
-        }
-        composable("discount_spin") {
-            DiscountSpinScreen(
-                onContinue = { navController.navigate("one_time_offer") }
-            )
-        }
-        composable("one_time_offer") {
-            OneTimeOfferScreen(
-                onStartTrial = { viewModel.completeOnboarding(onOnboardingComplete) },
-                onClose = { viewModel.completeOnboarding(onOnboardingComplete) }
+                onContinue = { viewModel.completeOnboarding(onOnboardingComplete) }
             )
         }
     }
 }
+
