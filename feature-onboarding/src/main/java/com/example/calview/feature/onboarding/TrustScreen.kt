@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.core.ui.theme.Inter
 import com.example.calview.feature.onboarding.components.OnboardingTemplate
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun TrustScreen(
@@ -96,3 +97,10 @@ fun TrustScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun TrustScreenPreview() {
+    TrustScreen(onContinue = {}, onBack = {})
+}
+
