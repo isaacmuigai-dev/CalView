@@ -1,5 +1,0 @@
-C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\src\main\java\com\example\calview\feature\dashboard\components\CalorieRing.kt
-C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\src\main\java\com\example\calview\feature\dashboard\DashboardScreen.kt
-C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\src\main\java\com\example\calview\feature\dashboard\components\MacroStatsRow.kt
-C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\src\main\java\com\example\calview\feature\dashboard\SettingsScreen.kt
-C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\src\main\java\com\example\calview\feature\dashboard\DashboardViewModel.kt

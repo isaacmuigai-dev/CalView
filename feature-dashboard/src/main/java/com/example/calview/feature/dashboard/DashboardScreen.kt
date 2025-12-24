@@ -1,10 +1,14 @@
 package com.example.calview.feature.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,24 +16,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.components.CalAICard
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.calview.core.data.local.MealEntity
+import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.feature.dashboard.components.CalorieRing
 import com.example.calview.feature.dashboard.components.MacroStatsRow
-import androidx.compose.ui.draw.clip
 import java.util.Calendar
 import java.util.Locale
+
 
 @Composable
 fun DashboardScreen(
@@ -52,8 +53,6 @@ fun DashboardContent(
     onAddWater: () -> Unit,
     onRemoveWater: () -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -69,6 +68,7 @@ fun DashboardContent(
         }
 
         item {
+            val pagerState = rememberPagerState(pageCount = { 3 })
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxWidth().height(260.dp),
@@ -91,23 +91,6 @@ fun DashboardContent(
                         ActivityRow(steps = 0, burned = 0)
                         WaterTrackerCard(consumed = state.waterConsumed, onAdd = onAddWater, onRemove = onRemoveWater)
                     }
-                }
-            }
-
-            // Pager Indicators
-            Row(
-                Modifier.fillMaxWidth().padding(top = 12.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(pagerState.pageCount) { iteration ->
-                    val color = if (pagerState.currentPage == iteration) Color.Black else Color.LightGray
-                    Box(
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .size(6.dp)
-                    )
                 }
             }
         }
@@ -176,7 +159,7 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
             Text(label, fontSize = 12.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)) {
-                CircularProgressIndicator(progress = 0f, strokeWidth = 2.dp, color = iconTint, trackColor = Color(0xFFF3F3F3))
+                CircularProgressIndicator(progress = { 0f }, strokeWidth = 2.dp, color = iconTint, trackColor = Color(0xFFF3F3F3))
                 Icon(icon, null, modifier = Modifier.size(12.dp), tint = iconTint.copy(alpha = 0.5f))
             }
         }
@@ -193,8 +176,8 @@ fun HealthScoreCard(score: Int) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
-                progress = score / 10f,
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+                progress = { score / 10f },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(androidx.compose.foundation.shape.CircleShape),
                 color = Color(0xFFE8F5E9),
                 trackColor = Color(0xFFF3F3F3)
             )
@@ -232,7 +215,7 @@ fun ActivityRow(steps: Int, burned: Int) {
             modifier = Modifier.weight(1f)
         ) {
              Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
-                 Icon(Icons.Filled.DirectionsWalk, null, modifier = Modifier.size(16.dp))
+                 Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null, modifier = Modifier.size(16.dp))
                  Text(" Steps +0", fontSize = 12.sp, fontWeight = FontWeight.Bold)
              }
         }
@@ -267,7 +250,7 @@ fun WaterTrackerCard(consumed: Int, onAdd: () -> Unit, onRemove: () -> Unit) {
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onRemove) { Icon(Icons.Filled.RemoveCircleOutline, null) }
-                IconButton(onClick = onAdd, modifier = Modifier.background(Color.Black, CircleShape).size(32.dp)) { 
+                IconButton(onClick = onAdd, modifier = Modifier.background(Color.Black, androidx.compose.foundation.shape.CircleShape).size(32.dp)) { 
                     Icon(Icons.Filled.Add, null, tint = Color.White, modifier = Modifier.size(16.dp)) 
                 }
             }
@@ -306,7 +289,7 @@ fun HeaderSection() {
         
         Surface(
             color = Color(0xFFF9F9F9),
-            shape = RoundedCornerShape(20.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
             modifier = Modifier.width(72.dp).height(40.dp)
         ) {
             Row(
@@ -322,7 +305,6 @@ fun HeaderSection() {
 
 @Composable
 fun DateSelector(selectedDate: Calendar, onDateSelected: (Calendar) -> Unit) {
-    val calendar = Calendar.getInstance()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -334,13 +316,13 @@ fun DateSelector(selectedDate: Calendar, onDateSelected: (Calendar) -> Unit) {
             val isSelected = selectedDate.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR) && selectedDate.get(Calendar.YEAR) == day.get(Calendar.YEAR)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = if (isSelected) {
-                    Modifier
-                        .background(Color(0xFF1C1C1E), RoundedCornerShape(24.dp))
-                        .padding(vertical = 8.dp, horizontal = 12.dp)
-                } else {
-                    Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
-                }
+                modifier = Modifier
+                    .clickable { onDateSelected(day) }
+                    .background(
+                        color = if (isSelected) Color(0xFF1C1C1E) else Color.Transparent,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
+                    )
+                    .padding(vertical = 8.dp, horizontal = 12.dp)
             ) {
                 Text(
                     day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "", 
@@ -486,4 +468,3 @@ fun MacroInfo(text: String, icon: ImageVector, color: Color) {
         Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
     }
 }
-

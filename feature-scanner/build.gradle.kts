@@ -65,4 +65,7 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+    
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
