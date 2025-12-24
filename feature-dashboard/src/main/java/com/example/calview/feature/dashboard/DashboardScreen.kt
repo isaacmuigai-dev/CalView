@@ -487,14 +487,3 @@ fun MacroInfo(text: String, icon: ImageVector, color: Color) {
     }
 }
 
-data class DashboardState(
-    val consumedCalories: Int = 0,
-    val remainingCalories: Int = 0,
-    val goalCalories: Int = 2000,
-    val proteinG: Int = 0,
-    val carbsG: Int = 0,
-    val fatsG: Int = 0,
-    val meals: List<MealEntity> = emptyList(),
-    val selectedDate: Calendar = Calendar.getInstance(),
-    val waterConsumed: Int = 0
-)
