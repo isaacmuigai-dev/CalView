@@ -20,8 +20,8 @@ fun CalorieRing(
     goal: Float,
     modifier: Modifier = Modifier
 ) {
-    val progress = (consumed.toFloat() / goal.toFloat()).coerceIn(0f, 1f)
-    val remaining = (goal - consumed).coerceAtLeast(0)
+    val progress = (consumed / goal).coerceIn(0f, 1f)
+    val remaining = (goal - consumed).coerceAtLeast(0f).toInt()
 
     Box(
         modifier = modifier,
