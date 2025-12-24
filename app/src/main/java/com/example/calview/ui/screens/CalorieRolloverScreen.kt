@@ -136,7 +136,7 @@ fun RolloverCard(
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocalFireDepartment, contentDescription = null, tint = if (title == "Yesterday") Color(0xFFD64D50) else Color.Black, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = if (title == "Yesterday") Color(0xFFD64D50) else Color.Black, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (title == "Yesterday") Color(0xFFD64D50) else Color.Black, fontFamily = FontFamily.SansSerif)
                 }
@@ -150,7 +150,7 @@ fun RolloverCard(
 
                 if (extra != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                        Icon(Icons.Default.LocalFireDepartment, contentDescription = null, tint = Color(0xFF6A8FB3), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = Color(0xFF6A8FB3), modifier = Modifier.size(12.dp))
                         Text("+$extra", fontSize = 12.sp, color = Color(0xFF6A8FB3), fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif)
                     }
                 }

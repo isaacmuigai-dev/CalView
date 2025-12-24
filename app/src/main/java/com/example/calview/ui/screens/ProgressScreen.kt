@@ -26,8 +26,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.filled.HelpOutline
-import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.Opacity
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -183,9 +183,9 @@ fun TotalCaloriesCard() {
             ) {
                 MacroLegend(Color(0xFFD64D50), Icons.Default.Favorite, "Protein")
                 Spacer(modifier = Modifier.width(16.dp))
-                MacroLegend(Color(0xFFE5A87B), Icons.Default.Grass, "Carbs")
+                MacroLegend(Color(0xFFE5A87B), Icons.Default.LocalFlorist, "Carbs")
                 Spacer(modifier = Modifier.width(16.dp))
-                MacroLegend(Color(0xFF6A8FB3), Icons.Default.Opacity, "Fats")
+                MacroLegend(Color(0xFF6A8FB3), Icons.Default.WaterDrop, "Fats")
             }
             
             Spacer(modifier = Modifier.height(24.dp))

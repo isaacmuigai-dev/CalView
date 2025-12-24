@@ -46,45 +46,15 @@ fun OnboardingNavHost(
         composable("transition") {
             WeightTransitionScreen(
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("gender") }
+                onContinue = { navController.navigate("user_profile") }
             )
         }
-        composable("gender") {
-            GenderScreen(
+        // Consolidated user profile screen replaces: gender, birthdate, height_weight, workouts, goal, diet
+        composable("user_profile") {
+            UserProfileScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("birthdate") }
-            )
-        }
-        composable("birthdate") {
-            BirthDateScreen(
-                viewModel = viewModel,
-                onNext = { navController.navigate("height_weight") }
-            )
-        }
-        composable("height_weight") {
-            HeightWeightScreen(
-                viewModel = viewModel,
-                onNext = { navController.navigate("workouts") }
-            )
-        }
-        composable("workouts") {
-            WorkoutsScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("goal") }
-            )
-        }
-        composable("goal") {
-            GoalSelectionScreen(
-                viewModel = viewModel,
-                onNext = { navController.navigate("diet") }
-            )
-        }
-        composable("diet") {
-            DietPreferenceScreen(
-                viewModel = viewModel,
-                onNext = { navController.navigate("calories_burned") }
+                onComplete = { navController.navigate("calories_burned") }
             )
         }
         composable("calories_burned") {

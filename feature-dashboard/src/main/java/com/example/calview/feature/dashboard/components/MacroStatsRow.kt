@@ -3,9 +3,9 @@ package com.example.calview.feature.dashboard.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Avocado
-import androidx.compose.material.icons.filled.Egg
-import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +42,7 @@ fun MacroStatsRow(
             value = "${carbs}g",
             progress = 0.6f,
             color = Color(0xFFE5A87B),
-            icon = Icons.Default.Grass,
+            icon = Icons.Default.LocalFlorist,
             modifier = Modifier.weight(1f)
         )
         MacroGaugeCard(
@@ -50,7 +50,7 @@ fun MacroStatsRow(
             value = "${fats}g",
             progress = 0.4f,
             color = Color(0xFF6A8FB3),
-            icon = Icons.Default.Opacity,
+            icon = Icons.Default.WaterDrop,
             modifier = Modifier.weight(1f)
         )
     }

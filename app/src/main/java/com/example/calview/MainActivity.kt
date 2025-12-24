@@ -5,21 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FabPosition
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,14 +21,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.calview.ui.theme.CalViewTheme
-import com.example.calview.ui.screens.DashboardScreen
+import com.example.calview.core.ui.theme.CalViewTheme
+import com.example.calview.feature.dashboard.DashboardScreen
 import com.example.calview.feature.dashboard.DashboardViewModel
-import com.example.calview.ui.screens.SettingsScreen
+import com.example.calview.feature.dashboard.SettingsScreen
 import com.example.calview.feature.onboarding.OnboardingNavHost
-import com.example.calview.ui.screens.ScannerScreen
+import com.example.calview.feature.scanner.ScannerScreen
 import com.example.calview.feature.scanner.ScannerViewModel
-import com.example.calview.ui.screens.ProgressScreen
+import com.example.calview.feature.trends.ProgressScreen
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -101,7 +93,7 @@ fun MainTabs(onScanClick: () -> Unit) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
                     label = { Text("Home") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.Black,
@@ -114,7 +106,7 @@ fun MainTabs(onScanClick: () -> Unit) {
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.BarChart, contentDescription = "Progress") },
+                    icon = { Icon(Icons.Filled.BarChart, contentDescription = "Progress") },
                     label = { Text("Progress") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.Black,
@@ -127,7 +119,7 @@ fun MainTabs(onScanClick: () -> Unit) {
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
                     label = { Text("Settings") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.Black,
@@ -151,7 +143,7 @@ fun MainTabs(onScanClick: () -> Unit) {
                     .size(64.dp)
                     .offset(y = 48.dp) // Move FAB down to sit on bottom bar or near it
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Log Food", modifier = Modifier.size(32.dp))
+                Icon(Icons.Filled.Add, contentDescription = "Log Food", modifier = Modifier.size(32.dp))
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -160,9 +152,7 @@ fun MainTabs(onScanClick: () -> Unit) {
             when (selectedTab) {
                 0 -> {
                     val dashboardViewModel: DashboardViewModel = hiltViewModel()
-                    DashboardScreen(
-                        viewModel = dashboardViewModel
-                    )
+                    DashboardScreen(viewModel = dashboardViewModel)
                 }
                 1 -> ProgressScreen()
                 2 -> SettingsScreen()

@@ -1,14 +1,11 @@
 package com.example.calview.feature.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,30 +22,35 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.HealthAndSafety
-import androidx.compose.material.icons.filled.DirectionsWalk
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.calview.core.data.local.MealEntity
+import com.example.calview.feature.dashboard.components.CalorieRing
+import com.example.calview.feature.dashboard.components.MacroStatsRow
+import androidx.compose.ui.draw.clip
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel,
-    onScroll: (() -> Unit)? = null
+    viewModel: DashboardViewModel
 ) {
     val state by viewModel.dashboardState.collectAsState()
-    
+
     DashboardContent(
         state = state,
-        onScroll = onScroll
+        onDateSelected = { viewModel.selectDate(it) },
+        onAddWater = { viewModel.addWater() },
+        onRemoveWater = { viewModel.removeWater() }
     )
 }
 
 @Composable
 fun DashboardContent(
     state: DashboardState,
-    onScroll: (() -> Unit)? = null
+    onDateSelected: (Calendar) -> Unit,
+    onAddWater: () -> Unit,
+    onRemoveWater: () -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
 
@@ -61,9 +63,9 @@ fun DashboardContent(
         item {
             HeaderSection()
         }
-        
+
         item {
-            DateSelector()
+            DateSelector(selectedDate = state.selectedDate, onDateSelected = onDateSelected)
         }
 
         item {
@@ -74,8 +76,8 @@ fun DashboardContent(
             ) { page ->
                 when (page) {
                     0 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CaloriesCard(state.remainingCalories)
-                        com.example.calview.feature.dashboard.components.MacroStatsRow(
+                        CaloriesCard(state.remainingCalories, state.consumedCalories, state.goalCalories)
+                        MacroStatsRow(
                             protein = state.proteinG,
                             carbs = state.carbsG,
                             fats = state.fatsG
@@ -87,11 +89,11 @@ fun DashboardContent(
                     }
                     2 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         ActivityRow(steps = 0, burned = 0)
-                        WaterTrackerCard(consumed = 0)
+                        WaterTrackerCard(consumed = state.waterConsumed, onAdd = onAddWater, onRemove = onRemoveWater)
                     }
                 }
             }
-            
+
             // Pager Indicators
             Row(
                 Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -123,7 +125,7 @@ fun DashboardContent(
         items(state.meals) { meal ->
             RecentMealCard(meal)
         }
-        
+
         item {
             // Empty State if no meals
             if (state.meals.isEmpty()) {
@@ -132,7 +134,7 @@ fun DashboardContent(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(com.example.calview.feature.dashboard.RecentMealIcon, null, modifier = Modifier.size(60.dp), tint = Color(0xFFE8F5E9))
+                        Icon(RecentMealIcon, null, modifier = Modifier.size(60.dp), tint = Color(0xFFE8F5E9))
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Tap + to add your first meal of the day", color = Color.Gray, fontSize = 14.sp)
                     }
@@ -143,19 +145,14 @@ fun DashboardContent(
     }
 }
 
-// imports moved to top
-
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
     DashboardContent(
-        state = DashboardState(
-            remainingCalories = 1705,
-            proteinG = 117,
-            carbsG = 203,
-            fatsG = 47,
-            meals = emptyList()
-        )
+        state = DashboardState(),
+        onDateSelected = {},
+        onAddWater = {},
+        onRemoveWater = {}
     )
 }
 
@@ -165,9 +162,9 @@ fun MicroStatsRow(fiber: Int, sugar: Int, sodium: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MicroCard(label = "Fiber left", value = "${fiber}g", icon = Icons.Default.Circle, iconTint = Color(0xFFA5D6A7), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sugar left", value = "${sugar}g", icon = Icons.Default.Circle, iconTint = Color(0xFFF48FB1), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sodium left", value = "${sodium}mg", icon = Icons.Default.Circle, iconTint = Color(0xFFFFCC80), modifier = Modifier.weight(1f))
+        MicroCard(label = "Fiber left", value = "${fiber}g", icon = Icons.Filled.Circle, iconTint = Color(0xFFA5D6A7), modifier = Modifier.weight(1f))
+        MicroCard(label = "Sugar left", value = "${sugar}g", icon = Icons.Filled.Circle, iconTint = Color(0xFFF48FB1), modifier = Modifier.weight(1f))
+        MicroCard(label = "Sodium left", value = "${sodium}mg", icon = Icons.Filled.Circle, iconTint = Color(0xFFFFCC80), modifier = Modifier.weight(1f))
     }
 }
 
@@ -203,7 +200,7 @@ fun HealthScoreCard(score: Int) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                "Carbs and fat are on track. You're low in calories and protein, which can slow weight loss and impact muscle retention.",
+                "Carbs and fat are on track. You\'re low in calories and protein, which can slow weight loss and impact muscle retention.",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 lineHeight = 20.sp
@@ -224,7 +221,7 @@ fun ActivityRow(steps: Int, burned: Int) {
             modifier = Modifier.weight(1f)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-                Icon(Icons.Default.HealthAndSafety, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(24.dp))
+                Icon(Icons.Filled.HealthAndSafety, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(24.dp))
                 Text("Connect Google Health to track your steps", fontSize = 10.sp, textAlign = TextAlign.Center, color = Color.Gray)
             }
         }
@@ -235,7 +232,7 @@ fun ActivityRow(steps: Int, burned: Int) {
             modifier = Modifier.weight(1f)
         ) {
              Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
-                 Icon(Icons.Default.DirectionsWalk, null, modifier = Modifier.size(16.dp))
+                 Icon(Icons.Filled.DirectionsWalk, null, modifier = Modifier.size(16.dp))
                  Text(" Steps +0", fontSize = 12.sp, fontWeight = FontWeight.Bold)
              }
         }
@@ -256,22 +253,22 @@ fun ActivityCard(title: String, subtitle: String, modifier: Modifier = Modifier,
 }
 
 @Composable
-fun WaterTrackerCard(consumed: Int) {
+fun WaterTrackerCard(consumed: Int, onAdd: () -> Unit, onRemove: () -> Unit) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.WaterDrop, null, tint = Color(0xFF2196F3), modifier = Modifier.size(40.dp))
+            Icon(Icons.Filled.WaterDrop, null, tint = Color(0xFF2196F3), modifier = Modifier.size(40.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text("Water", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("$consumed fl oz (0 cups)", fontSize = 14.sp, color = Color.Gray)
+                Text("$consumed fl oz (${consumed/8} cups)", fontSize = 14.sp, color = Color.Gray)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { }) { Icon(Icons.Default.RemoveCircleOutline, null) }
-                IconButton(onClick = { }, modifier = Modifier.background(Color.Black, CircleShape).size(32.dp)) { 
-                    Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(16.dp)) 
+                IconButton(onClick = onRemove) { Icon(Icons.Filled.RemoveCircleOutline, null) }
+                IconButton(onClick = onAdd, modifier = Modifier.background(Color.Black, CircleShape).size(32.dp)) { 
+                    Icon(Icons.Filled.Add, null, tint = Color.White, modifier = Modifier.size(16.dp)) 
                 }
             }
         }
@@ -280,9 +277,7 @@ fun WaterTrackerCard(consumed: Int) {
 
 val RecentMealIcon: ImageVector
     @Composable
-    get() = Icons.Default.Restaurant // Fallback
-
-// imports moved to top
+    get() = Icons.Filled.Restaurant // Fallback
 
 @Composable
 fun HeaderSection() {
@@ -295,7 +290,7 @@ fun HeaderSection() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                Icons.Default.Favorite, 
+                Icons.Filled.Favorite, 
                 contentDescription = null, 
                 modifier = Modifier.size(24.dp),
                 tint = Color.Black
@@ -318,7 +313,7 @@ fun HeaderSection() {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.LocalFireDepartment, null, tint = Color(0xFFE5A87B), modifier = Modifier.size(20.dp))
+                Icon(Icons.Filled.LocalFireDepartment, null, tint = Color(0xFFE5A87B), modifier = Modifier.size(20.dp))
                 Text(" 0", fontWeight = FontWeight.Bold)
             }
         }
@@ -326,15 +321,17 @@ fun HeaderSection() {
 }
 
 @Composable
-fun DateSelector() {
+fun DateSelector(selectedDate: Calendar, onDateSelected: (Calendar) -> Unit) {
+    val calendar = Calendar.getInstance()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        listOf("Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue").forEachIndexed { index, day ->
-            val isSelected = day == "Mon"
+        (0..6).forEach { i ->
+            val day = Calendar.getInstance().apply { add(Calendar.DATE, i - 3) }
+            val isSelected = selectedDate.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR) && selectedDate.get(Calendar.YEAR) == day.get(Calendar.YEAR)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = if (isSelected) {
@@ -346,12 +343,12 @@ fun DateSelector() {
                 }
             ) {
                 Text(
-                    day, 
+                    day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "", 
                     fontSize = 12.sp, 
                     color = if (isSelected) Color.White else Color.Gray
                 )
                 Text(
-                    (17 + index).toString(), 
+                    day.get(Calendar.DAY_OF_MONTH).toString(), 
                     fontWeight = FontWeight.Bold, 
                     color = if (isSelected) Color.White else Color.Black
                 )
@@ -361,7 +358,7 @@ fun DateSelector() {
 }
 
 @Composable
-fun CaloriesCard(remaining: Int) {
+fun CaloriesCard(remaining: Int, consumed: Int, goal: Int) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(24.dp),
@@ -384,13 +381,11 @@ fun CaloriesCard(remaining: Int) {
             }
             
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
-                com.example.calview.feature.dashboard.components.CalorieRing(
-                    consumed = 0f, 
-                    total = 1705f,
-                    color = Color.Black,
-                    strokeWidth = 10.dp
+                CalorieRing(
+                    consumed = consumed.toFloat(), 
+                    goal = goal.toFloat(),
                 )
-                Icon(Icons.Default.LocalFireDepartment, null, tint = Color.Black, modifier = Modifier.size(24.dp))
+                Icon(Icons.Filled.LocalFireDepartment, null, tint = Color.Black, modifier = Modifier.size(24.dp))
             }
         }
     }
@@ -419,7 +414,7 @@ fun MacroCard(label: String, value: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RecentMealCard(meal: com.example.calview.core.data.local.MealEntity) {
+fun RecentMealCard(meal: MealEntity) {
     CalAICard(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -459,7 +454,7 @@ fun RecentMealCard(meal: com.example.calview.core.data.local.MealEntity) {
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.LocalFireDepartment, 
+                        imageVector = Icons.Filled.LocalFireDepartment, 
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurface
@@ -474,9 +469,9 @@ fun RecentMealCard(meal: com.example.calview.core.data.local.MealEntity) {
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MacroInfo(text = "${meal.protein}g", icon = Icons.Default.Favorite, Color(0xFFFF5252))
-                    MacroInfo(text = "${meal.carbs}g", icon = Icons.Default.Eco, Color(0xFFFFAB40))
-                    MacroInfo(text = "${meal.fats}g", icon = Icons.Default.Opacity, Color(0xFF448AFF))
+                    MacroInfo(text = "${meal.protein}g", icon = Icons.Filled.Favorite, Color(0xFFFF5252))
+                    MacroInfo(text = "${meal.carbs}g", icon = Icons.Filled.Eco, Color(0xFFFFAB40))
+                    MacroInfo(text = "${meal.fats}g", icon = Icons.Filled.WaterDrop, Color(0xFF448AFF))
                 }
             }
         }
@@ -491,3 +486,15 @@ fun MacroInfo(text: String, icon: ImageVector, color: Color) {
         Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
     }
 }
+
+data class DashboardState(
+    val consumedCalories: Int = 0,
+    val remainingCalories: Int = 0,
+    val goalCalories: Int = 2000,
+    val proteinG: Int = 0,
+    val carbsG: Int = 0,
+    val fatsG: Int = 0,
+    val meals: List<MealEntity> = emptyList(),
+    val selectedDate: Calendar = Calendar.getInstance(),
+    val waterConsumed: Int = 0
+)

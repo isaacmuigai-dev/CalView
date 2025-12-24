@@ -2,8 +2,8 @@ package com.example.calview.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calview.data.local.MealEntity
-import com.example.calview.data.repository.MealRepository
+import com.example.calview.core.data.local.MealEntity
+import com.example.calview.core.data.repository.MealRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import java.util.Calendar

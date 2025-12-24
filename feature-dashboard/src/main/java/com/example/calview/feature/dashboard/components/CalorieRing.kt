@@ -16,8 +16,8 @@ import com.example.calview.core.ui.theme.CalAIGreen
 
 @Composable
 fun CalorieRing(
-    consumed: Int,
-    goal: Int,
+    consumed: Float,
+    goal: Float,
     modifier: Modifier = Modifier
 ) {
     val progress = (consumed.toFloat() / goal.toFloat()).coerceIn(0f, 1f)

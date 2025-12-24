@@ -6,10 +6,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.calview.ui.components.CalAICard
@@ -43,7 +45,7 @@ fun AccomplishmentsContent(
     onBack: () -> Unit,
     onContinue: () -> Unit
 ) {
-    val options = listOf(
+    val options: List<Pair<String, ImageVector>> = listOf(
         "Eat and live healthier" to Icons.Filled.Eco,
         "Boost my energy and mood" to Icons.Filled.LightMode,
         "Stay motivated and consistent" to Icons.Filled.FitnessCenter,
