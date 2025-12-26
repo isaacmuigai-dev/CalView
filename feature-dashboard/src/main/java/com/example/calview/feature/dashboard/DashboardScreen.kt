@@ -577,7 +577,21 @@ private fun DateItemCompact(
                             )
                         }
                     }
-                    else -> Modifier
+                    else -> {
+                        // Dashed gray circle border for all other dates
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = grayColor,
+                                style = Stroke(
+                                    width = 1.5.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(
+                                        floatArrayOf(5f, 5f), 
+                                        0f
+                                    )
+                                )
+                            )
+                        }
+                    }
                 }
             )
             .clickable { onClick() },
