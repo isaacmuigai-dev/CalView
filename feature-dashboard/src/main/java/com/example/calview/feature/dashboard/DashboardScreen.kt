@@ -194,28 +194,28 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = value, 
-                fontSize = 20.sp, 
+                fontSize = 22.sp, 
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = label, 
-                fontSize = 12.sp, 
+                fontSize = 11.sp, 
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            // Circular progress ring with icon
+            // Circular progress ring with icon - larger size
             Box(
                 contentAlignment = Alignment.Center, 
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(70.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
                 // Draw ring using Canvas for proper visibility
@@ -227,16 +227,16 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
                         sweepAngle = 360f,
                         useCenter = false,
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
-                            width = 5.dp.toPx(),
+                            width = 6.dp.toPx(),
                             cap = androidx.compose.ui.graphics.StrokeCap.Round
                         )
                     )
                 }
-                // Icon in center
+                // Icon in center - larger
                 Icon(
                     imageVector = icon, 
                     contentDescription = null, 
-                    modifier = Modifier.size(20.dp), 
+                    modifier = Modifier.size(28.dp), 
                     tint = iconTint
                 )
             }
