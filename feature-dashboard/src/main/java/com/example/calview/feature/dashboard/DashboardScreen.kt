@@ -109,14 +109,17 @@ fun DashboardContent(
                 pageSpacing = 16.dp
             ) { page ->
                 when (page) {
-                    0 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CaloriesCard(state.remainingCalories, state.consumedCalories, state.goalCalories)
-                        MacroStatsRow(
-                            protein = state.proteinG,
-                            carbs = state.carbsG,
-                            fats = state.fatsG
-                        )
-                    }
+                    0 -> NutritionOverviewCard(
+                        remainingCalories = state.remainingCalories,
+                        consumedCalories = state.consumedCalories,
+                        goalCalories = state.goalCalories,
+                        protein = state.proteinG,
+                        carbs = state.carbsG,
+                        fats = state.fatsG,
+                        proteinConsumed = 0,
+                        carbsConsumed = 0,
+                        fatsConsumed = 0
+                    )
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         MicroStatsRow(fiber = 38, sugar = 64, sodium = 2300)
                         HealthScoreCard(score = 0)
@@ -563,6 +566,264 @@ private fun DateItem(
                     else -> Color(0xFF424242)
                 }
             )
+        }
+    }
+}
+
+// Unified card combining CaloriesCard and MacroStatsRow with shared toggle
+@Composable
+fun NutritionOverviewCard(
+    remainingCalories: Int,
+    consumedCalories: Int,
+    goalCalories: Int,
+    protein: Int,
+    carbs: Int,
+    fats: Int,
+    proteinConsumed: Int = 0,
+    carbsConsumed: Int = 0,
+    fatsConsumed: Int = 0
+) {
+    // Shared toggle state for all cards
+    var showEaten by remember { mutableStateOf(true) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showEaten = !showEaten },
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Calories Card Section
+        CalAICard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    AnimatedContent(
+                        targetState = showEaten,
+                        transitionSpec = {
+                            (slideInVertically { height -> height } + fadeIn(animationSpec = tween(300)))
+                                .togetherWith(slideOutVertically { height -> -height } + fadeOut(animationSpec = tween(300)))
+                        },
+                        label = "calories_animation"
+                    ) { isEaten ->
+                        Column {
+                            if (isEaten) {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(SpanStyle(
+                                            fontSize = 40.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )) {
+                                            append(consumedCalories.toString())
+                                        }
+                                        withStyle(SpanStyle(
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Normal,
+                                            color = Color.Gray
+                                        )) {
+                                            append(" /$goalCalories")
+                                        }
+                                    }
+                                )
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(SpanStyle(color = Color.Gray)) {
+                                            append("Calories ")
+                                        }
+                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append("eaten")
+                                        }
+                                    },
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            } else {
+                                Text(
+                                    text = remainingCalories.toString(),
+                                    fontSize = 40.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(SpanStyle(color = Color.Gray)) {
+                                            append("Calories ")
+                                        }
+                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append("left")
+                                        }
+                                    },
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Calorie ring
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+                    CalorieRing(
+                        consumed = consumedCalories.toFloat(), 
+                        goal = goalCalories.toFloat(),
+                    )
+                    Icon(Icons.Filled.LocalFireDepartment, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+        
+        // Macro Stats Row Section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Protein Card
+            MacroCardUnified(
+                label = "Protein",
+                goalValue = protein,
+                consumedValue = proteinConsumed,
+                showEaten = showEaten,
+                color = Color(0xFFE57373),
+                trackColor = Color(0xFFE8E8E8),
+                icon = Icons.Filled.Favorite,
+                modifier = Modifier.weight(1f)
+            )
+            // Carbs Card
+            MacroCardUnified(
+                label = "Carbs",
+                goalValue = carbs,
+                consumedValue = carbsConsumed,
+                showEaten = showEaten,
+                color = Color(0xFFE5A87B),
+                trackColor = Color(0xFFE8E8E8),
+                icon = Icons.Filled.LocalFlorist,
+                modifier = Modifier.weight(1f)
+            )
+            // Fats Card
+            MacroCardUnified(
+                label = "Fats",
+                goalValue = fats,
+                consumedValue = fatsConsumed,
+                showEaten = showEaten,
+                color = Color(0xFF64B5F6),
+                trackColor = Color(0xFFE8E8E8),
+                icon = Icons.Filled.WaterDrop,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun MacroCardUnified(
+    label: String,
+    goalValue: Int,
+    consumedValue: Int,
+    showEaten: Boolean,
+    color: Color,
+    trackColor: Color,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    val remaining = goalValue - consumedValue
+    
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            AnimatedContent(
+                targetState = showEaten,
+                transitionSpec = {
+                    (slideInVertically { height -> height } + fadeIn(animationSpec = tween(300)))
+                        .togetherWith(slideOutVertically { height -> -height } + fadeOut(animationSpec = tween(300)))
+                },
+                label = "macro_animation"
+            ) { isEaten ->
+                Column {
+                    if (isEaten) {
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )) {
+                                    append(consumedValue.toString())
+                                }
+                                withStyle(SpanStyle(
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )) {
+                                    append(" /${goalValue}g")
+                                }
+                            }
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.Gray)) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("eaten")
+                                }
+                            },
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    } else {
+                        Text(
+                            text = "${remaining}g",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.Gray)) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("left")
+                                }
+                            },
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Ring with icon - compact size matching reference
+            Box(
+                contentAlignment = Alignment.Center, 
+                modifier = Modifier
+                    .size(55.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawArc(
+                        color = trackColor,
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                }
+                Icon(
+                    imageVector = icon, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(18.dp), 
+                    tint = color
+                )
+            }
         }
     }
 }
