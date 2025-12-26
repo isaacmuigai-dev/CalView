@@ -140,6 +140,36 @@ fun DashboardContent(
         item {
             HealthScoreCardPremium(score = 0)
         }
+        
+        // Activity Section: Steps Today + Calories Burned
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StepsTodayCard(
+                    steps = 0,
+                    goal = 10000,
+                    isConnected = false,
+                    onConnectClick = { /* TODO: Connect to Health Connect */ },
+                    modifier = Modifier.weight(1f)
+                )
+                CaloriesBurnedCard(
+                    calories = 0,
+                    stepsCalories = 0,
+                    modifier = Modifier.weight(0.8f)
+                )
+            }
+        }
+        
+        // Water Tracker Card - Premium design
+        item {
+            WaterCardPremium(
+                consumed = state.waterConsumed,
+                onAdd = onAddWater,
+                onRemove = onRemoveWater
+            )
+        }
 
         item {
             Text(
@@ -996,6 +1026,316 @@ fun HealthScoreCardPremium(score: Int) {
                 color = Color.Gray,
                 lineHeight = 20.sp
             )
+        }
+    }
+}
+
+// Steps Today Card with Health Connect integration
+@Composable
+fun StepsTodayCard(
+    steps: Int,
+    goal: Int,
+    isConnected: Boolean,
+    onConnectClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Steps count header
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )) {
+                        append(steps.toString())
+                    }
+                    withStyle(SpanStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray
+                    )) {
+                        append(" /$goal")
+                    }
+                }
+            )
+            
+            Text(
+                text = "Steps Today",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            if (isConnected) {
+                // Connected state: Show progress ring with footprints
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Outer ring (track)
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier.size(120.dp)
+                    ) {
+                        drawCircle(
+                            color = Color(0xFFE8E8E8),
+                            style = Stroke(width = 8.dp.toPx())
+                        )
+                    }
+                    // Inner ring
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier.size(80.dp)
+                    ) {
+                        drawCircle(
+                            color = Color(0xFFF0F0F0),
+                            style = Stroke(width = 6.dp.toPx())
+                        )
+                    }
+                    // Footprints icon
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = "Steps",
+                        modifier = Modifier.size(32.dp),
+                        tint = Color(0xFF424242)
+                    )
+                }
+            } else {
+                // Not connected: Show connection prompt
+                Spacer(modifier = Modifier.weight(1f))
+                
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onConnectClick() },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Google Health icon (simplified)
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color(0xFFEA4335),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        
+                        Text(
+                            text = "Connect Google Health to track your steps",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF424242),
+                            lineHeight = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Calories Burned Card
+@Composable
+fun CaloriesBurnedCard(
+    calories: Int,
+    stepsCalories: Int,
+    modifier: Modifier = Modifier
+) {
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header with fire icon
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocalFireDepartment,
+                    contentDescription = null,
+                    tint = Color(0xFF424242),
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = calories.toString(),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Text(
+                text = "Calories burned",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Steps calories row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Sneaker icon in dark circle
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFF1C1C1E), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                Column {
+                    Text(
+                        text = "Steps",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "+$stepsCalories",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Premium Water Card
+@Composable
+fun WaterCardPremium(
+    consumed: Int,
+    onAdd: () -> Unit,
+    onRemove: () -> Unit
+) {
+    val cups = consumed / 8 // 8 fl oz per cup
+    
+    CalAICard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Water glass icon
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color(0xFFF0F4FF), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.WaterDrop,
+                    contentDescription = null,
+                    tint = Color(0xFF42A5F5),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // Water info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Water",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "$consumed fl oz",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "($cups cups)",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            
+            // +/- buttons
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Minus button - outline
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(1.5.dp, Color(0xFF1C1C1E), CircleShape)
+                        .clickable { onRemove() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Remove,
+                        contentDescription = "Remove",
+                        tint = Color(0xFF1C1C1E),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                // Plus button - filled
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFF1C1C1E), CircleShape)
+                        .clickable { onAdd() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 }
