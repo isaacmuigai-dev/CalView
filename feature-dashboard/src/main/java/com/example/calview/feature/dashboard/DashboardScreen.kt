@@ -1,23 +1,33 @@
 package com.example.calview.feature.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +38,7 @@ import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.feature.dashboard.components.CalorieRing
 import com.example.calview.feature.dashboard.components.MacroStatsRow
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -64,7 +75,11 @@ fun DashboardContent(
         }
 
         item {
-            DateSelector(selectedDate = state.selectedDate, onDateSelected = onDateSelected)
+            DateSelector(
+                selectedDate = state.selectedDate, 
+                onDateSelected = onDateSelected,
+                mealsForDates = state.meals
+            )
         }
 
         item {
@@ -272,70 +287,301 @@ fun HeaderSection() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Filled.Favorite, 
-                contentDescription = null, 
-                modifier = Modifier.size(24.dp),
-                tint = Color.Black
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Cal AI",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            // Camera icon with gradient background
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                            colors = listOf(Color(0xFF667EEA), Color(0xFF764BA2))
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Filled.CameraAlt, 
+                    contentDescription = "Camera", 
+                    modifier = Modifier.size(22.dp),
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    "CalViewAI",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1C1C1E)
+                )
+                Text(
+                    "Track & Thrive",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
         }
         
+        // Streak counter with modern pill design
         Surface(
-            color = Color(0xFFF9F9F9),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-            modifier = Modifier.width(72.dp).height(40.dp)
+            color = Color(0xFFFFF3E0),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.height(40.dp)
         ) {
             Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.LocalFireDepartment, null, tint = Color(0xFFE5A87B), modifier = Modifier.size(20.dp))
-                Text(" 0", fontWeight = FontWeight.Bold)
+                Icon(
+                    Icons.Filled.LocalFireDepartment, 
+                    null, 
+                    tint = Color(0xFFFF6B35), 
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    "0", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF6B35)
+                )
             }
         }
     }
 }
 
 @Composable
-fun DateSelector(selectedDate: Calendar, onDateSelected: (Calendar) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        (0..6).forEach { i ->
-            val day = Calendar.getInstance().apply { add(Calendar.DATE, i - 3) }
-            val isSelected = selectedDate.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR) && selectedDate.get(Calendar.YEAR) == day.get(Calendar.YEAR)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .clickable { onDateSelected(day) }
-                    .background(
-                        color = if (isSelected) Color(0xFF1C1C1E) else Color.Transparent,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
+fun DateSelector(
+    selectedDate: Calendar, 
+    onDateSelected: (Calendar) -> Unit,
+    mealsForDates: List<MealEntity> = emptyList()
+) {
+    val today = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    val listState = rememberLazyListState()
+    
+    // Generate 30 days: 15 before today, today, 14 after
+    val days = (-15..14).map { offset ->
+        Calendar.getInstance().apply { add(Calendar.DATE, offset) }
+    }
+    
+    // Center on today (index 15) when first composed
+    LaunchedEffect(Unit) {
+        listState.scrollToItem(12) // Scroll to show today in view
+    }
+    
+    // Helper to check if a date has meals logged
+    fun hasMealsOnDate(date: Calendar): Boolean {
+        // For now, just check if we have any meals (would need date field in MealEntity for real implementation)
+        return mealsForDates.isNotEmpty() && date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+    }
+    
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Month and Year Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = dateFormat.format(selectedDate.time),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C1C1E)
+            )
+            
+            // Navigation arrows
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconButton(
+                    onClick = { 
+                        val newDate = selectedDate.clone() as Calendar
+                        newDate.add(Calendar.DATE, -7)
+                        onDateSelected(newDate)
+                    },
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(0xFFF5F5F5), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Filled.ChevronLeft, 
+                        contentDescription = "Previous week",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
                     )
-                    .padding(vertical = 8.dp, horizontal = 12.dp)
-            ) {
-                Text(
-                    day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "", 
-                    fontSize = 12.sp, 
-                    color = if (isSelected) Color.White else Color.Gray
-                )
-                Text(
-                    day.get(Calendar.DAY_OF_MONTH).toString(), 
-                    fontWeight = FontWeight.Bold, 
-                    color = if (isSelected) Color.White else Color.Black
+                }
+                IconButton(
+                    onClick = { 
+                        val newDate = selectedDate.clone() as Calendar
+                        newDate.add(Calendar.DATE, 7)
+                        onDateSelected(newDate)
+                    },
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(0xFFF5F5F5), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Filled.ChevronRight, 
+                        contentDescription = "Next week",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+        
+        // Scrollable Date Row
+        LazyRow(
+            state = listState,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(days.size) { index ->
+                val day = days[index]
+                val isToday = day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) && 
+                              day.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                val isSelected = day.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR) && 
+                                 day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR)
+                val hasMeals = hasMealsOnDate(day)
+                
+                DateItem(
+                    day = day,
+                    isToday = isToday,
+                    isSelected = isSelected,
+                    hasMeals = hasMeals,
+                    onClick = { onDateSelected(day) }
                 )
             }
         }
+        
+        // Legend
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendItem(color = Color(0xFFFFD700), label = "Today", isDashed = false)
+            Spacer(modifier = Modifier.width(16.dp))
+            LegendItem(color = Color(0xFFE53935), label = "Has Logs", isDashed = false)
+            Spacer(modifier = Modifier.width(16.dp))
+            LegendItem(color = Color(0xFFE53935), label = "No Logs", isDashed = true)
+        }
+    }
+}
+
+@Composable
+private fun DateItem(
+    day: Calendar,
+    isToday: Boolean,
+    isSelected: Boolean,
+    hasMeals: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = when {
+        isToday -> Color(0xFFFFD700) // Golden yellow for today
+        hasMeals -> Color(0xFFE53935) // Solid red for dates with meals
+        else -> Color(0xFFE53935) // Red for dates without (will be dashed)
+    }
+    
+    val dashEffect = if (!isToday && !hasMeals) {
+        PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
+    } else null
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(4.dp)
+    ) {
+        // Day name
+        Text(
+            text = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (isSelected) Color(0xFF1C1C1E) else Color.Gray
+        )
+        
+        Spacer(modifier = Modifier.height(6.dp))
+        
+        // Date number with circular border
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .then(
+                    if (isSelected) {
+                        Modifier.background(Color(0xFF1C1C1E), CircleShape)
+                    } else {
+                        Modifier
+                            .drawBehind {
+                                drawCircle(
+                                    color = borderColor,
+                                    style = Stroke(
+                                        width = 2.dp.toPx(),
+                                        pathEffect = dashEffect
+                                    )
+                                )
+                            }
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = day.get(Calendar.DAY_OF_MONTH).toString(),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) Color.White else Color(0xFF1C1C1E)
+            )
+        }
+        
+        // Status dot indicator
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(
+                    color = when {
+                        isToday -> Color(0xFFFFD700)
+                        hasMeals -> Color(0xFF4CAF50)
+                        else -> Color.Transparent
+                    },
+                    shape = CircleShape
+                )
+        )
+    }
+}
+
+@Composable
+private fun LegendItem(color: Color, label: String, isDashed: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .then(
+                    if (isDashed) {
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = color,
+                                style = Stroke(
+                                    width = 1.5.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f), 0f)
+                                )
+                            )
+                        }
+                    } else {
+                        Modifier.border(1.5.dp, color, CircleShape)
+                    }
+                )
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = Color.Gray
+        )
     }
 }
 
