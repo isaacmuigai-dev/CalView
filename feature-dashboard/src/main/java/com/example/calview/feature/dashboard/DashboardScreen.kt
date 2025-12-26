@@ -431,23 +431,15 @@ private fun DateItem(
     // Colors matching reference image
     val coralColor = Color(0xFFE57373) // Coral/salmon for dates with logs
     val grayColor = Color(0xFFBDBDBD) // Gray for dashed circles
+    val selectedBgColor = Color(0xFF1C1C1E) // Dark background for selected date
     
-    // Calculate width to fit 7 items on screen (~48.dp per item)
+    // Calculate width to fit 7 items on screen (~44.dp per item)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(44.dp)
             .clickable { onClick() }
-            .then(
-                if (isSelected) {
-                    // White rounded rectangle background for selected date
-                    Modifier
-                        .background(Color.White, RoundedCornerShape(12.dp))
-                        .padding(vertical = 6.dp)
-                } else {
-                    Modifier.padding(vertical = 6.dp)
-                }
-            )
+            .padding(vertical = 6.dp)
     ) {
         // Day name (Sun, Mon, etc.)
         Text(
@@ -466,8 +458,8 @@ private fun DateItem(
                 .then(
                     when {
                         isSelected -> {
-                            // Selected: just show the number, the white background is on parent
-                            Modifier
+                            // Selected: dark filled circle background
+                            Modifier.background(selectedBgColor, CircleShape)
                         }
                         hasMeals -> {
                             // Has meals: solid coral circle border
@@ -502,8 +494,8 @@ private fun DateItem(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = when {
+                    isSelected -> Color.White // White text on dark background
                     hasMeals -> coralColor
-                    isSelected -> Color(0xFF1C1C1E)
                     else -> Color(0xFF424242)
                 }
             )
