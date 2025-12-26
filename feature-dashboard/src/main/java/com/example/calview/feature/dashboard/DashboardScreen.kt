@@ -432,56 +432,108 @@ fun DateSelector(
 ) {
     val today = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-    val listState = rememberLazyListState()
     
-    // Generate 30 days: 15 before today, today, 14 after
-    val days = (-15..14).map { offset ->
-        Calendar.getInstance().apply { add(Calendar.DATE, offset) }
+    // Calculate the start of the current week (Sunday)
+    fun getWeekStart(date: Calendar): Calendar {
+        return (date.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        }
     }
     
-    // Center on today (index 15) when first composed
-    LaunchedEffect(Unit) {
-        listState.scrollToItem(12) // Scroll to show today in view
+    // Generate weeks: 4 weeks before, current week, 4 weeks after (9 total weeks)
+    val currentWeekStart = getWeekStart(today)
+    val weeks = (-4..4).map { weekOffset ->
+        val weekStart = (currentWeekStart.clone() as Calendar).apply {
+            add(Calendar.WEEK_OF_YEAR, weekOffset)
+        }
+        // Generate 7 days for this week (Sunday to Saturday)
+        (0..6).map { dayOffset ->
+            (weekStart.clone() as Calendar).apply { add(Calendar.DATE, dayOffset) }
+        }
     }
+    
+    // Find current week index (should be 4, the middle)
+    val currentWeekIndex = 4
+    val pagerState = rememberPagerState(
+        initialPage = currentWeekIndex,
+        pageCount = { weeks.size }
+    )
     
     // Helper to check if a date has meals logged
     fun hasMealsOnDate(date: Calendar): Boolean {
-        // For now, just check if we have any meals (would need date field in MealEntity for real implementation)
         return mealsForDates.isNotEmpty() && date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
     }
     
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Month and Year Header (centered, no navigation arrows)
-        Text(
-            text = dateFormat.format(selectedDate.time),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF1C1C1E),
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        
-        // Scrollable Date Row with light gray background - touch scrolling only
-        Box(
+        // Month and Year Header with week indicator
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF0F0F0), RoundedCornerShape(16.dp))
-                .padding(vertical = 8.dp)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            LazyRow(
-                state = listState,
+            Text(
+                text = dateFormat.format(selectedDate.time),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            
+            // Week indicator dots
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                repeat(weeks.size) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(
+                                if (index == pagerState.currentPage) 
+                                    MaterialTheme.colorScheme.primary 
+                                else 
+                                    Color(0xFFE0E0E0),
+                                CircleShape
+                            )
+                    )
+                }
+            }
+        }
+        
+        // Day name headers (Sun - Sat) - fixed at top
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat").forEach { dayName ->
+                Text(
+                    text = dayName,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF9E9E9E),
+                    modifier = Modifier.width(44.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Week Pager - swipe left/right to change weeks
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { weekIndex ->
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                items(days.size) { index ->
-                    val day = days[index]
+                weeks[weekIndex].forEach { day ->
                     val isToday = day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) && 
                                   day.get(Calendar.YEAR) == today.get(Calendar.YEAR)
                     val isSelected = day.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR) && 
                                      day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR)
                     val hasMeals = hasMealsOnDate(day)
                     
-                    DateItem(
+                    DateItemCompact(
                         day = day,
                         isToday = isToday,
                         isSelected = isSelected,
@@ -495,84 +547,63 @@ fun DateSelector(
 }
 
 @Composable
-private fun DateItem(
+private fun DateItemCompact(
     day: Calendar,
     isToday: Boolean,
     isSelected: Boolean,
     hasMeals: Boolean,
     onClick: () -> Unit
 ) {
-    // Colors matching reference image
-    val coralColor = Color(0xFFE57373) // Coral/salmon for dates with logs
-    val grayColor = Color(0xFFBDBDBD) // Gray for dashed circles
-    val selectedBgColor = Color(0xFF1C1C1E) // Dark background for selected date
+    // Premium color palette
+    val coralColor = Color(0xFFE57373)
+    val grayColor = Color(0xFFE0E0E0)
+    val selectedBgColor = MaterialTheme.colorScheme.primary
+    val todayIndicatorColor = Color(0xFF4CAF50)
     
-    // Calculate width to fit 7 items on screen (~44.dp per item)
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
         modifier = Modifier
-            .width(44.dp)
-            .clickable { onClick() }
-            .padding(vertical = 6.dp)
-    ) {
-        // Day name (Sun, Mon, etc.)
-        Text(
-            text = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "",
-            fontSize = 11.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isSelected) Color(0xFF1C1C1E) else Color(0xFF757575)
-        )
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // Date number with circular border - reduced size
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .then(
-                    when {
-                        isSelected -> {
-                            // Selected: dark filled circle background
-                            Modifier.background(selectedBgColor, CircleShape)
-                        }
-                        hasMeals -> {
-                            // Has meals: solid coral circle border
-                            Modifier.drawBehind {
-                                drawCircle(
-                                    color = coralColor,
-                                    style = Stroke(width = 2.dp.toPx())
-                                )
-                            }
-                        }
-                        else -> {
-                            // No meals: dashed gray circle border
-                            Modifier.drawBehind {
-                                drawCircle(
-                                    color = grayColor,
-                                    style = Stroke(
-                                        width = 1.5.dp.toPx(),
-                                        pathEffect = PathEffect.dashPathEffect(
-                                            floatArrayOf(5f, 5f), 
-                                            0f
-                                        )
-                                    )
-                                )
-                            }
+            .size(40.dp)
+            .clip(CircleShape)
+            .then(
+                when {
+                    isSelected -> {
+                        Modifier.background(selectedBgColor, CircleShape)
+                    }
+                    hasMeals -> {
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = coralColor,
+                                style = Stroke(width = 2.dp.toPx())
+                            )
                         }
                     }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = day.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = when {
-                    isSelected -> Color.White // White text on dark background
-                    hasMeals -> coralColor
-                    else -> Color(0xFF424242)
+                    else -> Modifier
                 }
             )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = day.get(Calendar.DAY_OF_MONTH).toString(),
+                fontSize = 16.sp,
+                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Medium,
+                color = when {
+                    isSelected -> Color.White
+                    isToday -> todayIndicatorColor
+                    hasMeals -> coralColor
+                    else -> MaterialTheme.colorScheme.onBackground
+                }
+            )
+            
+            // Today indicator dot
+            if (isToday && !isSelected) {
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(todayIndicatorColor, CircleShape)
+                )
+            }
         }
     }
 }
