@@ -187,6 +187,9 @@ fun MicroStatsRow(fiber: Int, sugar: Int, sodium: Int) {
 
 @Composable
 fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, modifier: Modifier = Modifier) {
+    // Calculate a darker track color based on the icon tint
+    val trackColor = iconTint.copy(alpha = 0.15f)
+    
     CalAICard(modifier = modifier) {
         Column(
             modifier = Modifier
@@ -207,19 +210,35 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(12.dp))
+            
+            // Circular progress ring with icon
             Box(
                 contentAlignment = Alignment.Center, 
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(60.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                CircularProgressIndicator(
-                    progress = { 0f }, 
-                    strokeWidth = 4.dp, 
-                    color = iconTint, 
-                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                // Draw ring using Canvas for proper visibility
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Track (background circle)
+                    drawArc(
+                        color = trackColor,
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 5.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                }
+                // Icon in center
+                Icon(
+                    imageVector = icon, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(20.dp), 
+                    tint = iconTint
                 )
-                Icon(icon, null, modifier = Modifier.size(16.dp), tint = iconTint)
             }
         }
     }
