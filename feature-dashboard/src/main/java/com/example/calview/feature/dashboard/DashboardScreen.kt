@@ -39,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -554,22 +556,39 @@ private fun DateItemCompact(
     hasMeals: Boolean,
     onClick: () -> Unit
 ) {
-    // Premium color palette
-    val coralColor = Color(0xFFE57373)
-    val grayColor = Color(0xFFE0E0E0)
-    val selectedBgColor = MaterialTheme.colorScheme.primary
-    val todayIndicatorColor = Color(0xFF4CAF50)
+    // Colors matching reference image exactly
+    val coralColor = Color(0xFFE88B8B) // Coral/red for meals logged
+    val grayDashedColor = Color(0xFFBDBDBD) // Gray for dashed borders
+    val todayBorderColor = Color(0xFF9E9E9E) // Gray solid for today
+    val selectedBgColor = Color.White // White background for selected
+    
+    // Check if Saturday (for fade effect at edge of week)
+    val isSaturday = day.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
+    val alphaModifier = if (isSaturday && !isSelected) 0.6f else 1f
     
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
+            .size(44.dp)
+            .alpha(alphaModifier)
             .then(
                 when {
                     isSelected -> {
-                        Modifier.background(selectedBgColor, CircleShape)
+                        // Selected: white rounded rectangle background with subtle shadow
+                        Modifier
+                            .background(selectedBgColor, RoundedCornerShape(12.dp))
+                            .shadow(2.dp, RoundedCornerShape(12.dp))
+                    }
+                    isToday && !hasMeals -> {
+                        // Today (no meals): solid gray circle border
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = todayBorderColor,
+                                style = Stroke(width = 2.dp.toPx())
+                            )
+                        }
                     }
                     hasMeals -> {
+                        // Meals logged: solid coral/red circle border
                         Modifier.drawBehind {
                             drawCircle(
                                 color = coralColor,
@@ -578,14 +597,14 @@ private fun DateItemCompact(
                         }
                     }
                     else -> {
-                        // Dashed gray circle border for all other dates
+                        // No meals: dashed gray circle border
                         Modifier.drawBehind {
                             drawCircle(
-                                color = grayColor,
+                                color = grayDashedColor,
                                 style = Stroke(
                                     width = 1.5.dp.toPx(),
                                     pathEffect = PathEffect.dashPathEffect(
-                                        floatArrayOf(5f, 5f), 
+                                        floatArrayOf(6f, 4f), 
                                         0f
                                     )
                                 )
@@ -597,28 +616,16 @@ private fun DateItemCompact(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = day.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 16.sp,
-                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Medium,
-                color = when {
-                    isSelected -> Color.White
-                    isToday -> todayIndicatorColor
-                    hasMeals -> coralColor
-                    else -> MaterialTheme.colorScheme.onBackground
-                }
-            )
-            
-            // Today indicator dot
-            if (isToday && !isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(4.dp)
-                        .background(todayIndicatorColor, CircleShape)
-                )
+        Text(
+            text = day.get(Calendar.DAY_OF_MONTH).toString(),
+            fontSize = 16.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = when {
+                isSelected -> MaterialTheme.colorScheme.onBackground
+                hasMeals -> coralColor
+                else -> Color(0xFF424242)
             }
-        }
+        )
     }
 }
 
