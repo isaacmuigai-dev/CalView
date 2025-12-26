@@ -57,6 +57,9 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    
+    // Guava for CameraX ListenableFuture
+    implementation("com.google.guava:guava:32.1.3-android")
 
     // Hilt
     implementation(libs.hilt.android)

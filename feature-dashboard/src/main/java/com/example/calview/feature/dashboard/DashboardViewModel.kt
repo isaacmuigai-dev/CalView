@@ -5,15 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.health.HealthConnectManager
+import com.example.calview.core.data.health.HealthData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val mealRepository: MealRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     // Load goal from preferences, defaulting to 2000 if not set or 0
@@ -29,8 +33,12 @@ class DashboardViewModel @Inject constructor(
 
     val meals = mealRepository.getMealsForToday()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
+    // Health Connect data
+    val healthData = healthConnectManager.healthData
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HealthData())
 
-    val dashboardState = combine(meals, dailyGoal, selectedDate, waterConsumed) { currentMeals, goal, date, water ->
+    val dashboardState = combine(meals, dailyGoal, selectedDate, waterConsumed, healthData) { currentMeals, goal, date, water, health ->
         val consumed = currentMeals.sumOf { it.calories }
         val protein = currentMeals.sumOf { it.protein }
         val carbs = currentMeals.sumOf { it.carbs }
@@ -45,9 +53,22 @@ class DashboardViewModel @Inject constructor(
             fatsG = fats,
             meals = currentMeals,
             selectedDate = date,
-            waterConsumed = water
+            waterConsumed = water,
+            steps = health.steps,
+            caloriesBurned = health.caloriesBurned.toInt(),
+            isHealthConnected = health.isConnected,
+            isHealthAvailable = health.isAvailable
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
+    
+    init {
+        // Check Health Connect availability and read data on init
+        viewModelScope.launch {
+            if (healthConnectManager.isAvailable()) {
+                healthConnectManager.readTodayData()
+            }
+        }
+    }
     
     fun selectDate(date: Calendar) {
         _selectedDate.value = date
@@ -60,6 +81,18 @@ class DashboardViewModel @Inject constructor(
     fun removeWater(amount: Int = 8) {
         _waterConsumed.value = (_waterConsumed.value - amount).coerceAtLeast(0)
     }
+    
+    fun onHealthPermissionsGranted() {
+        viewModelScope.launch {
+            healthConnectManager.onPermissionsGranted()
+        }
+    }
+    
+    fun refreshHealthData() {
+        viewModelScope.launch {
+            healthConnectManager.readTodayData()
+        }
+    }
 }
 
 data class DashboardState(
@@ -71,6 +104,9 @@ data class DashboardState(
     val fatsG: Int = 0,
     val meals: List<MealEntity> = emptyList(),
     val selectedDate: Calendar = Calendar.getInstance(),
-    val waterConsumed: Int = 0
+    val waterConsumed: Int = 0,
+    val steps: Long = 0,
+    val caloriesBurned: Int = 0,
+    val isHealthConnected: Boolean = false,
+    val isHealthAvailable: Boolean = false
 )
-

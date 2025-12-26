@@ -36,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -68,12 +70,29 @@ fun DashboardScreen(
     viewModel: DashboardViewModel
 ) {
     val state by viewModel.dashboardState.collectAsState()
+    val context = LocalContext.current
+    
+    // Health Connect permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = viewModel.healthConnectManager.createPermissionRequestContract()
+    ) { granted ->
+        if (granted.containsAll(viewModel.healthConnectManager.permissions)) {
+            viewModel.onHealthPermissionsGranted()
+        }
+    }
+    
+    val onConnectHealth: () -> Unit = {
+        if (viewModel.healthConnectManager.isAvailable()) {
+            permissionLauncher.launch(viewModel.healthConnectManager.permissions)
+        }
+    }
 
     DashboardContent(
         state = state,
         onDateSelected = { viewModel.selectDate(it) },
         onAddWater = { viewModel.addWater() },
-        onRemoveWater = { viewModel.removeWater() }
+        onRemoveWater = { viewModel.removeWater() },
+        onConnectHealth = onConnectHealth
     )
 }
 
@@ -82,7 +101,8 @@ fun DashboardContent(
     state: DashboardState,
     onDateSelected: (Calendar) -> Unit,
     onAddWater: () -> Unit,
-    onRemoveWater: () -> Unit
+    onRemoveWater: () -> Unit,
+    onConnectHealth: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -148,15 +168,15 @@ fun DashboardContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StepsTodayCard(
-                    steps = 0,
+                    steps = state.steps.toInt(),
                     goal = 10000,
-                    isConnected = false,
-                    onConnectClick = { /* TODO: Connect to Health Connect */ },
+                    isConnected = state.isHealthConnected,
+                    onConnectClick = onConnectHealth,
                     modifier = Modifier.weight(1f)
                 )
                 CaloriesBurnedCard(
-                    calories = 0,
-                    stepsCalories = 0,
+                    calories = state.caloriesBurned,
+                    stepsCalories = (state.steps * 0.04).toInt(), // Approx calories per step
                     modifier = Modifier.weight(0.8f)
                 )
             }

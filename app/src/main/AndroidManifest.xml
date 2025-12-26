@@ -3,7 +3,20 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
-
+    
+    <!-- Allow Health Connect library despite minSdk mismatch (feature disabled at runtime on API < 26) -->
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
+    <!-- Health Connect Permissions (requires API 28+, handled at runtime) -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" tools:targetApi="34" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" tools:targetApi="34" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" tools:targetApi="34" />
+    <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" tools:targetApi="34" />
+    
+    <!-- Query Health Connect package availability -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+    
     <application
         android:name=".CalViewApp"
         android:allowBackup="true"
