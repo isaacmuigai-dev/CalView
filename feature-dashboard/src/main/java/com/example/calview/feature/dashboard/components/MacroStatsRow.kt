@@ -1,6 +1,7 @@
 package com.example.calview.feature.dashboard.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,8 +9,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalFlorist
@@ -22,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -50,7 +54,7 @@ fun MacroStatsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { showEaten = !showEaten },
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         MacroGaugeCard(
             label = "Protein",
@@ -58,7 +62,8 @@ fun MacroStatsRow(
             consumedValue = proteinConsumed,
             showEaten = showEaten,
             progress = if (protein > 0) proteinConsumed.toFloat() / protein else 0f,
-            color = Color(0xFFD64D50),
+            color = Color(0xFFE57373), // Light red/coral
+            trackColor = Color(0xFF3D2C2C), // Dark reddish track
             icon = Icons.Default.Favorite,
             modifier = Modifier.weight(1f)
         )
@@ -68,7 +73,8 @@ fun MacroStatsRow(
             consumedValue = carbsConsumed,
             showEaten = showEaten,
             progress = if (carbs > 0) carbsConsumed.toFloat() / carbs else 0f,
-            color = Color(0xFFE5A87B),
+            color = Color(0xFFE5A87B), // Orange/wheat color
+            trackColor = Color(0xFF3D3328), // Dark orange track
             icon = Icons.Default.LocalFlorist,
             modifier = Modifier.weight(1f)
         )
@@ -78,7 +84,8 @@ fun MacroStatsRow(
             consumedValue = fatsConsumed,
             showEaten = showEaten,
             progress = if (fats > 0) fatsConsumed.toFloat() / fats else 0f,
-            color = Color(0xFF6A8FB3),
+            color = Color(0xFF64B5F6), // Light blue
+            trackColor = Color(0xFF2C3340), // Dark blue track
             icon = Icons.Default.WaterDrop,
             modifier = Modifier.weight(1f)
         )
@@ -93,16 +100,26 @@ fun MacroGaugeCard(
     showEaten: Boolean,
     progress: Float,
     color: Color,
+    trackColor: Color = Color(0xFFE0E0E0),
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
     val remaining = goalValue - consumedValue
     
+    // Animate progress changes
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(500),
+        label = "progress"
+    )
+    
     CalAICard(
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
             horizontalAlignment = Alignment.Start
         ) {
             // Animated content transition between eaten/left
@@ -116,17 +133,18 @@ fun MacroGaugeCard(
             ) { isEaten ->
                 Column {
                     if (isEaten) {
-                        // "Eaten" view: shows consumed/goal
+                        // "Eaten" view: shows consumed/goal - matching reference exactly
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )) {
                                     append(consumedValue.toString())
                                 }
                                 withStyle(SpanStyle(
-                                    fontSize = 12.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal,
                                     color = Color.Gray
                                 )) {
@@ -134,33 +152,49 @@ fun MacroGaugeCard(
                                 }
                             }
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = buildAnnotatedString {
-                                append("$label ")
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                withStyle(SpanStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color.Gray
+                                )) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )) {
                                     append("eaten")
                                 }
                             },
-                            fontSize = 12.sp,
-                            color = Color.Gray
+                            fontSize = 13.sp
                         )
                     } else {
-                        // "Left" view: shows remaining only
+                        // "Left" view: shows remaining only - matching reference exactly
                         Text(
                             text = "${remaining}g",
-                            fontSize = 18.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = buildAnnotatedString {
-                                append("$label ")
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                withStyle(SpanStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color.Gray
+                                )) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )) {
                                     append("left")
                                 }
                             },
-                            fontSize = 12.sp,
-                            color = Color.Gray
+                            fontSize = 13.sp
                         )
                     }
                 }
@@ -168,36 +202,42 @@ fun MacroGaugeCard(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            // Circular progress indicator with icon - enhanced design
             Box(
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(70.dp)
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center
             ) {
+                // Progress ring canvas
                 Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Track (background circle)
                     drawArc(
-                        color = Color(0xFFF3F3F3),
+                        color = trackColor,
                         startAngle = 0f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
                     )
+                    // Progress arc
                     drawArc(
                         color = color,
                         startAngle = -90f,
-                        sweepAngle = 360f * progress.coerceIn(0f, 1f),
+                        sweepAngle = 360f * animatedProgress,
                         useCenter = false,
-                        style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
+                // Icon in center
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
     }
 }
+
 
