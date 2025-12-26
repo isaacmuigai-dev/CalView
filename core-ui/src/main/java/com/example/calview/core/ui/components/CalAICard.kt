@@ -32,9 +32,15 @@ fun CalAICard(
             .clickable { onClick() },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color.White else Color(0xFFF9F9F9)
+            containerColor = if (isSelected) 
+                MaterialTheme.colorScheme.surface 
+            else 
+                MaterialTheme.colorScheme.surface
         ),
-        border = if (isSelected) BorderStroke(2.dp, Color.Black) else BorderStroke(1.dp, Color(0xFFEEEEEE)),
+        border = if (isSelected) 
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary) 
+        else 
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -56,14 +62,14 @@ fun CalAICard(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         if (subtitle != null) {
                             Text(
                                 text = subtitle,
                                 fontFamily = Inter,
                                 fontSize = 14.sp,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
@@ -77,3 +83,4 @@ fun CalAICard(
         }
     }
 }
+

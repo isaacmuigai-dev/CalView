@@ -33,11 +33,15 @@ fun OnboardingTemplate(
                     title = { },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack, 
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 )
                 LinearProgressIndicator(
@@ -46,8 +50,8 @@ fun OnboardingTemplate(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .height(4.dp),
-                    color = Color.Black,
-                    trackColor = Color(0xFFF3F3F3),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     strokeCap = StrokeCap.Round
                 )
             }
@@ -63,7 +67,7 @@ fun OnboardingTemplate(
                 }
             }
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -78,14 +82,14 @@ fun OnboardingTemplate(
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
                 lineHeight = 40.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (subtitle != null) {
                 Text(
                     text = subtitle,
                     fontFamily = Inter,
                     fontSize = 18.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 12.dp)
                 )
             }
@@ -94,3 +98,4 @@ fun OnboardingTemplate(
         }
     }
 }
+

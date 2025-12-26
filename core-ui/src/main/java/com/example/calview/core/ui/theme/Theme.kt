@@ -11,14 +11,17 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = CalAIGreen,
+    primary = DarkCharcoal, // Dark buttons/primary actions
     onPrimary = PureWhite,
-    secondary = DarkGrey, // Dark grey/black for buttons
+    secondary = CalAIGreen, // Green accent
     onSecondary = PureWhite,
-    surface = OffWhite, // Slightly off-white for background/cards to make white stand out
-    onSurface = DarkGrey,
-    background = PureWhite,
-    onBackground = DarkGrey
+    surface = CardBackground, // White cards
+    onSurface = DarkCharcoal, // Dark text
+    background = CreamBackground, // Cream/pink background
+    onBackground = DarkCharcoal,
+    surfaceVariant = SurfaceVariant,
+    onSurfaceVariant = MediumGrey,
+    outline = LightGrey
 )
 
 @Composable
@@ -42,3 +45,4 @@ fun CalViewTheme(
         content = content
     )
 }
+
