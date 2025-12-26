@@ -105,7 +105,7 @@ fun DashboardContent(
             val pagerState = rememberPagerState(pageCount = { 3 })
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(320.dp),
+                modifier = Modifier.fillMaxWidth().height(400.dp),
                 pageSpacing = 16.dp
             ) { page ->
                 when (page) {
@@ -194,6 +194,7 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .defaultMinSize(minHeight = 180.dp)
                 .padding(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
