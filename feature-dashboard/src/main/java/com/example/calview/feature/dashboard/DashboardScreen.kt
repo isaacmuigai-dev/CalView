@@ -102,10 +102,10 @@ fun DashboardContent(
         }
 
         item {
-            val pagerState = rememberPagerState(pageCount = { 3 })
+            val pagerState = rememberPagerState(pageCount = { 2 })
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(400.dp),
+                modifier = Modifier.fillMaxWidth().height(480.dp),
                 pageSpacing = 16.dp
             ) { page ->
                 when (page) {
@@ -118,18 +118,25 @@ fun DashboardContent(
                         fats = state.fatsG,
                         proteinConsumed = 0,
                         carbsConsumed = 0,
-                        fatsConsumed = 0
+                        fatsConsumed = 0,
+                        fiber = 38,
+                        sugar = 64,
+                        sodium = 2300,
+                        fiberConsumed = 0,
+                        sugarConsumed = 0,
+                        sodiumConsumed = 0
                     )
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        MicroStatsRow(fiber = 38, sugar = 64, sodium = 2300)
-                        HealthScoreCard(score = 0)
-                    }
-                    2 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         ActivityRow(steps = 0, burned = 0)
                         WaterTrackerCard(consumed = state.waterConsumed, onAdd = onAddWater, onRemove = onRemoveWater)
                     }
                 }
             }
+        }
+        
+        // Health Score Card - Premium design outside pager
+        item {
+            HealthScoreCardPremium(score = 0)
         }
 
         item {
@@ -581,7 +588,13 @@ fun NutritionOverviewCard(
     fats: Int,
     proteinConsumed: Int = 0,
     carbsConsumed: Int = 0,
-    fatsConsumed: Int = 0
+    fatsConsumed: Int = 0,
+    fiber: Int = 38,
+    sugar: Int = 64,
+    sodium: Int = 2300,
+    fiberConsumed: Int = 0,
+    sugarConsumed: Int = 0,
+    sodiumConsumed: Int = 0
 ) {
     // Shared toggle state for all cards
     var showEaten by remember { mutableStateOf(true) }
@@ -590,7 +603,7 @@ fun NutritionOverviewCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { showEaten = !showEaten },
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Calories Card Section
         CalAICard(modifier = Modifier.fillMaxWidth()) {
@@ -673,12 +686,11 @@ fun NutritionOverviewCard(
             }
         }
         
-        // Macro Stats Row Section
+        // Macro Stats Row Section (Protein, Carbs, Fats)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Protein Card
             MacroCardUnified(
                 label = "Protein",
                 goalValue = protein,
@@ -689,7 +701,6 @@ fun NutritionOverviewCard(
                 icon = Icons.Filled.Favorite,
                 modifier = Modifier.weight(1f)
             )
-            // Carbs Card
             MacroCardUnified(
                 label = "Carbs",
                 goalValue = carbs,
@@ -700,7 +711,6 @@ fun NutritionOverviewCard(
                 icon = Icons.Filled.LocalFlorist,
                 modifier = Modifier.weight(1f)
             )
-            // Fats Card
             MacroCardUnified(
                 label = "Fats",
                 goalValue = fats,
@@ -710,6 +720,229 @@ fun NutritionOverviewCard(
                 trackColor = Color(0xFFE8E8E8),
                 icon = Icons.Filled.WaterDrop,
                 modifier = Modifier.weight(1f)
+            )
+        }
+        
+        // Micronutrients Row Section (Fiber, Sugar, Sodium) - Premium design
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            MicroCardUnified(
+                label = "Fiber",
+                goalValue = fiber,
+                consumedValue = fiberConsumed,
+                showEaten = showEaten,
+                unit = "g",
+                color = Color(0xFF9575CD), // Purple
+                trackColor = Color(0xFFF0ECF5),
+                icon = Icons.Filled.Spa,
+                modifier = Modifier.weight(1f)
+            )
+            MicroCardUnified(
+                label = "Sugar",
+                goalValue = sugar,
+                consumedValue = sugarConsumed,
+                showEaten = showEaten,
+                unit = "g",
+                color = Color(0xFFF06292), // Pink
+                trackColor = Color(0xFFFCE4EC),
+                icon = Icons.Filled.Cookie,
+                modifier = Modifier.weight(1f)
+            )
+            MicroCardUnified(
+                label = "Sodium",
+                goalValue = sodium,
+                consumedValue = sodiumConsumed,
+                showEaten = showEaten,
+                unit = "mg",
+                color = Color(0xFFFFB74D), // Orange
+                trackColor = Color(0xFFFFF3E0),
+                icon = Icons.Filled.Grain,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+// Micronutrient card with matching design to MacroCardUnified
+@Composable
+fun MicroCardUnified(
+    label: String,
+    goalValue: Int,
+    consumedValue: Int,
+    showEaten: Boolean,
+    unit: String,
+    color: Color,
+    trackColor: Color,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    val remaining = goalValue - consumedValue
+    
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            AnimatedContent(
+                targetState = showEaten,
+                transitionSpec = {
+                    (slideInVertically { height -> height } + fadeIn(animationSpec = tween(300)))
+                        .togetherWith(slideOutVertically { height -> -height } + fadeOut(animationSpec = tween(300)))
+                },
+                label = "micro_animation"
+            ) { isEaten ->
+                Column {
+                    if (isEaten) {
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )) {
+                                    append(consumedValue.toString())
+                                }
+                                withStyle(SpanStyle(
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )) {
+                                    append(" /${goalValue}$unit")
+                                }
+                            }
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.Gray)) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("eaten")
+                                }
+                            },
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    } else {
+                        Text(
+                            text = "${remaining}$unit",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.Gray)) {
+                                    append("$label ")
+                                }
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("left")
+                                }
+                            },
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Ring with icon - matches macro style
+            Box(
+                contentAlignment = Alignment.Center, 
+                modifier = Modifier
+                    .size(55.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawArc(
+                        color = trackColor,
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                }
+                Icon(
+                    imageVector = icon, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(18.dp), 
+                    tint = color
+                )
+            }
+        }
+    }
+}
+
+// Premium Health Score Card with gradient and animation
+@Composable
+fun HealthScoreCardPremium(score: Int) {
+    val animatedScore by animateFloatAsState(
+        targetValue = score / 10f,
+        animationSpec = tween(800),
+        label = "health_score"
+    )
+    
+    CalAICard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Health score",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "$score/10",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Premium progress bar with gradient effect
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                    .background(Color(0xFFF0F0F0))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(animatedScore)
+                        .fillMaxHeight()
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF81C784), // Light green
+                                    Color(0xFF4CAF50)  // Green
+                                )
+                            )
+                        )
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "Carbs and fat are on track. You're low in calories and protein, which can slow weight loss and impact muscle retention.",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                lineHeight = 20.sp
             )
         }
     }
