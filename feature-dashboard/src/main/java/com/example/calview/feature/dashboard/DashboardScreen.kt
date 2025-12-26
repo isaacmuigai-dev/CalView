@@ -784,7 +784,7 @@ fun MicroCardUnified(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(8.dp),
             horizontalAlignment = Alignment.Start
         ) {
             AnimatedContent(
@@ -800,13 +800,13 @@ fun MicroCardUnified(
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )) {
                                     append(consumedValue.toString())
                                 }
                                 withStyle(SpanStyle(
-                                    fontSize = 12.sp,
+                                    fontSize = 10.sp,
                                     color = Color.Gray
                                 )) {
                                     append(" /${goalValue}$unit")
@@ -822,13 +822,13 @@ fun MicroCardUnified(
                                     append("eaten")
                                 }
                             },
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = Color.Gray
                         )
                     } else {
                         Text(
                             text = "${remaining}$unit",
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -841,20 +841,20 @@ fun MicroCardUnified(
                                     append("left")
                                 }
                             },
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = Color.Gray
                         )
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             
-            // Ring with icon - matches macro style
+            // Ring with icon - compact size
             Box(
                 contentAlignment = Alignment.Center, 
                 modifier = Modifier
-                    .size(55.dp)
+                    .size(50.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
@@ -965,7 +965,7 @@ fun MacroCardUnified(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(8.dp),
             horizontalAlignment = Alignment.Start
         ) {
             AnimatedContent(
@@ -981,13 +981,13 @@ fun MacroCardUnified(
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )) {
                                     append(consumedValue.toString())
                                 }
                                 withStyle(SpanStyle(
-                                    fontSize = 12.sp,
+                                    fontSize = 10.sp,
                                     color = Color.Gray
                                 )) {
                                     append(" /${goalValue}g")
@@ -1003,13 +1003,13 @@ fun MacroCardUnified(
                                     append("eaten")
                                 }
                             },
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = Color.Gray
                         )
                     } else {
                         Text(
                             text = "${remaining}g",
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -1022,20 +1022,20 @@ fun MacroCardUnified(
                                     append("left")
                                 }
                             },
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = Color.Gray
                         )
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             
-            // Ring with icon - compact size matching reference
+            // Ring with icon - compact size
             Box(
                 contentAlignment = Alignment.Center, 
                 modifier = Modifier
-                    .size(55.dp)
+                    .size(50.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
