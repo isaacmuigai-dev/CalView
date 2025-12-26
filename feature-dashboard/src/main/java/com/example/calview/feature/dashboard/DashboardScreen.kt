@@ -431,44 +431,36 @@ fun DateSelector(
             }
         }
         
-        // Scrollable Date Row
-        LazyRow(
-            state = listState,
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
-        ) {
-            items(days.size) { index ->
-                val day = days[index]
-                val isToday = day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) && 
-                              day.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-                val isSelected = day.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR) && 
-                                 day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR)
-                val hasMeals = hasMealsOnDate(day)
-                
-                DateItem(
-                    day = day,
-                    isToday = isToday,
-                    isSelected = isSelected,
-                    hasMeals = hasMeals,
-                    onClick = { onDateSelected(day) }
-                )
-            }
-        }
-        
-        // Legend
-        Row(
+        // Scrollable Date Row with light gray background
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+                .background(Color(0xFFF0F0F0), RoundedCornerShape(16.dp))
+                .padding(vertical = 12.dp, horizontal = 4.dp)
         ) {
-            LegendItem(color = Color(0xFFFFD700), label = "Today", isDashed = false)
-            Spacer(modifier = Modifier.width(16.dp))
-            LegendItem(color = Color(0xFFE53935), label = "Has Logs", isDashed = false)
-            Spacer(modifier = Modifier.width(16.dp))
-            LegendItem(color = Color(0xFFE53935), label = "No Logs", isDashed = true)
+            LazyRow(
+                state = listState,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                items(days.size) { index ->
+                    val day = days[index]
+                    val isToday = day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) && 
+                                  day.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                    val isSelected = day.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR) && 
+                                     day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR)
+                    val hasMeals = hasMealsOnDate(day)
+                    
+                    DateItem(
+                        day = day,
+                        isToday = isToday,
+                        isSelected = isSelected,
+                        hasMeals = hasMeals,
+                        onClick = { onDateSelected(day) }
+                    )
+                }
+            }
         }
     }
 }
@@ -481,107 +473,84 @@ private fun DateItem(
     hasMeals: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = when {
-        isToday -> Color(0xFFFFD700) // Golden yellow for today
-        hasMeals -> Color(0xFFE53935) // Solid red for dates with meals
-        else -> Color(0xFFE53935) // Red for dates without (will be dashed)
-    }
-    
-    val dashEffect = if (!isToday && !hasMeals) {
-        PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
-    } else null
+    // Colors matching reference image
+    val coralColor = Color(0xFFE57373) // Coral/salmon for dates with logs
+    val grayColor = Color(0xFFBDBDBD) // Gray for dashed circles
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clickable { onClick() }
-            .padding(4.dp)
+            .then(
+                if (isSelected) {
+                    // White rounded rectangle background for selected date
+                    Modifier
+                        .background(Color.White, RoundedCornerShape(16.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                } else {
+                    Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                }
+            )
     ) {
-        // Day name
+        // Day name (Sun, Mon, etc.)
         Text(
             text = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (isSelected) Color(0xFF1C1C1E) else Color.Gray
+            fontSize = 13.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) Color(0xFF1C1C1E) else Color(0xFF757575)
         )
         
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
         // Date number with circular border
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .then(
-                    if (isSelected) {
-                        Modifier.background(Color(0xFF1C1C1E), CircleShape)
-                    } else {
-                        Modifier
-                            .drawBehind {
+                    when {
+                        isSelected -> {
+                            // Selected: just show the number, the white background is on parent
+                            Modifier
+                        }
+                        hasMeals -> {
+                            // Has meals: solid coral circle border
+                            Modifier.drawBehind {
                                 drawCircle(
-                                    color = borderColor,
+                                    color = coralColor,
+                                    style = Stroke(width = 2.dp.toPx())
+                                )
+                            }
+                        }
+                        else -> {
+                            // No meals: dashed gray circle border
+                            Modifier.drawBehind {
+                                drawCircle(
+                                    color = grayColor,
                                     style = Stroke(
-                                        width = 2.dp.toPx(),
-                                        pathEffect = dashEffect
+                                        width = 1.5.dp.toPx(),
+                                        pathEffect = PathEffect.dashPathEffect(
+                                            floatArrayOf(6f, 6f), 
+                                            0f
+                                        )
                                     )
                                 )
                             }
+                        }
                     }
                 ),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = day.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) Color.White else Color(0xFF1C1C1E)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = when {
+                    hasMeals -> coralColor
+                    isSelected -> Color(0xFF1C1C1E)
+                    else -> Color(0xFF424242)
+                }
             )
         }
-        
-        // Status dot indicator
-        Spacer(modifier = Modifier.height(4.dp))
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .background(
-                    color = when {
-                        isToday -> Color(0xFFFFD700)
-                        hasMeals -> Color(0xFF4CAF50)
-                        else -> Color.Transparent
-                    },
-                    shape = CircleShape
-                )
-        )
-    }
-}
-
-@Composable
-private fun LegendItem(color: Color, label: String, isDashed: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .then(
-                    if (isDashed) {
-                        Modifier.drawBehind {
-                            drawCircle(
-                                color = color,
-                                style = Stroke(
-                                    width = 1.5.dp.toPx(),
-                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f), 0f)
-                                )
-                            )
-                        }
-                    } else {
-                        Modifier.border(1.5.dp, color, CircleShape)
-                    }
-                )
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = Color.Gray
-        )
     }
 }
 
