@@ -105,7 +105,7 @@ fun DashboardContent(
             val pagerState = rememberPagerState(pageCount = { 3 })
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(260.dp),
+                modifier = Modifier.fillMaxWidth().height(320.dp),
                 pageSpacing = 16.dp
             ) { page ->
                 when (page) {
@@ -188,13 +188,38 @@ fun MicroStatsRow(fiber: Int, sugar: Int, sodium: Int) {
 @Composable
 fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, modifier: Modifier = Modifier) {
     CalAICard(modifier = modifier) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(label, fontSize = 12.sp, color = Color.Gray)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = value, 
+                fontSize = 20.sp, 
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = label, 
+                fontSize = 12.sp, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(modifier = Modifier.height(12.dp))
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)) {
-                CircularProgressIndicator(progress = { 0f }, strokeWidth = 2.dp, color = iconTint, trackColor = Color(0xFFF3F3F3))
-                Icon(icon, null, modifier = Modifier.size(12.dp), tint = iconTint.copy(alpha = 0.5f))
+            Box(
+                contentAlignment = Alignment.Center, 
+                modifier = Modifier
+                    .size(50.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                CircularProgressIndicator(
+                    progress = { 0f }, 
+                    strokeWidth = 4.dp, 
+                    color = iconTint, 
+                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+                Icon(icon, null, modifier = Modifier.size(16.dp), tint = iconTint)
             }
         }
     }
