@@ -377,72 +377,27 @@ fun DateSelector(
     }
     
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Month and Year Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = dateFormat.format(selectedDate.time),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1C1C1E)
-            )
-            
-            // Navigation arrows
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(
-                    onClick = { 
-                        val newDate = selectedDate.clone() as Calendar
-                        newDate.add(Calendar.DATE, -7)
-                        onDateSelected(newDate)
-                    },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color(0xFFF5F5F5), CircleShape)
-                ) {
-                    Icon(
-                        Icons.Filled.ChevronLeft, 
-                        contentDescription = "Previous week",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                IconButton(
-                    onClick = { 
-                        val newDate = selectedDate.clone() as Calendar
-                        newDate.add(Calendar.DATE, 7)
-                        onDateSelected(newDate)
-                    },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color(0xFFF5F5F5), CircleShape)
-                ) {
-                    Icon(
-                        Icons.Filled.ChevronRight, 
-                        contentDescription = "Next week",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
+        // Month and Year Header (centered, no navigation arrows)
+        Text(
+            text = dateFormat.format(selectedDate.time),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF1C1C1E),
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
         
-        // Scrollable Date Row with light gray background
+        // Scrollable Date Row with light gray background - touch scrolling only
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFFF0F0F0), RoundedCornerShape(16.dp))
-                .padding(vertical = 12.dp, horizontal = 4.dp)
+                .padding(vertical = 8.dp)
         ) {
             LazyRow(
                 state = listState,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                contentPadding = PaddingValues(horizontal = 4.dp)
             ) {
                 items(days.size) { index ->
                     val day = days[index]
@@ -477,35 +432,37 @@ private fun DateItem(
     val coralColor = Color(0xFFE57373) // Coral/salmon for dates with logs
     val grayColor = Color(0xFFBDBDBD) // Gray for dashed circles
     
+    // Calculate width to fit 7 items on screen (~48.dp per item)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
+            .width(44.dp)
             .clickable { onClick() }
             .then(
                 if (isSelected) {
                     // White rounded rectangle background for selected date
                     Modifier
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .padding(vertical = 6.dp)
                 } else {
-                    Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                    Modifier.padding(vertical = 6.dp)
                 }
             )
     ) {
         // Day name (Sun, Mon, etc.)
         Text(
             text = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: "",
-            fontSize = 13.sp,
+            fontSize = 11.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = if (isSelected) Color(0xFF1C1C1E) else Color(0xFF757575)
         )
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         
-        // Date number with circular border
+        // Date number with circular border - reduced size
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(36.dp)
                 .then(
                     when {
                         isSelected -> {
@@ -529,7 +486,7 @@ private fun DateItem(
                                     style = Stroke(
                                         width = 1.5.dp.toPx(),
                                         pathEffect = PathEffect.dashPathEffect(
-                                            floatArrayOf(6f, 6f), 
+                                            floatArrayOf(5f, 5f), 
                                             0f
                                         )
                                     )
@@ -542,7 +499,7 @@ private fun DateItem(
         ) {
             Text(
                 text = day.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 18.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = when {
                     hasMeals -> coralColor
