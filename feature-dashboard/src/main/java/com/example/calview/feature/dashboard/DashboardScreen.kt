@@ -179,16 +179,16 @@ fun MicroStatsRow(fiber: Int, sugar: Int, sodium: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MicroCard(label = "Fiber left", value = "${fiber}g", icon = Icons.Filled.Circle, iconTint = Color(0xFFA5D6A7), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sugar left", value = "${sugar}g", icon = Icons.Filled.Circle, iconTint = Color(0xFFF48FB1), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sodium left", value = "${sodium}mg", icon = Icons.Filled.Circle, iconTint = Color(0xFFFFCC80), modifier = Modifier.weight(1f))
+        MicroCard(label = "Fiber left", value = "${fiber}g", icon = Icons.Filled.Grass, iconTint = Color(0xFF66BB6A), modifier = Modifier.weight(1f))
+        MicroCard(label = "Sugar left", value = "${sugar}g", icon = Icons.Filled.Cake, iconTint = Color(0xFFEC407A), modifier = Modifier.weight(1f))
+        MicroCard(label = "Sodium left", value = "${sodium}mg", icon = Icons.Filled.WaterDrop, iconTint = Color(0xFFFFA726), modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
 fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, modifier: Modifier = Modifier) {
-    // Calculate a darker track color based on the icon tint
-    val trackColor = iconTint.copy(alpha = 0.15f)
+    // Use a more visible track color
+    val trackColor = Color(0xFFE0E0E0) // Light gray track that's visible on white cards
     
     CalAICard(modifier = modifier) {
         Column(
