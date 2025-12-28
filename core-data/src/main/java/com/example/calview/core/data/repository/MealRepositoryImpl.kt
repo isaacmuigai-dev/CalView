@@ -26,9 +26,26 @@ class MealRepositoryImpl @Inject constructor(
         
         return mealDao.getMealsForDate(startOfDay, endOfDay)
     }
+    
+    override fun getRecentUploads(): Flow<List<MealEntity>> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        val startOfDay = calendar.timeInMillis
+        return mealDao.getRecentUploads(startOfDay)
+    }
+    
+    override suspend fun getMealById(id: Long): MealEntity? {
+        return mealDao.getMealById(id)
+    }
 
-    override suspend fun logMeal(meal: MealEntity) {
-        mealDao.insertMeal(meal)
+    override suspend fun logMeal(meal: MealEntity): Long {
+        return mealDao.insertMeal(meal)
+    }
+    
+    override suspend fun updateMeal(meal: MealEntity) {
+        mealDao.updateMeal(meal)
     }
 
     override suspend fun deleteMeal(meal: MealEntity) {

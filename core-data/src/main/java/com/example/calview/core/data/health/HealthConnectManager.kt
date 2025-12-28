@@ -50,11 +50,35 @@ class HealthConnectManager @Inject constructor(
     fun isAvailable(): Boolean {
         // Health Connect requires API 26+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            android.util.Log.d("HealthConnectManager", "SDK too old: ${Build.VERSION.SDK_INT}")
             return false
         }
         
         val availabilityStatus = HealthConnectClient.getSdkStatus(context)
-        return availabilityStatus == HealthConnectClient.SDK_AVAILABLE
+        android.util.Log.d("HealthConnectManager", "SDK Status: ${getSdkStatusName(availabilityStatus)}")
+        
+        // SDK_AVAILABLE = 3, SDK_UNAVAILABLE = 1, SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED = 2
+        return when (availabilityStatus) {
+            HealthConnectClient.SDK_AVAILABLE -> true
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
+                // Still try to connect - sometimes it works even with this status
+                android.util.Log.d("HealthConnectManager", "Provider update may be required, but attempting connection")
+                true
+            }
+            else -> false
+        }
+    }
+    
+    /**
+     * Get human-readable SDK status name
+     */
+    private fun getSdkStatusName(status: Int): String {
+        return when (status) {
+            HealthConnectClient.SDK_AVAILABLE -> "SDK_AVAILABLE"
+            HealthConnectClient.SDK_UNAVAILABLE -> "SDK_UNAVAILABLE"
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> "SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED"
+            else -> "UNKNOWN ($status)"
+        }
     }
     
     /**

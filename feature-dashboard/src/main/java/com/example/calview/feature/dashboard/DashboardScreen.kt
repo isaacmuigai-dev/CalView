@@ -72,28 +72,74 @@ fun DashboardScreen(
     val state by viewModel.dashboardState.collectAsState()
     val context = LocalContext.current
     
+    // State for showing Health Connect onboarding
+    var showHealthOnboarding by remember { mutableStateOf(false) }
+    
     // Health Connect permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = viewModel.healthConnectManager.createPermissionRequestContract()
     ) { granted ->
+        android.util.Log.d("HealthConnect", "Permission result received!")
+        android.util.Log.d("HealthConnect", "Granted permissions: $granted")
+        android.util.Log.d("HealthConnect", "Required permissions: ${viewModel.healthConnectManager.permissions}")
         if (granted.containsAll(viewModel.healthConnectManager.permissions)) {
+            android.util.Log.d("HealthConnect", "All permissions granted! Calling onHealthPermissionsGranted()")
             viewModel.onHealthPermissionsGranted()
+        } else {
+            android.util.Log.d("HealthConnect", "NOT all permissions granted")
+        }
+        showHealthOnboarding = false
+    }
+    
+    // Launch permissions after onboarding
+    val onLaunchPermissions: () -> Unit = {
+        android.util.Log.d("HealthConnect", "onLaunchPermissions CALLED")
+        val available = viewModel.healthConnectManager.isAvailable()
+        android.util.Log.d("HealthConnect", "isAvailable returned: $available")
+        if (available) {
+            try {
+                val perms = viewModel.healthConnectManager.permissions
+                android.util.Log.d("HealthConnect", "About to launch with ${perms.size} permissions")
+                permissionLauncher.launch(perms)
+                android.util.Log.d("HealthConnect", "permissionLauncher.launch() COMPLETED")
+            } catch (e: Exception) {
+                android.util.Log.e("HealthConnect", "EXCEPTION: ${e.message}", e)
+                android.widget.Toast.makeText(
+                    context,
+                    "Error: ${e.message}",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        } else {
+            android.util.Log.d("HealthConnect", "Not available, showing toast")
+            android.widget.Toast.makeText(
+                context,
+                "Health Connect is not available. Please install from Play Store.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
         }
     }
     
+    // Show onboarding screen when button is clicked
     val onConnectHealth: () -> Unit = {
-        if (viewModel.healthConnectManager.isAvailable()) {
-            permissionLauncher.launch(viewModel.healthConnectManager.permissions)
-        }
+        showHealthOnboarding = true
     }
-
-    DashboardContent(
-        state = state,
-        onDateSelected = { viewModel.selectDate(it) },
-        onAddWater = { viewModel.addWater() },
-        onRemoveWater = { viewModel.removeWater() },
-        onConnectHealth = onConnectHealth
-    )
+    
+    // Show Health Connect Onboarding or Dashboard
+    if (showHealthOnboarding) {
+        HealthConnectOnboardingScreen(
+            onGoBack = { showHealthOnboarding = false },
+            onGetStarted = onLaunchPermissions
+        )
+    } else {
+        DashboardContent(
+            state = state,
+            onDateSelected = { viewModel.selectDate(it) },
+            onAddWater = { viewModel.addWater() },
+            onRemoveWater = { viewModel.removeWater() },
+            onConnectHealth = onConnectHealth
+        )
+    }
 }
 
 @Composable
@@ -124,36 +170,24 @@ fun DashboardContent(
         }
 
         item {
-            val pagerState = rememberPagerState(pageCount = { 2 })
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(480.dp),
-                pageSpacing = 16.dp
-            ) { page ->
-                when (page) {
-                    0 -> NutritionOverviewCard(
-                        remainingCalories = state.remainingCalories,
-                        consumedCalories = state.consumedCalories,
-                        goalCalories = state.goalCalories,
-                        protein = state.proteinG,
-                        carbs = state.carbsG,
-                        fats = state.fatsG,
-                        proteinConsumed = 0,
-                        carbsConsumed = 0,
-                        fatsConsumed = 0,
-                        fiber = 38,
-                        sugar = 64,
-                        sodium = 2300,
-                        fiberConsumed = 0,
-                        sugarConsumed = 0,
-                        sodiumConsumed = 0
-                    )
-                    1 -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        ActivityRow(steps = 0, burned = 0)
-                        WaterTrackerCard(consumed = state.waterConsumed, onAdd = onAddWater, onRemove = onRemoveWater)
-                    }
-                }
-            }
+
+        NutritionOverviewCard(
+            remainingCalories = state.remainingCalories,
+            consumedCalories = state.consumedCalories,
+            goalCalories = state.goalCalories,
+            protein = state.proteinG,
+            carbs = state.carbsG,
+            fats = state.fatsG,
+            proteinConsumed = state.proteinG, // Assuming logic handles consumed vs goal
+            carbsConsumed = state.carbsG,
+            fatsConsumed = state.fatsG,
+            fiber = 38,
+            sugar = 64,
+            sodium = 2300,
+            fiberConsumed = 0,
+            sugarConsumed = 0,
+            sodiumConsumed = 0
+        )
         }
         
         // Health Score Card - Premium design outside pager
@@ -161,33 +195,92 @@ fun DashboardContent(
             HealthScoreCardPremium(score = 0)
         }
         
-        // Activity Section: Steps Today + Calories Burned
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StepsTodayCard(
-                    steps = state.steps.toInt(),
-                    goal = 10000,
-                    isConnected = state.isHealthConnected,
-                    onConnectClick = onConnectHealth,
-                    modifier = Modifier.weight(1f)
-                )
-                CaloriesBurnedCard(
-                    calories = state.caloriesBurned,
-                    stepsCalories = (state.steps * 0.04).toInt(), // Approx calories per step
-                    modifier = Modifier.weight(0.8f)
-                )
+        // Health Connect Button - Standalone (outside any CalAICard)
+        if (!state.isHealthConnected) {
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            android.util.Log.d("HealthConnect", "Button CLICKED!")
+                            onConnectHealth()
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    shadowElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color(0xFFF5F5F5), RoundedCornerShape(10.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color(0xFFEA4335),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Connect Google Health",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF424242)
+                            )
+                            Text(
+                                text = "Tap to sync steps and calories",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Filled.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
+        }
+        
+        // Unified Activity Card: Steps + Calories side by side
+        item {
+            UnifiedActivityCard(
+                steps = state.steps.toInt(),
+                stepsGoal = 10000,
+                calories = state.caloriesBurned,
+                isConnected = state.isHealthConnected
+            )
         }
         
         // Water Tracker Card - Premium design
         item {
+            var showWaterSettings by remember { mutableStateOf(false) }
+            var waterServingSize by remember { mutableStateOf(8) }
+            
             WaterCardPremium(
                 consumed = state.waterConsumed,
+                servingSize = waterServingSize,
                 onAdd = onAddWater,
-                onRemove = onRemoveWater
+                onRemove = onRemoveWater,
+                onSettingsClick = { showWaterSettings = true }
+            )
+            
+            // Water Settings Dialog
+            WaterSettingsDialog(
+                showDialog = showWaterSettings,
+                currentServingSize = waterServingSize,
+                onDismiss = { showWaterSettings = false },
+                onServingSizeChange = { waterServingSize = it }
             )
         }
 
@@ -201,7 +294,7 @@ fun DashboardContent(
             )
         }
 
-        items(state.meals) { meal ->
+        items(state.recentUploads) { meal ->
             RecentMealCard(meal)
         }
 
@@ -333,71 +426,6 @@ fun HealthScoreCard(score: Int) {
     }
 }
 
-@Composable
-fun ActivityRow(steps: Int, burned: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        ActivityCard(
-            title = "$steps /10000",
-            subtitle = "Steps Today",
-            modifier = Modifier.weight(1f)
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-                Icon(Icons.Filled.HealthAndSafety, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(24.dp))
-                Text("Connect Google Health to track your steps", fontSize = 10.sp, textAlign = TextAlign.Center, color = Color.Gray)
-            }
-        }
-        
-        ActivityCard(
-            title = "$burned",
-            subtitle = "Calories burned",
-            modifier = Modifier.weight(1f)
-        ) {
-             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
-                 Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null, modifier = Modifier.size(16.dp))
-                 Text(" Steps +0", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-             }
-        }
-    }
-}
-
-@Composable
-fun ActivityCard(title: String, subtitle: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    CalAICard(modifier = modifier.height(180.dp)) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle, fontSize = 12.sp, color = Color.Gray)
-            Spacer(modifier = Modifier.weight(1f))
-            content()
-            Spacer(modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-fun WaterTrackerCard(consumed: Int, onAdd: () -> Unit, onRemove: () -> Unit) {
-    CalAICard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Filled.WaterDrop, null, tint = Color(0xFF2196F3), modifier = Modifier.size(40.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Water", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("$consumed fl oz (${consumed/8} cups)", fontSize = 14.sp, color = Color.Gray)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onRemove) { Icon(Icons.Filled.RemoveCircleOutline, null) }
-                IconButton(onClick = onAdd, modifier = Modifier.background(Color.Black, androidx.compose.foundation.shape.CircleShape).size(32.dp)) { 
-                    Icon(Icons.Filled.Add, null, tint = Color.White, modifier = Modifier.size(16.dp)) 
-                }
-            }
-        }
-    }
-}
 
 val RecentMealIcon: ImageVector
     @Composable
@@ -483,12 +511,13 @@ fun DateSelector(
     mealsForDates: List<MealEntity> = emptyList()
 ) {
     val today = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
     
-    // Calculate the start of the current week (Sunday)
+    // Calculate the start of the current week (Monday)
     fun getWeekStart(date: Calendar): Calendar {
         return (date.clone() as Calendar).apply {
-            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+            firstDayOfWeek = Calendar.MONDAY
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
         }
     }
     
@@ -498,7 +527,7 @@ fun DateSelector(
         val weekStart = (currentWeekStart.clone() as Calendar).apply {
             add(Calendar.WEEK_OF_YEAR, weekOffset)
         }
-        // Generate 7 days for this week (Sunday to Saturday)
+        // Generate 7 days for this week (Monday to Sunday)
         (0..6).map { dayOffset ->
             (weekStart.clone() as Calendar).apply { add(Calendar.DATE, dayOffset) }
         }
@@ -516,6 +545,23 @@ fun DateSelector(
         return mealsForDates.isNotEmpty() && date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
     }
     
+    // Helper to check if date is in the future
+    fun isFutureDate(date: Calendar): Boolean {
+        val todayStart = (today.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val dateStart = (date.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return dateStart.after(todayStart)
+    }
+    
     Column(modifier = Modifier.fillMaxWidth()) {
         // Month and Year Header with week indicator
         Row(
@@ -525,42 +571,33 @@ fun DateSelector(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = dateFormat.format(selectedDate.time),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            
-            // Week indicator dots
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                repeat(weeks.size) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(
-                                if (index == pagerState.currentPage) 
-                                    MaterialTheme.colorScheme.primary 
-                                else 
-                                    Color(0xFFE0E0E0),
-                                CircleShape
-                            )
-                    )
-                }
+            AnimatedContent(
+                targetState = dateFormat.format(selectedDate.time),
+                transitionSpec = {
+                    (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                },
+                label = "month_animation"
+            ) { dateText ->
+                Text(
+                    text = dateText,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
         
-        // Day name headers (Sun - Sat) - fixed at top
+        // Day name headers (Mon - Sun) - fixed at top, matching reference image
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat").forEach { dayName ->
+            listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { dayName ->
                 Text(
                     text = dayName,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF9E9E9E),
+                    color = Color(0xFF6B7280),
                     modifier = Modifier.width(44.dp),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
@@ -584,12 +621,14 @@ fun DateSelector(
                     val isSelected = day.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR) && 
                                      day.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR)
                     val hasMeals = hasMealsOnDate(day)
+                    val isFuture = isFutureDate(day)
                     
                     DateItemCompact(
                         day = day,
                         isToday = isToday,
                         isSelected = isSelected,
                         hasMeals = hasMeals,
+                        isFuture = isFuture,
                         onClick = { onDateSelected(day) }
                     )
                 }
@@ -604,29 +643,54 @@ private fun DateItemCompact(
     isToday: Boolean,
     isSelected: Boolean,
     hasMeals: Boolean,
+    isFuture: Boolean = false,
     onClick: () -> Unit
 ) {
     // Colors matching reference image exactly
-    val coralColor = Color(0xFFE88B8B) // Coral/red for meals logged
-    val grayDashedColor = Color(0xFFBDBDBD) // Gray for dashed borders
-    val todayBorderColor = Color(0xFF9E9E9E) // Gray solid for today
+    val coralColor = Color(0xFFE58B8B) // Coral/salmon for meals logged (from reference)
+    val grayDashedColor = Color(0xFFC4C4C4) // Light gray for dashed borders
+    val todayBorderColor = Color(0xFF9CA3AF) // Gray solid for today
+    val futureBorderColor = Color(0xFFD1D5DB) // Very light gray for future dates
     val selectedBgColor = Color.White // White background for selected
-    
-    // Check if Saturday (for fade effect at edge of week)
-    val isSaturday = day.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
-    val alphaModifier = if (isSaturday && !isSelected) 0.6f else 1f
+    val darkTextColor = Color(0xFF4B5563) // Dark gray text
+    val lightTextColor = Color(0xFF9CA3AF) // Light gray text for future dates
     
     Box(
         modifier = Modifier
-            .size(44.dp)
-            .alpha(alphaModifier)
+            .size(40.dp)
             .then(
                 when {
                     isSelected -> {
-                        // Selected: white rounded rectangle background with subtle shadow
+                        // Selected: white rounded rectangle background with shadow + gray circle border
                         Modifier
-                            .background(selectedBgColor, RoundedCornerShape(12.dp))
-                            .shadow(2.dp, RoundedCornerShape(12.dp))
+                            .shadow(4.dp, RoundedCornerShape(14.dp))
+                            .background(selectedBgColor, RoundedCornerShape(14.dp))
+                            .drawBehind {
+                                // Draw gray circle border inside the white background
+                                drawCircle(
+                                    color = todayBorderColor,
+                                    radius = size.minDimension / 2 - 4.dp.toPx(),
+                                    style = Stroke(width = 1.5.dp.toPx())
+                                )
+                            }
+                    }
+                    isFuture -> {
+                        // Future dates: very light gray solid circle border
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = futureBorderColor,
+                                style = Stroke(width = 1.5.dp.toPx())
+                            )
+                        }
+                    }
+                    hasMeals -> {
+                        // Meals logged: solid coral/salmon circle border
+                        Modifier.drawBehind {
+                            drawCircle(
+                                color = coralColor,
+                                style = Stroke(width = 2.dp.toPx())
+                            )
+                        }
                     }
                     isToday && !hasMeals -> {
                         // Today (no meals): solid gray circle border
@@ -637,24 +701,15 @@ private fun DateItemCompact(
                             )
                         }
                     }
-                    hasMeals -> {
-                        // Meals logged: solid coral/red circle border
-                        Modifier.drawBehind {
-                            drawCircle(
-                                color = coralColor,
-                                style = Stroke(width = 2.dp.toPx())
-                            )
-                        }
-                    }
                     else -> {
-                        // No meals: dashed gray circle border
+                        // Past dates with no meals: dashed gray circle border
                         Modifier.drawBehind {
                             drawCircle(
                                 color = grayDashedColor,
                                 style = Stroke(
                                     width = 1.5.dp.toPx(),
                                     pathEffect = PathEffect.dashPathEffect(
-                                        floatArrayOf(6f, 4f), 
+                                        floatArrayOf(10f, 10f), 
                                         0f
                                     )
                                 )
@@ -671,9 +726,10 @@ private fun DateItemCompact(
             fontSize = 16.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = when {
-                isSelected -> MaterialTheme.colorScheme.onBackground
+                isFuture -> lightTextColor
+                isSelected -> darkTextColor
                 hasMeals -> coralColor
-                else -> Color(0xFF424242)
+                else -> darkTextColor
             }
         )
     }
@@ -703,12 +759,14 @@ fun NutritionOverviewCard(
     
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showEaten = !showEaten },
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Calories Card Section
-        CalAICard(modifier = Modifier.fillMaxWidth()) {
+        CalAICard(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { showEaten = !showEaten }
+        ) {
             Row(
                 modifier = Modifier.padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -801,6 +859,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFFE57373),
                 trackColor = Color(0xFFE8E8E8),
                 icon = Icons.Filled.Favorite,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
             MacroCardUnified(
@@ -811,6 +870,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFFE5A87B),
                 trackColor = Color(0xFFE8E8E8),
                 icon = Icons.Filled.LocalFlorist,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
             MacroCardUnified(
@@ -821,6 +881,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFF64B5F6),
                 trackColor = Color(0xFFE8E8E8),
                 icon = Icons.Filled.WaterDrop,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -839,6 +900,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFF9575CD), // Purple
                 trackColor = Color(0xFFF0ECF5),
                 icon = Icons.Filled.Spa,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
             MicroCardUnified(
@@ -850,6 +912,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFFF06292), // Pink
                 trackColor = Color(0xFFFCE4EC),
                 icon = Icons.Filled.Cookie,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
             MicroCardUnified(
@@ -861,6 +924,7 @@ fun NutritionOverviewCard(
                 color = Color(0xFFFFB74D), // Orange
                 trackColor = Color(0xFFFFF3E0),
                 icon = Icons.Filled.Grain,
+                onClick = { showEaten = !showEaten },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -878,11 +942,12 @@ fun MicroCardUnified(
     color: Color,
     trackColor: Color,
     icon: ImageVector,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val remaining = goalValue - consumedValue
     
-    CalAICard(modifier = modifier) {
+    CalAICard(modifier = modifier, onClick = onClick) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1001,13 +1066,13 @@ fun HealthScoreCardPremium(score: Int) {
                 Text(
                     text = "Health score",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "$score/10",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -1042,15 +1107,152 @@ fun HealthScoreCardPremium(score: Int) {
             
             Text(
                 text = "Carbs and fat are on track. You're low in calories and protein, which can slow weight loss and impact muscle retention.",
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = Color.Gray,
-                lineHeight = 20.sp
+                lineHeight = 14.sp
             )
         }
     }
 }
 
 // Steps Today Card with Health Connect integration
+// Unified Activity Card - Steps and Calories in one card
+@Composable
+fun UnifiedActivityCard(
+    steps: Int,
+    stepsGoal: Int,
+    calories: Int,
+    isConnected: Boolean,
+    modifier: Modifier = Modifier
+) {
+    CalAICard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // Steps Section
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Progress ring with icon
+                Box(
+                    modifier = Modifier.size(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val progress = if (stepsGoal > 0) (steps.toFloat() / stepsGoal).coerceIn(0f, 1f) else 0f
+                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                        // Track
+                        drawArc(
+                            color = Color(0xFFE8E8E8),
+                            startAngle = -90f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = 8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                        )
+                        // Progress
+                        if (progress > 0) {
+                            drawArc(
+                                color = Color(0xFF424242),
+                                startAngle = -90f,
+                                sweepAngle = 360f * progress,
+                                useCenter = false,
+                                style = Stroke(width = 8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = "Steps",
+                        modifier = Modifier.size(28.dp),
+                        tint = Color(0xFF424242)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                            append(steps.toString())
+                        }
+                        withStyle(SpanStyle(fontSize = 12.sp, color = Color.Gray)) {
+                            append(" /$stepsGoal")
+                        }
+                    }
+                )
+                Text(
+                    text = "Steps Today",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+            
+            // Divider
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(100.dp)
+                    .background(Color(0xFFE8E8E8))
+            )
+            
+            // Calories Section
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Fire icon with ring
+                Box(
+                    modifier = Modifier.size(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawArc(
+                            color = Color(0xFFE8E8E8),
+                            startAngle = -90f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = 8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                        )
+                        // Progress based on calories (arbitrary goal of 500)
+                        val calProgress = (calories / 500f).coerceIn(0f, 1f)
+                        if (calProgress > 0) {
+                            drawArc(
+                                color = Color(0xFFFF9800),
+                                startAngle = -90f,
+                                sweepAngle = 360f * calProgress,
+                                useCenter = false,
+                                style = Stroke(width = 8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.LocalFireDepartment,
+                        contentDescription = "Calories",
+                        modifier = Modifier.size(28.dp),
+                        tint = Color(0xFFFF9800)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = calories.toString(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Calories burned",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun StepsTodayCard(
     steps: Int,
@@ -1063,19 +1265,19 @@ fun StepsTodayCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp)
         ) {
-            // Steps count header
+            // Header: value/goal on top, "Steps Today" below
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(
-                        fontSize = 36.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )) {
                         append(steps.toString())
                     }
                     withStyle(SpanStyle(
-                        fontSize = 18.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Normal,
                         color = Color.Gray
                     )) {
@@ -1083,15 +1285,14 @@ fun StepsTodayCard(
                     }
                 }
             )
-            
             Text(
                 text = "Steps Today",
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             if (isConnected) {
                 // Connected state: Show progress ring with footprints
@@ -1103,7 +1304,7 @@ fun StepsTodayCard(
                 ) {
                     // Outer ring (track)
                     androidx.compose.foundation.Canvas(
-                        modifier = Modifier.size(120.dp)
+                        modifier = Modifier.size(100.dp)
                     ) {
                         drawCircle(
                             color = Color(0xFFE8E8E8),
@@ -1112,7 +1313,7 @@ fun StepsTodayCard(
                     }
                     // Inner ring
                     androidx.compose.foundation.Canvas(
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(60.dp)
                     ) {
                         drawCircle(
                             color = Color(0xFFF0F0F0),
@@ -1123,31 +1324,68 @@ fun StepsTodayCard(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
                         contentDescription = "Steps",
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(28.dp),
                         tint = Color(0xFF424242)
                     )
                 }
             } else {
-                // Not connected: Show connection prompt
-                Spacer(modifier = Modifier.weight(1f))
-                
-                Card(
+                // Not connected: Show rings + connection prompt
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onConnectClick() },
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Outer ring (track)
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier.size(100.dp)
+                    ) {
+                        drawCircle(
+                            color = Color(0xFFE8E8E8),
+                            style = Stroke(width = 8.dp.toPx())
+                        )
+                    }
+                    // Inner ring
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier.size(60.dp)
+                    ) {
+                        drawCircle(
+                            color = Color(0xFFF0F0F0),
+                            style = Stroke(width = 6.dp.toPx())
+                        )
+                    }
+                    // Footprints icon
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = "Steps",
+                        modifier = Modifier.size(28.dp),
+                        tint = Color(0xFF424242)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Connection prompt card - clickable
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            android.util.Log.d("StepsTodayCard", "Health Connect button CLICKED!")
+                            onConnectClick()
+                        },
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    color = Color.White,
+                    shadowElevation = 2.dp
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Google Health icon (simplified)
+                        // Google Health icon
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(32.dp)
                                 .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -1155,16 +1393,16 @@ fun StepsTodayCard(
                                 imageVector = Icons.Filled.FavoriteBorder,
                                 contentDescription = null,
                                 tint = Color(0xFFEA4335),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                         
                         Text(
                             text = "Connect Google Health to track your steps",
-                            fontSize = 13.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF424242),
-                            lineHeight = 16.sp
+                            lineHeight = 14.sp
                         )
                     }
                 }
@@ -1184,44 +1422,43 @@ fun CaloriesBurnedCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp)
         ) {
-            // Header with fire icon
+            // Header: fire icon + value on top, "Calories burned" below
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.LocalFireDepartment,
                     contentDescription = null,
                     tint = Color(0xFF424242),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Text(
                     text = calories.toString(),
-                    fontSize = 32.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            
             Text(
                 text = "Calories burned",
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = Color.Gray
             )
             
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Steps calories row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Sneaker icon in dark circle
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(36.dp)
                         .background(Color(0xFF1C1C1E), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1229,25 +1466,25 @@ fun CaloriesBurnedCard(
                         imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 
                 Column {
                     Text(
                         text = "Steps",
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Box(
                         modifier = Modifier
-                            .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .background(Color(0xFFF5F5F5), RoundedCornerShape(10.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "+$stepsCalories",
-                            fontSize = 12.sp,
+                            fontSize = 10.sp,
                             color = Color.Gray
                         )
                     }
@@ -1261,10 +1498,12 @@ fun CaloriesBurnedCard(
 @Composable
 fun WaterCardPremium(
     consumed: Int,
+    servingSize: Int = 8,
     onAdd: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onSettingsClick: () -> Unit = {}
 ) {
-    val cups = consumed / 8 // 8 fl oz per cup
+    val cups = consumed / servingSize
     
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -1294,7 +1533,7 @@ fun WaterCardPremium(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Water",
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -1304,20 +1543,22 @@ fun WaterCardPremium(
                 ) {
                     Text(
                         text = "$consumed fl oz",
-                        fontSize = 16.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "($cups cups)",
-                        fontSize = 14.sp,
+                        fontSize = 10.sp,
                         color = Color.Gray
                     )
                     Icon(
                         imageVector = Icons.Filled.Settings,
                         contentDescription = "Settings",
                         tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onSettingsClick() }
                     )
                 }
             }
@@ -1369,11 +1610,12 @@ fun MacroCardUnified(
     color: Color,
     trackColor: Color,
     icon: ImageVector,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val remaining = goalValue - consumedValue
     
-    CalAICard(modifier = modifier) {
+    CalAICard(modifier = modifier, onClick = onClick) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1473,127 +1715,14 @@ fun MacroCardUnified(
     }
 }
 
-@Composable
-fun CaloriesCard(remaining: Int, consumed: Int, goal: Int) {
-    // State to toggle between "eaten" and "left" views
-    var showEaten by remember { mutableStateOf(true) }
-    
-    // Animation for scale effect on tap
-    val scale by animateFloatAsState(
-        targetValue = if (showEaten) 1f else 1f,
-        animationSpec = tween(150),
-        label = "scale"
-    )
-    
-    CalAICard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable { showEaten = !showEaten }
-    ) {
-        Row(
-            modifier = Modifier.padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                // Animated content transition between eaten/left
-                AnimatedContent(
-                    targetState = showEaten,
-                    transitionSpec = {
-                        (slideInVertically { height -> height } + fadeIn(animationSpec = tween(300)))
-                            .togetherWith(slideOutVertically { height -> -height } + fadeOut(animationSpec = tween(300)))
-                    },
-                    label = "calories_animation"
-                ) { isEaten ->
-                    Column {
-                        if (isEaten) {
-                            // "Eaten" view: shows consumed/goal
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(SpanStyle(
-                                        fontSize = 48.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )) {
-                                        append(consumed.toString())
-                                    }
-                                    withStyle(SpanStyle(
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        color = Color.Gray
-                                    )) {
-                                        append(" /$goal")
-                                    }
-                                }
-                            )
-                            Text(
-                                text = buildAnnotatedString {
-                                    append("Calories ")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("eaten")
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
-                            )
-                        } else {
-                            // "Left" view: shows remaining only
-                            Text(
-                                text = remaining.toString(),
-                                style = MaterialTheme.typography.displayLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 48.sp
-                                )
-                            )
-                            Text(
-                                text = buildAnnotatedString {
-                                    append("Calories ")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("left")
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-                }
-            }
-            
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
-                CalorieRing(
-                    consumed = consumed.toFloat(), 
-                    goal = goal.toFloat(),
-                )
-                Icon(Icons.Filled.LocalFireDepartment, null, tint = Color.Black, modifier = Modifier.size(24.dp))
-            }
-        }
-    }
-}
 
-@Composable
-fun MacroSummaryRow(state: DashboardState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        MacroCard("Protein", "${state.proteinG}g", Modifier.weight(1f))
-        MacroCard("Carbs", "${state.carbsG}g", Modifier.weight(1f))
-        MacroCard("Fat", "${state.fatsG}g", Modifier.weight(1f))
-    }
-}
 
-@Composable
-fun MacroCard(label: String, value: String, modifier: Modifier = Modifier) {
-    CalAICard(modifier = modifier) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-        }
-    }
-}
 
 @Composable
 fun RecentMealCard(meal: MealEntity) {
+    val isAnalyzing = meal.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.ANALYZING ||
+                      meal.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.PENDING
+    
     CalAICard(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -1601,60 +1730,162 @@ fun RecentMealCard(meal: MealEntity) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Meal Image from screenshot
+            // Meal Image with progress overlay for analyzing state
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
-            )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Placeholder food image (in real app would use AsyncImage with imagePath)
+                if (meal.imagePath != null) {
+                    // Would use Coil/Glide to load image from path
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFE8EAF6))
+                    ) {
+                        Icon(
+                            Icons.Filled.Restaurant,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.Center),
+                            tint = Color(0xFF7986CB)
+                        )
+                    }
+                } else {
+                    Icon(
+                        Icons.Filled.Restaurant,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = Color(0xFFBDBDBD)
+                    )
+                }
+                
+                // Progress overlay for analyzing state
+                if (isAnalyzing) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Circular progress
+                        Box(contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(
+                                progress = { meal.analysisProgress / 100f },
+                                modifier = Modifier.size(50.dp),
+                                color = Color.White,
+                                trackColor = Color.White.copy(alpha = 0.3f),
+                                strokeWidth = 4.dp
+                            )
+                            Text(
+                                "${meal.analysisProgress.toInt()}%",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (isAnalyzing) {
+                    // Analyzing state UI
                     Text(
-                        meal.name, 
+                        "Separating ingredients...",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
+                        maxLines = 1
                     )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Progress bars
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        val progress = meal.analysisProgress / 100f
+                        ProgressSegment(active = progress >= 0.25f, modifier = Modifier.weight(1f))
+                        ProgressSegment(active = progress >= 0.50f, modifier = Modifier.weight(1f))
+                        ProgressSegment(active = progress >= 0.75f, modifier = Modifier.weight(1f))
+                        ProgressSegment(active = progress >= 1.0f, modifier = Modifier.weight(1f))
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
                     Text(
-                        "2:10 PM", // Placeholder time
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        "We'll notify you when done!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
                     )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.LocalFireDepartment, 
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        "${meal.calories} calories", 
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MacroInfo(text = "${meal.protein}g", icon = Icons.Filled.Favorite, Color(0xFFFF5252))
-                    MacroInfo(text = "${meal.carbs}g", icon = Icons.Filled.Eco, Color(0xFFFFAB40))
-                    MacroInfo(text = "${meal.fats}g", icon = Icons.Filled.WaterDrop, Color(0xFF448AFF))
+                } else {
+                    // Completed state UI
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            meal.name,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            formatMealTime(meal.timestamp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.LocalFireDepartment,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            "${meal.calories} calories",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MacroInfo(text = "${meal.protein}g", icon = Icons.Filled.Favorite, Color(0xFFFF5252))
+                        MacroInfo(text = "${meal.carbs}g", icon = Icons.Filled.Eco, Color(0xFFFFAB40))
+                        MacroInfo(text = "${meal.fats}g", icon = Icons.Filled.WaterDrop, Color(0xFF448AFF))
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun ProgressSegment(active: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(if (active) Color(0xFF4CAF50) else Color(0xFFE0E0E0))
+    )
+}
+
+fun formatMealTime(timestamp: Long): String {
+    val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    return sdf.format(java.util.Date(timestamp))
 }
 
 @Composable
@@ -1663,5 +1894,384 @@ fun MacroInfo(text: String, icon: ImageVector, color: Color) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = color)
         Spacer(modifier = Modifier.width(4.dp))
         Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+    }
+}
+
+// Water Settings Bottom Sheet Dialog
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WaterSettingsDialog(
+    showDialog: Boolean,
+    currentServingSize: Int,
+    onDismiss: () -> Unit,
+    onServingSizeChange: (Int) -> Unit
+) {
+    if (showDialog) {
+        var selectedSize by remember { mutableStateOf(currentServingSize) }
+        var showPicker by remember { mutableStateOf(false) }
+        
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Close",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { onDismiss() },
+                        tint = Color.Gray
+                    )
+                    Text(
+                        text = "Water settings",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.size(24.dp)) // Balance the row
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Serving Size Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showPicker = !showPicker },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Serving Size",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "$selectedSize fl oz (${selectedSize / 8} cup)",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Edit",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.Gray
+                        )
+                    }
+                }
+                
+                // Serving size picker
+                AnimatedVisibility(visible = showPicker) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Simple number picker
+                        val sizes = listOf(4, 6, 8, 10, 12, 16)
+                        sizes.forEach { size ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.4f)
+                                    .padding(vertical = 4.dp)
+                                    .background(
+                                        if (size == selectedSize) Color(0xFFF5F5F5) else Color.Transparent,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .border(
+                                        if (size == selectedSize) 1.dp else 0.dp,
+                                        if (size == selectedSize) Color(0xFFE0E0E0) else Color.Transparent,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .clickable { 
+                                        selectedSize = size
+                                        onServingSizeChange(size)
+                                    }
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = size.toString(),
+                                    fontSize = if (size == selectedSize) 18.sp else 14.sp,
+                                    fontWeight = if (size == selectedSize) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (size == selectedSize) Color.Black else Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Info section
+                Text(
+                    text = "How much water do you need to stay hydrated?",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "Everyone's needs are slightly different, but we recommended aiming for at least 64 fl oz (8 cups) of water each day",
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+// Health Connect Onboarding Screen - Shows before requesting permissions
+@Composable
+fun HealthConnectOnboardingScreen(
+    onGoBack: () -> Unit,
+    onGetStarted: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(horizontal = 24.dp)
+            .padding(top = 48.dp)
+    ) {
+        // Title
+        Text(
+            text = "Get started with\nHealth Connect",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A1A1A),
+            textAlign = TextAlign.Center,
+            lineHeight = 36.sp,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Subtitle
+        Text(
+            text = "CalViewAI stores your health and fitness data, giving you a simple way to sync the different apps on your phone",
+            fontSize = 15.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Illustration - App icons connecting
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .background(Color(0xFFF8F8F8), RoundedCornerShape(20.dp))
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Left column - Apps
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Fitness app
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(Color(0xFFFFE4D6), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.DirectionsRun,
+                            contentDescription = null,
+                            tint = Color(0xFFFF7043),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    // Dots
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        repeat(4) {
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .background(if (it < 2) Color(0xFFFFB74D) else Color(0xFFE8E8E8), CircleShape)
+                            )
+                        }
+                    }
+                    // Steps app
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(Color(0xFFFFE0B2), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🚶", fontSize = 24.sp)
+                    }
+                }
+                
+                // Center - Health Connect icon
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .background(Color.White, RoundedCornerShape(16.dp))
+                        .border(1.dp, Color(0xFFE8E8E8), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = "Health Connect",
+                        tint = Color(0xFF00BCD4),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                
+                // Right column - Apps
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Heart app
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(Color(0xFFFFE0EC), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MonitorHeart,
+                            contentDescription = null,
+                            tint = Color(0xFFEC407A),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    // Dots
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        repeat(4) {
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .background(if (it >= 2) Color(0xFF81C784) else Color(0xFFE8E8E8), CircleShape)
+                            )
+                        }
+                    }
+                    // Sleep app
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(Color(0xFFE3F2FD), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Bedtime,
+                            contentDescription = null,
+                            tint = Color(0xFF42A5F5),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Info section 1
+        Column {
+            Text(
+                text = "Share data with your apps",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A1A)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Choose the data that each app can read or write to Health Connect",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                lineHeight = 20.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        // Info section 2
+        Column {
+            Text(
+                text = "Manage your settings and privacy",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A1A)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Change app permissions and manage your data at any time",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                lineHeight = 20.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        // Bottom buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Go back button
+            TextButton(onClick = onGoBack) {
+                Text(
+                    text = "Go back",
+                    fontSize = 16.sp,
+                    color = Color(0xFF1976D2),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            
+            // Get started button
+            Button(
+                onClick = onGetStarted,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.height(48.dp)
+            ) {
+                Text(
+                    text = "Get started",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
     }
 }

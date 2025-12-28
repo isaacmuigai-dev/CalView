@@ -2,6 +2,7 @@ package com.example.calview.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
@@ -34,30 +35,46 @@ class DashboardViewModel @Inject constructor(
     val meals = mealRepository.getMealsForToday()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
+    // Recent uploads for the "Recently uploaded" section
+    val recentUploads = mealRepository.getRecentUploads()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
     // Health Connect data
     val healthData = healthConnectManager.healthData
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HealthData())
 
-    val dashboardState = combine(meals, dailyGoal, selectedDate, waterConsumed, healthData) { currentMeals, goal, date, water, health ->
-        val consumed = currentMeals.sumOf { it.calories }
-        val protein = currentMeals.sumOf { it.protein }
-        val carbs = currentMeals.sumOf { it.carbs }
-        val fats = currentMeals.sumOf { it.fats }
+    // Use typed combine (5 flows max with explicit type parameters)
+    private val coreState = combine(
+        meals, dailyGoal, selectedDate, waterConsumed, healthData
+    ) { currentMeals, goal, date, water, health ->
+        CoreState(currentMeals, goal, date, water, health)
+    }
+    
+    val dashboardState = combine(coreState, recentUploads) { core, recent ->
+        // Only count completed meals for calorie totals
+        val completedMeals = core.meals.filter { 
+            it.analysisStatus == AnalysisStatus.COMPLETED 
+        }
+        val consumed = completedMeals.sumOf { it.calories }
+        val protein = completedMeals.sumOf { it.protein }
+        val carbs = completedMeals.sumOf { it.carbs }
+        val fats = completedMeals.sumOf { it.fats }
         
         DashboardState(
             consumedCalories = consumed,
-            remainingCalories = (goal - consumed).coerceAtLeast(0),
-            goalCalories = goal,
+            remainingCalories = (core.goal - consumed).coerceAtLeast(0),
+            goalCalories = core.goal,
             proteinG = protein,
             carbsG = carbs,
             fatsG = fats,
-            meals = currentMeals,
-            selectedDate = date,
-            waterConsumed = water,
-            steps = health.steps,
-            caloriesBurned = health.caloriesBurned.toInt(),
-            isHealthConnected = health.isConnected,
-            isHealthAvailable = health.isAvailable
+            meals = core.meals,
+            selectedDate = core.date,
+            waterConsumed = core.water,
+            steps = core.health.steps,
+            caloriesBurned = core.health.caloriesBurned.toInt(),
+            isHealthConnected = core.health.isConnected,
+            isHealthAvailable = core.health.isAvailable,
+            recentUploads = recent
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
     
@@ -95,6 +112,15 @@ class DashboardViewModel @Inject constructor(
     }
 }
 
+// Internal data class for intermediate combine state
+private data class CoreState(
+    val meals: List<MealEntity>,
+    val goal: Int,
+    val date: Calendar,
+    val water: Int,
+    val health: HealthData
+)
+
 data class DashboardState(
     val consumedCalories: Int = 0,
     val remainingCalories: Int = 0,
@@ -108,5 +134,6 @@ data class DashboardState(
     val steps: Long = 0,
     val caloriesBurned: Int = 0,
     val isHealthConnected: Boolean = false,
-    val isHealthAvailable: Boolean = false
+    val isHealthAvailable: Boolean = false,
+    val recentUploads: List<MealEntity> = emptyList()
 )

@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml:2:13-83
-INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml:2:13-83
+ADDED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml:2:13-83
+INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml:2:13-83
 	package
-		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml
+		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml
 	xmlns:android
-		ADDED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml:2:23-81
+		ADDED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml:2:23-81
 uses-sdk
-INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml reason: use-sdk injection requested
-INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml
-INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml
+INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml reason: use-sdk injection requested
+INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml
+INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml
 	android:targetSdkVersion
-		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml
+		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml
 	android:minSdkVersion
-		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest15452825153161003477.xml
+		INJECTED from C:\Users\isaac\AndroidStudioProjects\CalView\feature-dashboard\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest4225428409452808895.xml
