@@ -55,6 +55,9 @@ dependencies {
     // Health Connect
     implementation(libs.androidx.health.connect)
     
+    // Firebase Auth
+    implementation(libs.firebase.auth)
+    
     // Test dependencies
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.mockk:mockk:1.13.9")

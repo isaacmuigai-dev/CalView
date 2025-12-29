@@ -13,6 +13,11 @@ interface UserPreferencesRepository {
     val recommendedProtein: Flow<Int>
     val recommendedCarbs: Flow<Int>
     val recommendedFats: Flow<Int>
+    
+    // New calorie settings for dashboard
+    val addCaloriesBack: Flow<Boolean>
+    val rolloverExtraCalories: Flow<Boolean>
+    val maxRolloverCalories: Int // Always 200 as per design
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -23,4 +28,9 @@ interface UserPreferencesRepository {
         height: Int
     )
     suspend fun saveRecommendedMacros(calories: Int, protein: Int, carbs: Int, fats: Int)
+    
+    // New methods for calorie settings
+    suspend fun setAddCaloriesBack(enabled: Boolean)
+    suspend fun setRolloverExtraCalories(enabled: Boolean)
 }
+

@@ -28,6 +28,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val RECOMMENDED_PROTEIN = intPreferencesKey("recommended_protein")
         val RECOMMENDED_CARBS = intPreferencesKey("recommended_carbs")
         val RECOMMENDED_FATS = intPreferencesKey("recommended_fats")
+        
+        // New calorie settings
+        val ADD_CALORIES_BACK = booleanPreferencesKey("add_calories_back")
+        val ROLLOVER_EXTRA_CALORIES = booleanPreferencesKey("rollover_extra_calories")
     }
 
     override val isOnboardingComplete: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -69,6 +73,17 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val recommendedFats: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.RECOMMENDED_FATS] ?: 47
     }
+    
+    // New calorie settings for dashboard
+    override val addCaloriesBack: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ADD_CALORIES_BACK] ?: false
+    }
+    
+    override val rolloverExtraCalories: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ROLLOVER_EXTRA_CALORIES] ?: false
+    }
+    
+    override val maxRolloverCalories: Int = 200 // Fixed value as per design
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
         context.dataStore.edit { preferences ->
@@ -98,6 +113,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.RECOMMENDED_PROTEIN] = protein
             preferences[PreferencesKeys.RECOMMENDED_CARBS] = carbs
             preferences[PreferencesKeys.RECOMMENDED_FATS] = fats
+        }
+    }
+    
+    override suspend fun setAddCaloriesBack(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ADD_CALORIES_BACK] = enabled
+        }
+    }
+    
+    override suspend fun setRolloverExtraCalories(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ROLLOVER_EXTRA_CALORIES] = enabled
         }
     }
 }

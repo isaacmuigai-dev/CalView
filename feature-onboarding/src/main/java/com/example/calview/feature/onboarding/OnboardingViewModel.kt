@@ -40,6 +40,10 @@ class OnboardingViewModel @Inject constructor(
                 fats = state.recommendedFats
             )
             
+            // Save calorie settings for dashboard
+            userPreferencesRepository.setAddCaloriesBack(state.addCaloriesBack)
+            userPreferencesRepository.setRolloverExtraCalories(state.rolloverExtraCalories)
+            
             userPreferencesRepository.setOnboardingComplete(true)
             onComplete()
         }

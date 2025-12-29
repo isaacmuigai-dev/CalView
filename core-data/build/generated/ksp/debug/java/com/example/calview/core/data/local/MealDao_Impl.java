@@ -14,7 +14,6 @@ import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
 import java.lang.Class;
 import java.lang.Exception;
-import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
@@ -35,6 +34,8 @@ public final class MealDao_Impl implements MealDao {
   private final RoomDatabase __db;
 
   private final EntityInsertionAdapter<MealEntity> __insertionAdapterOfMealEntity;
+
+  private final Converters __converters = new Converters();
 
   private final EntityDeletionOrUpdateAdapter<MealEntity> __deletionAdapterOfMealEntity;
 
@@ -64,7 +65,8 @@ public final class MealDao_Impl implements MealDao {
         } else {
           statement.bindString(8, entity.getImagePath());
         }
-        statement.bindString(9, __AnalysisStatus_enumToString(entity.getAnalysisStatus()));
+        final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
+        statement.bindString(9, _tmp);
         statement.bindDouble(10, entity.getAnalysisProgress());
         if (entity.getHealthInsight() == null) {
           statement.bindNull(11);
@@ -108,7 +110,8 @@ public final class MealDao_Impl implements MealDao {
         } else {
           statement.bindString(8, entity.getImagePath());
         }
-        statement.bindString(9, __AnalysisStatus_enumToString(entity.getAnalysisStatus()));
+        final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
+        statement.bindString(9, _tmp);
         statement.bindDouble(10, entity.getAnalysisProgress());
         if (entity.getHealthInsight() == null) {
           statement.bindNull(11);
@@ -219,7 +222,9 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
             }
             final AnalysisStatus _tmpAnalysisStatus;
-            _tmpAnalysisStatus = __AnalysisStatus_stringToEnum(_cursor.getString(_cursorIndexOfAnalysisStatus));
+            final String _tmp;
+            _tmp = _cursor.getString(_cursorIndexOfAnalysisStatus);
+            _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
             final String _tmpHealthInsight;
@@ -293,7 +298,9 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
             }
             final AnalysisStatus _tmpAnalysisStatus;
-            _tmpAnalysisStatus = __AnalysisStatus_stringToEnum(_cursor.getString(_cursorIndexOfAnalysisStatus));
+            final String _tmp;
+            _tmp = _cursor.getString(_cursorIndexOfAnalysisStatus);
+            _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
             final String _tmpHealthInsight;
@@ -365,7 +372,9 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
             }
             final AnalysisStatus _tmpAnalysisStatus;
-            _tmpAnalysisStatus = __AnalysisStatus_stringToEnum(_cursor.getString(_cursorIndexOfAnalysisStatus));
+            final String _tmp;
+            _tmp = _cursor.getString(_cursorIndexOfAnalysisStatus);
+            _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
             final String _tmpHealthInsight;
@@ -437,7 +446,9 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
             }
             final AnalysisStatus _tmpAnalysisStatus;
-            _tmpAnalysisStatus = __AnalysisStatus_stringToEnum(_cursor.getString(_cursorIndexOfAnalysisStatus));
+            final String _tmp;
+            _tmp = _cursor.getString(_cursorIndexOfAnalysisStatus);
+            _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
             final String _tmpHealthInsight;
@@ -462,25 +473,5 @@ public final class MealDao_Impl implements MealDao {
   @NonNull
   public static List<Class<?>> getRequiredConverters() {
     return Collections.emptyList();
-  }
-
-  private String __AnalysisStatus_enumToString(@NonNull final AnalysisStatus _value) {
-    switch (_value) {
-      case PENDING: return "PENDING";
-      case ANALYZING: return "ANALYZING";
-      case COMPLETED: return "COMPLETED";
-      case FAILED: return "FAILED";
-      default: throw new IllegalArgumentException("Can't convert enum to string, unknown enum value: " + _value);
-    }
-  }
-
-  private AnalysisStatus __AnalysisStatus_stringToEnum(@NonNull final String _value) {
-    switch (_value) {
-      case "PENDING": return AnalysisStatus.PENDING;
-      case "ANALYZING": return AnalysisStatus.ANALYZING;
-      case "COMPLETED": return AnalysisStatus.COMPLETED;
-      case "FAILED": return AnalysisStatus.FAILED;
-      default: throw new IllegalArgumentException("Can't convert value to enum, unknown value: " + _value);
-    }
   }
 }

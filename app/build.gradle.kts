@@ -67,6 +67,13 @@ dependencies {
 
     // Firebase Crashlytics
     implementation(libs.firebase.crashlytics)
+    
+    // Firebase Auth + Google Sign-In
+    implementation(libs.firebase.auth)
+    implementation(libs.play.services.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play)
+    implementation(libs.googleid)
 
     // Hilt
     implementation(libs.hilt.android)

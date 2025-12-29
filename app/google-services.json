@@ -12,7 +12,20 @@
           "package_name": "com.example.calview"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "81536221642-132oqf45er0sa4h19at3veqacevgisgd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.calview",
+            "certificate_hash": "93e348664eaf6c13bea8f7c25b0f92025f14782d"
+          }
+        },
+        {
+          "client_id": "81536221642-8c2roff66j6aqpmoo705ifvtssu80min.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB8l3HkgEJKdPRnqixWmw7UFt2KQK438jE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "81536221642-8c2roff66j6aqpmoo705ifvtssu80min.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

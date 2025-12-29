@@ -1,6 +1,7 @@
 package com.example.calview
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,46 +22,127 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.calview.core.data.repository.AuthRepository
 import com.example.calview.core.ui.theme.CalViewTheme
 import com.example.calview.feature.dashboard.DashboardScreen
 import com.example.calview.feature.dashboard.DashboardViewModel
 import com.example.calview.feature.dashboard.SettingsScreen
 import com.example.calview.feature.onboarding.OnboardingNavHost
+import com.example.calview.feature.onboarding.SignInBottomSheet
 import com.example.calview.feature.scanner.LogFoodScreen
 import com.example.calview.feature.scanner.ScannerScreen
 import com.example.calview.feature.scanner.ScannerViewModel
 import com.example.calview.feature.trends.ProgressScreen
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import androidx.compose.ui.tooling.preview.Preview
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var authRepository: AuthRepository
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CalViewTheme {
-                AppNavigation()
+                AppNavigation(
+                    isSignedIn = authRepository.isSignedIn()
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    isSignedIn: Boolean = false
+) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    // State for sign-in bottom sheet
+    var showSignInSheet by remember { mutableStateOf(false) }
+    var isSigningIn by remember { mutableStateOf(false) }
+    
+    // Determine start destination based on auth state
+    val startDestination = if (isSignedIn) "main" else "onboarding"
+    
+    // Google Sign-In function
+    fun signInWithGoogle() {
+        scope.launch {
+            isSigningIn = true
+            try {
+                val credentialManager = CredentialManager.create(context)
+                
+                // Configure Google ID request
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId("81536221642-8c2roff66j6aqpmoo705ifvtssu80min.apps.googleusercontent.com")
+                    .setAutoSelectEnabled(false)
+                    .build()
+                
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+                
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = context as android.app.Activity
+                )
+                
+                handleSignInResult(result) { success ->
+                    isSigningIn = false
+                    if (success) {
+                        showSignInSheet = false
+                        // Navigate to main (dashboard)
+                        navController.navigate("main") {
+                            popUpTo("onboarding") { inclusive = true }
+                        }
+                    }
+                }
+            } catch (e: GetCredentialException) {
+                Log.e("GoogleSignIn", "Sign-in failed", e)
+                isSigningIn = false
+            }
+        }
+    }
+    
+    // Sign-in bottom sheet
+    if (showSignInSheet) {
+        SignInBottomSheet(
+            onDismiss = { showSignInSheet = false },
+            onGoogleSignIn = { signInWithGoogle() },
+            isLoading = isSigningIn
+        )
+    }
     
     NavHost(
         navController = navController,
-        startDestination = "onboarding"
+        startDestination = startDestination
     ) {
         composable("onboarding") {
             OnboardingNavHost(
@@ -69,7 +151,7 @@ fun AppNavigation() {
                         popUpTo("onboarding") { inclusive = true }
                     }
                 },
-                onSignIn = { /* Sign in logic */ }
+                onSignIn = { showSignInSheet = true }
             )
         }
         
@@ -93,6 +175,46 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() },
                 onScanFood = { navController.navigate("scanner") }
             )
+        }
+    }
+}
+
+/**
+ * Handle the credential result and authenticate with Firebase.
+ */
+private fun handleSignInResult(
+    result: GetCredentialResponse,
+    onComplete: (Boolean) -> Unit
+) {
+    when (val credential = result.credential) {
+        is CustomCredential -> {
+            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                try {
+                    val googleIdTokenCredential = GoogleIdTokenCredential
+                        .createFrom(credential.data)
+                    
+                    // Authenticate with Firebase
+                    val firebaseCredential = GoogleAuthProvider.getCredential(
+                        googleIdTokenCredential.idToken,
+                        null
+                    )
+                    
+                    FirebaseAuth.getInstance().signInWithCredential(firebaseCredential)
+                        .addOnCompleteListener { task ->
+                            onComplete(task.isSuccessful)
+                        }
+                } catch (e: GoogleIdTokenParsingException) {
+                    Log.e("GoogleSignIn", "Invalid Google ID Token", e)
+                    onComplete(false)
+                }
+            } else {
+                Log.e("GoogleSignIn", "Unexpected credential type")
+                onComplete(false)
+            }
+        }
+        else -> {
+            Log.e("GoogleSignIn", "Unexpected credential type")
+            onComplete(false)
         }
     }
 }
