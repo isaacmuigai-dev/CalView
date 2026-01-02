@@ -11,4 +11,5 @@ interface MealRepository {
     suspend fun logMeal(meal: MealEntity): Long
     suspend fun updateMeal(meal: MealEntity)
     suspend fun deleteMeal(meal: MealEntity)
+    suspend fun deleteMealById(id: Long)
 }

@@ -2,6 +2,7 @@ package com.example.calview.feature.onboarding
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,13 +19,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
 
 /**
  * Create an account screen - mandatory Google sign-in.
- * No skip button, user must authenticate with Google.
+ * Updated design matching the SignInBottomSheet.
  */
 @Composable
 fun CreateAccountScreen(
@@ -32,7 +34,9 @@ fun CreateAccountScreen(
     totalSteps: Int,
     isLoading: Boolean = false,
     onBack: () -> Unit,
-    onGoogleSignIn: () -> Unit
+    onGoogleSignIn: () -> Unit,
+    onTermsClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -40,6 +44,7 @@ fun CreateAccountScreen(
             .background(Color.White)
             .padding(horizontal = 24.dp)
             .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -91,24 +96,36 @@ fun CreateAccountScreen(
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Sign in with Google button (dark background with Google logo)
-        Button(
+        // Divider
+        HorizontalDivider(
+            color = Color(0xFFE0E0E0),
+            thickness = 1.dp
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Sign in with Google button - outlined style matching SignInBottomSheet
+        OutlinedButton(
             onClick = onGoogleSignIn,
             enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1C1C1E),
-                disabledContainerColor = Color(0xFF3C3C3E)
+                .height(54.dp),
+            shape = RoundedCornerShape(27.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.White,
+                contentColor = Color.Black
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.dp,
+                color = Color(0xFFE0E0E0)
             )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
-                    color = Color.White
+                    color = Color.Black
                 )
             } else {
                 Row(
@@ -116,7 +133,7 @@ fun CreateAccountScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Google "G" logo with 4 colors
-                    GoogleLogo(modifier = Modifier.size(24.dp))
+                    GoogleLogo(modifier = Modifier.size(20.dp))
                     
                     Spacer(modifier = Modifier.width(12.dp))
                     
@@ -125,9 +142,63 @@ fun CreateAccountScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
-                        color = Color.White
+                        color = Color.Black
                     )
                 }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Terms and Privacy Policy text with clickable links
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row {
+                Text(
+                    text = "By continuing, you agree to Cal AI's ",
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
+            Row {
+                Text(
+                    text = "Terms and",
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { onTermsClick() }
+                )
+            }
+            Row {
+                Text(
+                    text = "Conditions",
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { onTermsClick() }
+                )
+                Text(
+                    text = " and ",
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "Privacy Policy",
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { onPrivacyClick() }
+                )
             }
         }
         

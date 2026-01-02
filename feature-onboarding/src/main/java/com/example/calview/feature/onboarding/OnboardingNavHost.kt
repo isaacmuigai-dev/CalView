@@ -6,10 +6,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Consolidated onboarding navigation flow.
+ * Reduced from 23 screens to 10 screens while maintaining all data collection.
+ * 
+ * Flow:
+ * Welcome → Profile Setup → Goals & Preferences → Notifications → 
+ * Health Connect → Generate Plan → Setting Up → Congratulations → 
+ * Referral Code → Create Account
+ */
 @Composable
 fun OnboardingNavHost(
     onOnboardingComplete: () -> Unit,
-    onSignIn: () -> Unit
+    onSignIn: () -> Unit,
+    onTermsClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val viewModel: OnboardingViewModel = hiltViewModel()
@@ -18,8 +29,7 @@ fun OnboardingNavHost(
     // Track selected language
     var selectedLanguage by remember { mutableStateOf(supportedLanguages.first()) }
     
-    // Local state for onboarding flow
-    var selectedTriedApps by remember { mutableStateOf("") }
+    // Profile setup state
     var isMetric by remember { mutableStateOf(true) }
     var heightFeet by remember { mutableIntStateOf(5) }
     var heightInches by remember { mutableIntStateOf(6) }
@@ -29,102 +39,55 @@ fun OnboardingNavHost(
     var birthMonth by remember { mutableStateOf("January") }
     var birthDay by remember { mutableIntStateOf(1) }
     var birthYear by remember { mutableIntStateOf(2001) }
+    
+    // Goal preferences state
     var selectedGoal by remember { mutableStateOf("") }
-    
-    // Weight change state (for both lose and gain weight)
-    var desiredWeightKg by remember { mutableFloatStateOf(60f) }
-    var weightChangePerWeek by remember { mutableFloatStateOf(0.8f) }
-    var selectedObstacle by remember { mutableStateOf("") }
-    var selectedDiet by remember { mutableStateOf("") }
-    
-    // Final screens state
-    var selectedAccomplishment by remember { mutableStateOf("") }
-    var notificationsEnabled by remember { mutableStateOf(false) }
-    var addCaloriesBurnedEnabled by remember { mutableStateOf(false) }
+    var targetWeightKg by remember { mutableFloatStateOf(60f) }
+    var weightChangePerWeek by remember { mutableFloatStateOf(0.5f) }
+    var selectedDiet by remember { mutableStateOf("No preference") }
     var rolloverCaloriesEnabled by remember { mutableStateOf(false) }
+    var addCaloriesBurnedEnabled by remember { mutableStateOf(false) }
+    
+    // Settings state
+    var notificationsEnabled by remember { mutableStateOf(false) }
+    var usedReferralCode by remember { mutableStateOf("") }
     
     // Calculate current weight in kg
     val currentWeightKg = if (isMetric) weightKg.toFloat() else weightLb / 2.205f
     
-    // Check if Gain Weight mode
-    val isGainWeight = selectedGoal == "Gain Weight"
-
-    // Total steps: 22 for lose/gain weight, 17 for maintain (added create_account)
-    // Lose/Gain: 7 base + 6 weight screens + 5 final + 3 plan + 1 account = 22
-    // Maintain: 7 base + 1 diet + 5 final + 3 plan + 1 account = 17
-    val totalSteps = when (selectedGoal) {
-        "Lose Weight", "Gain Weight" -> 22
-        "Maintain" -> 17
-        else -> 7
-    }
+    // Total steps: 9 screens (removed AddCaloriesBurnedScreen)
+    val totalSteps = 9
 
     NavHost(
         navController = navController,
         startDestination = "welcome"
     ) {
-        // Step 0: Welcome
+        // ============ STEP 1: WELCOME ============
         composable("welcome") {
             WelcomeScreen(
-                onGetStarted = { navController.navigate("gender") },
+                onGetStarted = { navController.navigate("profile_setup") },
                 onSignIn = onSignIn,
                 selectedLanguage = selectedLanguage,
                 onLanguageSelected = { language -> selectedLanguage = language }
             )
         }
         
-        // Step 1: Gender selection
-        composable("gender") {
-            GenderScreen(
-                currentStep = 1,
-                totalSteps = totalSteps,
-                selectedGender = uiState.gender,
-                onGenderSelected = { viewModel.onGenderSelected(it) },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("workouts") }
-            )
-        }
-        
-        // Step 2: Workouts per week
-        composable("workouts") {
-            WorkoutsScreen(
+        // ============ STEP 2: PROFILE SETUP (Consolidated) ============
+        composable("profile_setup") {
+            ProfileSetupScreen(
                 currentStep = 2,
                 totalSteps = totalSteps,
-                selectedWorkouts = uiState.workoutsPerWeek,
-                onWorkoutsSelected = { viewModel.onWorkoutsSelected(it) },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("referral_source") }
-            )
-        }
-        
-        // Step 3: Referral source
-        composable("referral_source") {
-            ReferralSourceScreen(
-                currentStep = 3,
-                totalSteps = totalSteps,
-                selectedSource = uiState.referralSource,
-                onSourceSelected = { viewModel.onSourceSelected(it) },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("tried_apps") }
-            )
-        }
-        
-        // Step 4: Tried other apps
-        composable("tried_apps") {
-            TriedOtherAppsScreen(
-                currentStep = 4,
-                totalSteps = totalSteps,
-                selectedAnswer = selectedTriedApps,
-                onAnswerSelected = { selectedTriedApps = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("height_weight") }
-            )
-        }
-        
-        // Step 5: Height & Weight
-        composable("height_weight") {
-            HeightWeightScreen(
-                currentStep = 5,
-                totalSteps = totalSteps,
+                // Gender
+                selectedGender = uiState.gender,
+                onGenderSelected = { viewModel.onGenderSelected(it) },
+                // Birthdate
+                birthMonth = birthMonth,
+                birthDay = birthDay,
+                birthYear = birthYear,
+                onMonthChanged = { birthMonth = it },
+                onDayChanged = { birthDay = it },
+                onYearChanged = { birthYear = it },
+                // Height & Weight
                 isMetric = isMetric,
                 heightFeet = heightFeet,
                 heightInches = heightInches,
@@ -137,289 +100,166 @@ fun OnboardingNavHost(
                 onHeightCmChanged = { heightCm = it },
                 onWeightLbChanged = { weightLb = it },
                 onWeightKgChanged = { weightKg = it },
+                // Activity Level
+                selectedWorkouts = uiState.workoutsPerWeek,
+                onWorkoutsSelected = { viewModel.onWorkoutsSelected(it) },
+                // Navigation
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("birthdate") }
+                onContinue = { navController.navigate("goal_preferences") }
             )
         }
         
-        // Step 6: Birthdate
-        composable("birthdate") {
-            BirthdateScreen(
-                currentStep = 6,
+        // ============ STEP 3: GOAL & PREFERENCES (Consolidated) ============
+        composable("goal_preferences") {
+            GoalPreferencesScreen(
+                currentStep = 3,
                 totalSteps = totalSteps,
-                selectedMonth = birthMonth,
-                selectedDay = birthDay,
-                selectedYear = birthYear,
-                onMonthChanged = { birthMonth = it },
-                onDayChanged = { birthDay = it },
-                onYearChanged = { birthYear = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("goal") }
-            )
-        }
-        
-        // Step 7: Goal selection
-        composable("goal") {
-            GoalScreen(
-                currentStep = 7,
-                totalSteps = totalSteps,
+                // Goal
                 selectedGoal = selectedGoal,
-                onGoalSelected = { selectedGoal = it },
-                onBack = { navController.popBackStack() },
-                onContinue = {
-                    when (selectedGoal) {
-                        "Lose Weight", "Gain Weight" -> {
-                            // Navigate to weight change flow
-                            navController.navigate("desired_weight")
-                        }
-                        "Maintain" -> {
-                            // Go directly to diet screen
-                            navController.navigate("specific_diet")
-                        }
-                        else -> {
-                            viewModel.completeOnboarding(onOnboardingComplete)
-                        }
-                    }
-                }
-            )
-        }
-        
-        // ============ LOSE/GAIN WEIGHT SHARED SCREENS ============
-        
-        // Step 8: Desired Weight
-        composable("desired_weight") {
-            DesiredWeightScreen(
-                currentStep = 8,
-                totalSteps = totalSteps,
+                onGoalSelected = { 
+                    selectedGoal = it
+                    viewModel.onGoalSelected(it)
+                },
+                // Weight
                 currentWeightKg = currentWeightKg,
-                isKg = isMetric,
-                desiredWeightKg = desiredWeightKg,
-                isGainWeight = isGainWeight,
-                onUnitToggle = { isMetric = it },
-                onWeightChanged = { desiredWeightKg = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("realistic_target") }
-            )
-        }
-        
-        // Step 9: Realistic Target
-        composable("realistic_target") {
-            RealisticTargetScreen(
-                currentStep = 9,
-                totalSteps = totalSteps,
-                currentWeightKg = currentWeightKg,
-                desiredWeightKg = desiredWeightKg,
-                isKg = isMetric,
-                isGainWeight = isGainWeight,
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("how_fast") }
-            )
-        }
-        
-        // Step 10: How Fast
-        composable("how_fast") {
-            HowFastScreen(
-                currentStep = 10,
-                totalSteps = totalSteps,
-                isKg = isMetric,
+                isMetric = isMetric,
+                targetWeightKg = targetWeightKg,
+                onTargetWeightChanged = { targetWeightKg = it },
+                // Pace
                 weightChangePerWeek = weightChangePerWeek,
-                isGainWeight = isGainWeight,
-                onWeightChangeChanged = { weightChangePerWeek = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("cal_ai_comparison") }
-            )
-        }
-        
-        // Step 11: CalViewAI Comparison
-        composable("cal_ai_comparison") {
-            CalAIComparisonScreen(
-                currentStep = 11,
-                totalSteps = totalSteps,
-                isGainWeight = isGainWeight,
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("whats_stopping_you") }
-            )
-        }
-        
-        // Step 12: What's Stopping You
-        composable("whats_stopping_you") {
-            WhatsStoppingYouScreen(
-                currentStep = 12,
-                totalSteps = totalSteps,
-                selectedObstacle = selectedObstacle,
-                onObstacleSelected = { selectedObstacle = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("specific_diet") }
-            )
-        }
-        
-        // Step 13 (Lose/Gain) or Step 8 (Maintain): Specific Diet
-        composable("specific_diet") {
-            val dietStep = when (selectedGoal) {
-                "Maintain" -> 8
-                else -> 13
-            }
-            SpecificDietScreen(
-                currentStep = dietStep,
-                totalSteps = totalSteps,
+                onPaceChanged = { weightChangePerWeek = it },
+                // Diet
                 selectedDiet = selectedDiet,
-                onDietSelected = { selectedDiet = it },
-                onBack = { navController.popBackStack() },
-                onContinue = {
-                    // Navigate to final shared screens
-                    navController.navigate("accomplish")
-                }
-            )
-        }
-        
-        // ============ FINAL SHARED SCREENS (ALL PATHS) ============
-        
-        // Step 14 (Lose/Gain) or Step 9 (Maintain): What would you like to accomplish
-        composable("accomplish") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 9
-                else -> 14
-            }
-            AccomplishScreen(
-                currentStep = step,
-                totalSteps = totalSteps,
-                selectedAccomplishment = selectedAccomplishment,
-                onAccomplishmentSelected = { selectedAccomplishment = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("thank_you") }
-            )
-        }
-        
-        // Step 15 (Lose/Gain) or Step 10 (Maintain): Thank you for trusting us
-        composable("thank_you") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 10
-                else -> 15
-            }
-            ThankYouScreen(
-                currentStep = step,
-                totalSteps = totalSteps,
+                onDietSelected = { 
+                    selectedDiet = it
+                    viewModel.onDietSelected(it)
+                },
+                // Rollover
+                rolloverEnabled = rolloverCaloriesEnabled,
+                onRolloverChanged = { 
+                    rolloverCaloriesEnabled = it
+                    viewModel.onRolloverExtraCaloriesChanged(it)
+                },
+                // Add Burned Calories
+                addCaloriesBurnedEnabled = addCaloriesBurnedEnabled,
+                onAddCaloriesBurnedChanged = { enabled ->
+                    addCaloriesBurnedEnabled = enabled
+                    viewModel.onAddCaloriesBackChanged(enabled)
+                },
+                // Navigation
                 onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate("notifications") }
             )
         }
         
-        // Step 16 (Lose/Gain) or Step 11 (Maintain): Notifications
+        // ============ STEP 4: NOTIFICATIONS ============
         composable("notifications") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 11
-                else -> 16
-            }
             NotificationsScreen(
-                currentStep = step,
+                currentStep = 4,
                 totalSteps = totalSteps,
                 notificationsEnabled = notificationsEnabled,
                 onNotificationChoice = { notificationsEnabled = it },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("add_calories_burned") }
-            )
-        }
-        
-        // Step 17 (Lose/Gain) or Step 12 (Maintain): Add calories burned
-        composable("add_calories_burned") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 12
-                else -> 17
-            }
-            AddCaloriesBurnedScreen(
-                currentStep = step,
-                totalSteps = totalSteps,
-                addCaloriesBurnedEnabled = addCaloriesBurnedEnabled,
-                onChoice = { enabled ->
-                    addCaloriesBurnedEnabled = enabled
-                    viewModel.onAddCaloriesBackChanged(enabled)
-                },
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("rollover_calories") }
-            )
-        }
-        
-        // Step 18 (Lose/Gain) or Step 13 (Maintain): Rollover calories
-        composable("rollover_calories") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 13
-                else -> 18
-            }
-            RolloverCaloriesScreen(
-                currentStep = step,
-                totalSteps = totalSteps,
-                rolloverEnabled = rolloverCaloriesEnabled,
-                onChoice = { enabled ->
-                    rolloverCaloriesEnabled = enabled
-                    viewModel.onRolloverExtraCaloriesChanged(enabled)
-                },
                 onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate("generate_plan") }
             )
         }
         
-        // ============ PLAN GENERATION SCREENS ============
-        
-        // Step 19 (Lose/Gain) or Step 14 (Maintain): Generate Plan
+        // ============ STEP 5: GENERATE PLAN ============
         composable("generate_plan") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 14
-                else -> 19
-            }
             GeneratePlanScreen(
-                currentStep = step,
+                currentStep = 5,
                 totalSteps = totalSteps,
                 onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate("setting_up") }
             )
         }
         
-        // Step 20 (Lose/Gain) or Step 15 (Maintain): Setting Up (no back, auto-advances)
+        // ============ STEP 6: SETTING UP (Loading Animation) ============
         composable("setting_up") {
             SettingUpScreen(
-                onComplete = { navController.navigate("congratulations") {
-                    popUpTo("setting_up") { inclusive = true }
-                }}
+                onComplete = { 
+                    navController.navigate("congratulations") {
+                        popUpTo("setting_up") { inclusive = true }
+                    }
+                }
             )
         }
         
-        // Step 21 (Lose/Gain) or Step 16 (Maintain): Congratulations
+        // ============ STEP 7: CONGRATULATIONS ============
         composable("congratulations") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 16
-                else -> 21
-            }
             CongratulationsScreen(
-                currentStep = step,
+                currentStep = 7,
                 totalSteps = totalSteps,
                 goal = selectedGoal,
-                targetWeight = desiredWeightKg,
+                targetWeight = targetWeightKg,
                 recommendedCalories = uiState.recommendedCalories,
                 recommendedCarbs = uiState.recommendedCarbs,
                 recommendedProtein = uiState.recommendedProtein,
                 recommendedFats = uiState.recommendedFats,
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("create_account") }
+                onContinue = { navController.navigate("referral_code") }
             )
         }
         
-        // Step 22 (Lose/Gain) or Step 17 (Maintain): Create Account (mandatory Google sign-in)
+        // ============ STEP 8: REFERRAL CODE (Optional) ============
+        composable("referral_code") {
+            ReferralCodeScreen(
+                currentStep = 8,
+                totalSteps = totalSteps,
+                onBack = { navController.popBackStack() },
+                onContinue = { code ->
+                    usedReferralCode = code
+                    viewModel.onReferralCodeUsed(code)
+                    navController.navigate("create_account")
+                },
+                onSkip = { navController.navigate("create_account") }
+            )
+        }
+        
+        // ============ STEP 9: CREATE ACCOUNT ============
         composable("create_account") {
-            val step = when (selectedGoal) {
-                "Maintain" -> 17
-                else -> 22
-            }
             CreateAccountScreen(
-                currentStep = step,
+                currentStep = 9,
                 totalSteps = totalSteps,
                 onBack = { navController.popBackStack() },
                 onGoogleSignIn = {
-                    // Save onboarding data then trigger Google sign-in
+                    // Save all collected data before triggering sign-in
+                    viewModel.onHeightChanged(heightFeet, heightInches)
+                    viewModel.onWeightChanged(currentWeightKg)
+                    viewModel.onBirthDateChanged(
+                        getMonthNumber(birthMonth),
+                        birthDay,
+                        birthYear
+                    )
+                    
                     viewModel.completeOnboarding {
                         onSignIn()
                     }
-                }
+                },
+                onTermsClick = onTermsClick,
+                onPrivacyClick = onPrivacyClick
             )
         }
+    }
+}
+
+/**
+ * Convert month name to month number (1-12)
+ */
+private fun getMonthNumber(monthName: String): Int {
+    return when (monthName) {
+        "January" -> 1
+        "February" -> 2
+        "March" -> 3
+        "April" -> 4
+        "May" -> 5
+        "June" -> 6
+        "July" -> 7
+        "August" -> 8
+        "September" -> 9
+        "October" -> 10
+        "November" -> 11
+        "December" -> 12
+        else -> 1
     }
 }

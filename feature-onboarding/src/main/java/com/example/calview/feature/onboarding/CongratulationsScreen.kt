@@ -1,5 +1,9 @@
 package com.example.calview.feature.onboarding
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,12 +30,13 @@ import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 /**
  * Congratulations your custom plan is ready screen.
  * Shows:
- * - Daily recommendation cards (Calories, Carbs, Protein, Fats)
- * - Health score with progress bar
+ * - Daily recommendation cards (Calories, Carbs, Protein, Fats) with animated rings
+ * - Health score with animated progress bar
  * - How to reach your goals tips
  * - Medical sources list
  */
@@ -46,11 +51,37 @@ fun CongratulationsScreen(
     recommendedCarbs: Int,
     recommendedProtein: Int,
     recommendedFats: Int,
-    healthScore: Int = 7,
     onBack: () -> Unit,
     onContinue: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    
+    // Calculate health score based on macro distribution
+    // A balanced diet gets higher score
+    val healthScore = remember(recommendedCalories, recommendedCarbs, recommendedProtein, recommendedFats) {
+        calculateHealthScore(
+            calories = recommendedCalories,
+            carbs = recommendedCarbs,
+            protein = recommendedProtein,
+            fats = recommendedFats,
+            goal = goal
+        )
+    }
+    
+    // Animation state - trigger animations on screen appearance
+    var startAnimation by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        delay(300) // Small delay for screen to settle
+        startAnimation = true
+    }
+    
+    // Animated health score
+    val animatedHealthScore by animateFloatAsState(
+        targetValue = if (startAnimation) healthScore.toFloat() else 0f,
+        animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
+        label = "health_score_animation"
+    )
     
     // Determine goal action word
     val actionWord = when (goal) {
@@ -64,6 +95,7 @@ fun CongratulationsScreen(
             .fillMaxSize()
             .background(Color.White)
             .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         // Top bar
         Row(
@@ -192,23 +224,29 @@ fun CongratulationsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Macro cards grid
+            // Macro cards grid with animations
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MacroCard(
+                AnimatedMacroCard(
                     title = "Calories",
                     value = recommendedCalories.toString(),
                     emoji = "🔥",
                     color = Color(0xFF1C1C1E),
+                    progress = 1f, // Calories always shows full ring
+                    startAnimation = startAnimation,
+                    animationDelay = 0,
                     modifier = Modifier.weight(1f)
                 )
-                MacroCard(
+                AnimatedMacroCard(
                     title = "Carbs",
                     value = "${recommendedCarbs}g",
                     emoji = "🌾",
                     color = Color(0xFFFF9800),
+                    progress = calculateMacroProgress(recommendedCarbs, recommendedCalories, "carbs"),
+                    startAnimation = startAnimation,
+                    animationDelay = 100,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -219,25 +257,31 @@ fun CongratulationsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MacroCard(
+                AnimatedMacroCard(
                     title = "Protein",
                     value = "${recommendedProtein}g",
                     emoji = "🥩",
                     color = Color(0xFFE57373),
+                    progress = calculateMacroProgress(recommendedProtein, recommendedCalories, "protein"),
+                    startAnimation = startAnimation,
+                    animationDelay = 200,
                     modifier = Modifier.weight(1f)
                 )
-                MacroCard(
+                AnimatedMacroCard(
                     title = "Fats",
                     value = "${recommendedFats}g",
                     emoji = "🧈",
                     color = Color(0xFF64B5F6),
+                    progress = calculateMacroProgress(recommendedFats, recommendedCalories, "fats"),
+                    startAnimation = startAnimation,
+                    animationDelay = 300,
                     modifier = Modifier.weight(1f)
                 )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Health Score card
+            // Health Score card with animation
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = Color(0xFFF8F8F8),
@@ -249,7 +293,7 @@ fun CongratulationsScreen(
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Heart icon
+                    // Heart icon with pulse animation
                     Surface(
                         shape = CircleShape,
                         color = Color(0xFFFCE4EC),
@@ -278,7 +322,7 @@ fun CongratulationsScreen(
                         
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        // Progress bar
+                        // Animated progress bar
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -288,10 +332,16 @@ fun CongratulationsScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(healthScore / 10f)
+                                    .fillMaxWidth(animatedHealthScore / 10f)
                                     .height(8.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFF4CAF50))
+                                    .background(
+                                        when {
+                                            animatedHealthScore >= 7 -> Color(0xFF4CAF50) // Green
+                                            animatedHealthScore >= 5 -> Color(0xFFFF9800) // Orange
+                                            else -> Color(0xFFF44336) // Red
+                                        }
+                                    )
                             )
                         }
                     }
@@ -299,7 +349,7 @@ fun CongratulationsScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     
                     Text(
-                        text = "$healthScore/10",
+                        text = "${animatedHealthScore.toInt()}/10",
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
@@ -404,14 +454,36 @@ fun CongratulationsScreen(
     }
 }
 
+/**
+ * Animated macro card with ring progress indicator
+ */
 @Composable
-private fun MacroCard(
+private fun AnimatedMacroCard(
     title: String,
     value: String,
     emoji: String,
     color: Color,
+    progress: Float,
+    startAnimation: Boolean,
+    animationDelay: Int,
     modifier: Modifier = Modifier
 ) {
+    // Animated progress value
+    val animatedProgress = remember { Animatable(0f) }
+    
+    LaunchedEffect(startAnimation) {
+        if (startAnimation) {
+            delay(animationDelay.toLong())
+            animatedProgress.animateTo(
+                targetValue = progress,
+                animationSpec = tween(
+                    durationMillis = 1200,
+                    easing = FastOutSlowInEasing
+                )
+            )
+        }
+    }
+    
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFFF8F8F8),
@@ -442,7 +514,7 @@ private fun MacroCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
-                // Circular progress
+                // Animated circular progress
                 Box(
                     modifier = Modifier.size(60.dp),
                     contentAlignment = Alignment.Center
@@ -456,11 +528,11 @@ private fun MacroCard(
                             useCenter = false,
                             style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
                         )
-                        // Progress arc
+                        // Animated progress arc
                         drawArc(
                             color = color,
                             startAngle = 135f,
-                            sweepAngle = 180f,
+                            sweepAngle = 270f * animatedProgress.value,
                             useCenter = false,
                             style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
                         )
@@ -531,3 +603,87 @@ private fun calculateTargetDate(): String {
     val targetDate = LocalDate.now().plusMonths(3)
     return targetDate.format(DateTimeFormatter.ofPattern("dd MMM"))
 }
+
+/**
+ * Calculate macro progress based on contribution to total calories.
+ * Shows how balanced the macro distribution is.
+ */
+private fun calculateMacroProgress(macroGrams: Int, totalCalories: Int, macroType: String): Float {
+    if (totalCalories <= 0) return 0.5f
+    
+    // Calculate calories from macro
+    val caloriesFromMacro = when (macroType) {
+        "carbs" -> macroGrams * 4
+        "protein" -> macroGrams * 4
+        "fats" -> macroGrams * 9
+        else -> 0
+    }
+    
+    // Calculate percentage of total calories
+    val percentage = caloriesFromMacro.toFloat() / totalCalories
+    
+    // Ideal ranges for each macro
+    val (minIdeal, maxIdeal) = when (macroType) {
+        "carbs" -> 0.40f to 0.55f // 40-55% of calories
+        "protein" -> 0.20f to 0.35f // 20-35% of calories
+        "fats" -> 0.20f to 0.35f // 20-35% of calories
+        else -> 0.25f to 0.35f
+    }
+    
+    // Calculate progress - higher if within ideal range
+    return when {
+        percentage in minIdeal..maxIdeal -> 0.9f + (0.1f * (percentage - minIdeal) / (maxIdeal - minIdeal))
+        percentage < minIdeal -> 0.3f + (0.6f * percentage / minIdeal)
+        else -> 0.7f // Above ideal range
+    }.coerceIn(0.2f, 1f)
+}
+
+/**
+ * Calculate health score based on macro distribution and goal.
+ * Returns score from 1-10.
+ */
+private fun calculateHealthScore(
+    calories: Int,
+    carbs: Int,
+    protein: Int,
+    fats: Int,
+    goal: String
+): Int {
+    if (calories <= 0) return 7
+    
+    // Calculate macro percentages
+    val carbsCals = carbs * 4
+    val proteinCals = protein * 4
+    val fatsCals = fats * 9
+    val totalMacroCals = carbsCals + proteinCals + fatsCals
+    
+    if (totalMacroCals <= 0) return 7
+    
+    val carbsPercent = carbsCals.toFloat() / totalMacroCals
+    val proteinPercent = proteinCals.toFloat() / totalMacroCals
+    val fatsPercent = fatsCals.toFloat() / totalMacroCals
+    
+    var score = 5f
+    
+    // Check carbs balance (ideal: 40-55%)
+    if (carbsPercent in 0.35f..0.60f) score += 1.5f
+    else if (carbsPercent in 0.25f..0.65f) score += 0.5f
+    
+    // Check protein balance (ideal: 20-35%)
+    if (proteinPercent in 0.15f..0.40f) score += 1.5f
+    else if (proteinPercent in 0.10f..0.45f) score += 0.5f
+    
+    // Check fats balance (ideal: 20-35%)
+    if (fatsPercent in 0.15f..0.40f) score += 1.5f
+    else if (fatsPercent in 0.10f..0.45f) score += 0.5f
+    
+    // Bonus for appropriate calorie level
+    when (goal) {
+        "Lose Weight" -> if (calories in 1200..1800) score += 0.5f
+        "Gain Weight" -> if (calories in 2200..3500) score += 0.5f
+        else -> if (calories in 1800..2500) score += 0.5f
+    }
+    
+    return score.coerceIn(1f, 10f).toInt()
+}
+

@@ -1,5 +1,6 @@
 package com.example.calview.feature.onboarding;
 
+import com.example.calview.core.ai.NutritionRecommendationService;
 import com.example.calview.core.data.repository.UserPreferencesRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -26,23 +27,28 @@ import javax.inject.Provider;
 public final class OnboardingViewModel_Factory implements Factory<OnboardingViewModel> {
   private final Provider<UserPreferencesRepository> userPreferencesRepositoryProvider;
 
+  private final Provider<NutritionRecommendationService> nutritionRecommendationServiceProvider;
+
   public OnboardingViewModel_Factory(
-      Provider<UserPreferencesRepository> userPreferencesRepositoryProvider) {
+      Provider<UserPreferencesRepository> userPreferencesRepositoryProvider,
+      Provider<NutritionRecommendationService> nutritionRecommendationServiceProvider) {
     this.userPreferencesRepositoryProvider = userPreferencesRepositoryProvider;
+    this.nutritionRecommendationServiceProvider = nutritionRecommendationServiceProvider;
   }
 
   @Override
   public OnboardingViewModel get() {
-    return newInstance(userPreferencesRepositoryProvider.get());
+    return newInstance(userPreferencesRepositoryProvider.get(), nutritionRecommendationServiceProvider.get());
   }
 
   public static OnboardingViewModel_Factory create(
-      Provider<UserPreferencesRepository> userPreferencesRepositoryProvider) {
-    return new OnboardingViewModel_Factory(userPreferencesRepositoryProvider);
+      Provider<UserPreferencesRepository> userPreferencesRepositoryProvider,
+      Provider<NutritionRecommendationService> nutritionRecommendationServiceProvider) {
+    return new OnboardingViewModel_Factory(userPreferencesRepositoryProvider, nutritionRecommendationServiceProvider);
   }
 
-  public static OnboardingViewModel newInstance(
-      UserPreferencesRepository userPreferencesRepository) {
-    return new OnboardingViewModel(userPreferencesRepository);
+  public static OnboardingViewModel newInstance(UserPreferencesRepository userPreferencesRepository,
+      NutritionRecommendationService nutritionRecommendationService) {
+    return new OnboardingViewModel(userPreferencesRepository, nutritionRecommendationService);
   }
 }

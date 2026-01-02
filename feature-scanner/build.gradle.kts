@@ -69,6 +69,8 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
     
+    // Image loading (Coil)
+    implementation(libs.coil.compose)
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

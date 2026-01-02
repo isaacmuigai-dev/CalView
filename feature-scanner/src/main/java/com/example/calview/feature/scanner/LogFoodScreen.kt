@@ -1,13 +1,13 @@
 package com.example.calview.feature.scanner
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -16,798 +16,568 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.calview.core.data.local.AnalysisStatus
+import com.example.calview.core.data.local.MealEntity
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
-// Data class for food suggestion items
-data class FoodSuggestion(
-    val name: String,
-    val calories: Int,
-    val serving: String
-)
+// Color palette
+private val GradientStart = Color(0xFF667EEA)
+private val GradientEnd = Color(0xFF764BA2)
+private val AccentCyan = Color(0xFF00D4AA)
+private val DarkText = Color(0xFF1F2937)
+private val MutedText = Color(0xFF6B7280)
+private val CardBg = Color(0xFFF9FAFB)
+private val SurfaceBg = Color.White
 
+/**
+ * My Meals Screen - Simple, minimalistic design
+ * Features: View saved meals, create custom meals, quick scan access
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogFoodScreen(
+fun MyMealsScreen(
+    meals: List<MealEntity>,
     onBack: () -> Unit,
-    onScanFood: () -> Unit = {}
+    onScanFood: () -> Unit,
+    onCreateMeal: (name: String, calories: Int, protein: Int, carbs: Int, fats: Int) -> Unit,
+    onDeleteMeal: (Long) -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("All", "My meals", "My foods", "Saved scans")
+    var showCreateMealDialog by remember { mutableStateOf(false) }
+    var mealToDelete by remember { mutableStateOf<MealEntity?>(null) }
     
-    // Sample food suggestions for "All" tab
-    val foodSuggestions = remember {
-        listOf(
-            FoodSuggestion("Peanut Butter", 94, "tbsp"),
-            FoodSuggestion("Avocado", 130, "serving"),
-            FoodSuggestion("Egg", 74, "large"),
-            FoodSuggestion("Egg", 74, "large"),
-            FoodSuggestion("Apples", 95, "medium")
-        )
-    }
-    
-    // State for showing Create Meal screen
-    var showCreateMeal by remember { mutableStateOf(false) }
-    
-    if (showCreateMeal) {
-        CreateMealScreen(
-            onBack = { showCreateMeal = false }
-        )
-    } else {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(SurfaceBg)
         ) {
-            // Top bar with back button and title
-            Row(
+            // Header
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.Black
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(GradientStart, GradientEnd)
+                        )
                     )
+                    .statusBarsPadding()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    
+                    Text(
+                        text = "My Meals",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    
+                    Spacer(modifier = Modifier.size(40.dp))
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "Log food",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                // Placeholder for symmetry
-                Spacer(modifier = Modifier.width(48.dp))
             }
             
-            // Tab row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { selectedTab = index }
+                // Quick Actions
+                item {
+                    Text(
+                        text = "Quick Actions",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DarkText,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = title,
-                            fontSize = 14.sp,
-                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selectedTab == index) Color.Black else Color.Gray
+                        // Scan Food Button
+                        QuickActionCard(
+                            icon = Icons.Filled.CameraAlt,
+                            title = "Scan Food",
+                            subtitle = "Take a photo",
+                            color = GradientStart,
+                            onClick = onScanFood,
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .width(if (selectedTab == index) 40.dp else 0.dp)
-                                .height(2.dp)
-                                .background(if (selectedTab == index) Color.Black else Color.Transparent)
+                        
+                        // Create Meal Button
+                        QuickActionCard(
+                            icon = Icons.Filled.Add,
+                            title = "Create Meal",
+                            subtitle = "Add manually",
+                            color = AccentCyan,
+                            onClick = { showCreateMealDialog = true },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(color = Color(0xFFEEEEEE))
-            
-            // Tab content
-            when (selectedTab) {
-                0 -> AllTabContent(
-                    suggestions = foodSuggestions,
-                    onAddFood = { /* Add food logic */ }
-                )
-                1 -> MyMealsTabContent(
-                    onCreateMeal = { showCreateMeal = true }
-                )
-                2 -> MyFoodsTabContent(
-                    onAddFood = { /* Add food logic */ }
-                )
-                3 -> SavedScansTabContent()
+                
+                // Saved Meals Section
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Your Meals",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = DarkText
+                        )
+                        Text(
+                            text = "${meals.size} meals",
+                            fontSize = 13.sp,
+                            color = MutedText
+                        )
+                    }
+                }
+                
+                // Meals List or Empty State
+                if (meals.isEmpty()) {
+                    item {
+                        EmptyMealsState()
+                    }
+                } else {
+                    items(
+                        items = meals.sortedByDescending { it.timestamp },
+                        key = { it.id }
+                    ) { meal ->
+                        MealCard(
+                            meal = meal,
+                            onDelete = { mealToDelete = meal }
+                        )
+                    }
+                }
+                
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
-    }
-}
-
-@Composable
-fun AllTabContent(
-    suggestions: List<FoodSuggestion>,
-    onAddFood: (FoodSuggestion) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Search field
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = {
-                    Text(
-                        text = "Describe what you ate",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
+        
+        // Create Meal Dialog
+        if (showCreateMealDialog) {
+            CreateMealDialog(
+                onDismiss = { showCreateMealDialog = false },
+                onCreate = { name, calories, protein, carbs, fats ->
+                    onCreateMeal(name, calories, protein, carbs, fats)
+                    showCreateMealDialog = false
+                }
+            )
+        }
+        
+        // Delete Confirmation Dialog
+        mealToDelete?.let { meal ->
+            AlertDialog(
+                onDismissRequest = { mealToDelete = null },
+                title = { Text("Delete Meal?") },
+                text = { Text("Are you sure you want to delete \"${meal.name}\"? This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDeleteMeal(meal.id)
+                            mealToDelete = null
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF4444))
+                    ) {
+                        Text("Delete")
+                    }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedBorderColor = Color.Black
-                )
-            )
-        }
-        
-        // Suggestions header
-        Text(
-            text = "Suggestions",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Food list
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(suggestions) { food ->
-                FoodSuggestionItem(
-                    food = food,
-                    onAdd = { onAddFood(food) }
-                )
-            }
-        }
-        
-        // Bottom buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Manual Add button
-            OutlinedButton(
-                onClick = { /* Manual add */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Manual Add", fontSize = 14.sp)
-            }
-            
-            // Voice Log button
-            OutlinedButton(
-                onClick = { /* Voice log */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Mic,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Voice Log", fontSize = 14.sp)
-            }
-        }
-    }
-}
-
-@Composable
-fun FoodSuggestionItem(
-    food: FoodSuggestion,
-    onAdd: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8F8F8)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = food.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.LocalFireDepartment,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${food.calories} cal• ${food.serving}",
-                        fontSize = 13.sp,
-                        color = Color.Gray
-                    )
+                dismissButton = {
+                    TextButton(onClick = { mealToDelete = null }) {
+                        Text("Cancel")
+                    }
                 }
-            }
-            
-            IconButton(onClick = onAdd) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add",
-                    tint = Color.Black
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MyMealsTabContent(
-    onCreateMeal: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Meal illustration - emoji placeholder
-        Text(
-            text = "🥗🍊",
-            fontSize = 64.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "My Meals",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Quickly log your go-to meal combinations",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Create a Meal button
-        Button(
-            onClick = onCreateMeal,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1A1A)),
-            shape = RoundedCornerShape(26.dp)
-        ) {
-            Text(
-                text = "Create a Meal",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
             )
         }
     }
 }
 
 @Composable
-fun MyFoodsTabContent(
-    onAddFood: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Canned food illustration - emoji placeholder
-        Text(
-            text = "🥫",
-            fontSize = 64.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "My Foods",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Add a custom food to your personal list",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Add Food button
-        Button(
-            onClick = onAddFood,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1A1A)),
-            shape = RoundedCornerShape(26.dp)
-        ) {
-            Text(
-                text = "Add Food",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-
-@Composable
-fun SavedScansTabContent() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Scan illustration - emoji placeholder
-        Text(
-            text = "📷",
-            fontSize = 64.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "Saved Scans",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Your previously scanned foods will appear here",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-// Create Meal Screen
-@Composable
-fun CreateMealScreen(
-    onBack: () -> Unit
-) {
-    var mealName by remember { mutableStateOf("") }
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // Top bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Create Meal",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(48.dp))
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Name field
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFF8F8F8)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (mealName.isEmpty()) "Tap Name" else mealName,
-                    fontSize = 16.sp,
-                    color = if (mealName.isEmpty()) Color.Gray else Color.Black
-                )
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Calories card
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFF8F8F8)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.LocalFireDepartment,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "Calories",
-                        fontSize = 13.sp,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = "0.0",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Macros row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Protein
-            MacroCard(
-                icon = "🥩",
-                label = "Protein",
-                value = "0.0g",
-                modifier = Modifier.weight(1f)
-            )
-            // Carbs
-            MacroCard(
-                icon = "🌾",
-                label = "Carbs",
-                value = "0.0g",
-                modifier = Modifier.weight(1f)
-            )
-            // Fats
-            MacroCard(
-                icon = "💧",
-                label = "Fats",
-                value = "0.0g",
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Meal Items section
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Restaurant,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Meal Items",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Add items button
-        OutlinedButton(
-            onClick = { /* Add items */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Add items to this meal", fontSize = 14.sp)
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Create Meal button (disabled)
-        Button(
-            onClick = { /* Create meal */ },
-            enabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1A1A1A),
-                disabledContainerColor = Color(0xFFE0E0E0)
-            ),
-            shape = RoundedCornerShape(26.dp)
-        ) {
-            Text(
-                text = "Create Meal",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-private fun MacroCard(
-    icon: String,
-    label: String,
-    value: String,
+private fun QuickActionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    color: Color,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFF8F8F8)
+        modifier = modifier
+            .height(100.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f))
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = icon, fontSize = 16.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                color = Color.Gray
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = value,
+                text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Black
+                color = color
+            )
+            Text(
+                text = subtitle,
+                fontSize = 11.sp,
+                color = color.copy(alpha = 0.7f)
             )
         }
     }
 }
 
-// Create Food Screen - for adding custom foods
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateFoodScreen(
-    onBack: () -> Unit
+private fun MealCard(
+    meal: MealEntity,
+    onDelete: () -> Unit
 ) {
-    var brandName by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var servingSize by remember { mutableStateOf("") }
-    var servingPerContainer by remember { mutableStateOf("") }
+    val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
+    val dateString = dateFormat.format(Date(meal.timestamp))
     
-    val isFormValid = description.isNotBlank() && servingSize.isNotBlank() && servingPerContainer.isNotBlank()
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = CardBg,
+        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
     ) {
-        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
-                )
+            // Meal Image or Placeholder
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(GradientStart.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (meal.imagePath != null && File(meal.imagePath).exists()) {
+                    AsyncImage(
+                        model = File(meal.imagePath),
+                        contentDescription = meal.name,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(text = "🍽️", fontSize = 28.sp)
+                }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Create Food",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(48.dp))
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // Meal Details
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = meal.name,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = DarkText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        
+                        // Status badge for analyzing meals
+                        if (meal.analysisStatus == AnalysisStatus.ANALYZING) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(12.dp),
+                                    strokeWidth = 2.dp,
+                                    color = GradientStart
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Analyzing...",
+                                    fontSize = 12.sp,
+                                    color = GradientStart
+                                )
+                            }
+                        }
+                    }
+                    
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = "Delete",
+                            tint = MutedText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Calories and date
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🔥 ${meal.calories} cal",
+                        fontSize = 13.sp,
+                        color = MutedText
+                    )
+                    Text(
+                        text = " • $dateString",
+                        fontSize = 12.sp,
+                        color = MutedText.copy(alpha = 0.7f)
+                    )
+                }
+                
+                // Macros
+                if (meal.protein > 0 || meal.carbs > 0 || meal.fats > 0) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MacroChip("P", "${meal.protein}g", Color(0xFFEF4444))
+                        MacroChip("C", "${meal.carbs}g", Color(0xFFF59E0B))
+                        MacroChip("F", "${meal.fats}g", Color(0xFF3B82F6))
+                    }
+                }
+            }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Brand Name field
-        OutlinedTextField(
-            value = brandName,
-            onValueChange = { brandName = it },
-            label = { Text("Brand Name") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedBorderColor = Color.Black
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Description field (required)
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description*") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedBorderColor = Color.Black
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Serving size field (required)
-        OutlinedTextField(
-            value = servingSize,
-            onValueChange = { servingSize = it },
-            label = { Text("Serving size*") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedBorderColor = Color.Black
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Serving per container field (required)
-        OutlinedTextField(
-            value = servingPerContainer,
-            onValueChange = { servingPerContainer = it },
-            label = { Text("Serving per container*") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedBorderColor = Color.Black
-            )
-        )
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Next button
-        Button(
-            onClick = { /* Next step */ },
-            enabled = isFormValid,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1A1A1A),
-                disabledContainerColor = Color(0xFFE0E0E0)
-            ),
-            shape = RoundedCornerShape(26.dp)
+    }
+}
+
+@Composable
+private fun MacroChip(
+    label: String,
+    value: String,
+    color: Color
+) {
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = color.copy(alpha = 0.1f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Next",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (isFormValid) Color.White else Color.Gray
+                text = label,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Text(
+                text = value,
+                fontSize = 10.sp,
+                color = color.copy(alpha = 0.8f)
             )
         }
     }
+}
+
+@Composable
+private fun EmptyMealsState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "🍽️", fontSize = 64.sp)
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "No meals yet",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = DarkText
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = "Scan your food or create a custom meal",
+            fontSize = 14.sp,
+            color = MutedText
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreateMealDialog(
+    onDismiss: () -> Unit,
+    onCreate: (name: String, calories: Int, protein: Int, carbs: Int, fats: Int) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var calories by remember { mutableStateOf("") }
+    var protein by remember { mutableStateOf("") }
+    var carbs by remember { mutableStateOf("") }
+    var fats by remember { mutableStateOf("") }
+    
+    val isValid = name.isNotBlank() && calories.isNotBlank() && (calories.toIntOrNull() ?: 0) > 0
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                "Create Custom Meal",
+                fontWeight = FontWeight.Bold
+            ) 
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Meal Name *") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                
+                OutlinedTextField(
+                    value = calories,
+                    onValueChange = { calories = it.filter { c -> c.isDigit() } },
+                    label = { Text("Calories *") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Text("🔥") }
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = protein,
+                        onValueChange = { protein = it.filter { c -> c.isDigit() } },
+                        label = { Text("Protein") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        suffix = { Text("g") }
+                    )
+                    OutlinedTextField(
+                        value = carbs,
+                        onValueChange = { carbs = it.filter { c -> c.isDigit() } },
+                        label = { Text("Carbs") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        suffix = { Text("g") }
+                    )
+                    OutlinedTextField(
+                        value = fats,
+                        onValueChange = { fats = it.filter { c -> c.isDigit() } },
+                        label = { Text("Fats") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        suffix = { Text("g") }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onCreate(
+                        name,
+                        calories.toIntOrNull() ?: 0,
+                        protein.toIntOrNull() ?: 0,
+                        carbs.toIntOrNull() ?: 0,
+                        fats.toIntOrNull() ?: 0
+                    )
+                },
+                enabled = isValid,
+                colors = ButtonDefaults.buttonColors(containerColor = AccentCyan)
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Keep the old function signature for backwards compatibility during transition
+@Deprecated("Use MyMealsScreen instead", ReplaceWith("MyMealsScreen"))
+@Composable
+fun LogFoodScreen(
+    onBack: () -> Unit,
+    onScanFood: () -> Unit = {},
+    onFoodAdded: (Any) -> Unit = {}
+) {
+    // Redirect to empty state since we don't have the new parameters
+    MyMealsScreen(
+        meals = emptyList(),
+        onBack = onBack,
+        onScanFood = onScanFood,
+        onCreateMeal = { _, _, _, _, _ -> },
+        onDeleteMeal = {}
+    )
 }

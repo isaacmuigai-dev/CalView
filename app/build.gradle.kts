@@ -64,6 +64,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
+    
+    // Window Size Class for adaptive layouts
+    implementation(libs.androidx.compose.material3.window.size)
 
     // Firebase Crashlytics
     implementation(libs.firebase.crashlytics)
@@ -109,7 +112,14 @@ dependencies {
     // Health Connect
     implementation(libs.androidx.health.connect)
 
+    // Unit Testing
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.androidx.core.testing)
+    
+    // Instrumented Testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

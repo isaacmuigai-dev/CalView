@@ -2,6 +2,8 @@ package com.example.calview.core.ai.di
 
 import com.example.calview.core.ai.FoodAnalysisService
 import com.example.calview.core.ai.GeminiFoodAnalysisService
+import com.example.calview.core.ai.GeminiNutritionRecommendationService
+import com.example.calview.core.ai.NutritionRecommendationService
 import com.google.ai.client.generativeai.GenerativeModel
 import dagger.Module
 import dagger.Provides
@@ -28,5 +30,13 @@ object AiModule {
         generativeModel: GenerativeModel
     ): FoodAnalysisService {
         return GeminiFoodAnalysisService(generativeModel)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNutritionRecommendationService(
+        generativeModel: GenerativeModel
+    ): NutritionRecommendationService {
+        return GeminiNutritionRecommendationService(generativeModel)
     }
 }

@@ -1,5 +1,10 @@
 package com.example.calview.feature.onboarding
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -7,16 +12,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.calview.core.ui.theme.Inter
 import com.example.calview.feature.onboarding.components.OnboardingScreenLayout
 
 /**
  * Reach your goals with notifications screen.
  * Shows notification permission request with Allow/Don't Allow options.
+ * On Android 13+ (API 33), clicking Allow will launch the system permission dialog.
  */
 @Composable
 fun NotificationsScreen(
@@ -27,6 +35,43 @@ fun NotificationsScreen(
     onBack: () -> Unit,
     onContinue: () -> Unit
 ) {
+    val context = LocalContext.current
+    
+    // Check if we need to request permission (Android 13+)
+    val needsPermissionRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    
+    // Check current permission status
+    val hasNotificationPermission = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Permission not required on older Android versions
+        }
+    }
+    
+    // Permission launcher for notification permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        onNotificationChoice(isGranted)
+    }
+    
+    // Handle Allow button click
+    val onAllowClick: () -> Unit = {
+        if (needsPermissionRequest && !hasNotificationPermission) {
+            // Launch system permission dialog on Android 13+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            // Permission already granted or not needed
+            onNotificationChoice(true)
+        }
+    }
+    
     OnboardingScreenLayout(
         currentStep = currentStep,
         totalSteps = totalSteps,
@@ -107,9 +152,9 @@ fun NotificationsScreen(
                             }
                         }
                         
-                        // Allow button
+                        // Allow button - launches permission request
                         Surface(
-                            onClick = { onNotificationChoice(true) },
+                            onClick = onAllowClick,
                             shape = RoundedCornerShape(12.dp),
                             color = if (notificationsEnabled) Color(0xFF1C1C1E) else Color(0xFFE0E0E0),
                             modifier = Modifier

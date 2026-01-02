@@ -35,37 +35,38 @@ class ScannerViewModel @Inject constructor(
 
     fun analyzeImage(bitmap: Bitmap) {
         viewModelScope.launch {
-            // 1. Save image to internal storage
-            val imagePath = saveImageToStorage(bitmap)
-            
-            // 2. Create meal with ANALYZING status
-            val placeholderMeal = MealEntity(
-                name = "Analyzing...",
-                calories = 0,
-                protein = 0,
-                carbs = 0,
-                fats = 0,
-                imagePath = imagePath,
-                analysisStatus = AnalysisStatus.ANALYZING,
-                analysisProgress = 0f
-            )
-            currentMealId = mealRepository.logMeal(placeholderMeal)
-            
-            // 3. Signal that we should navigate to dashboard
-            _uiState.value = ScannerUiState.NavigateToDashboard
-            
-            // 4. Simulate progress updates while analyzing
-            launch {
+            try {
+                // 1. Save image to internal storage
+                val imagePath = saveImageToStorage(bitmap)
+                
+                // 2. Create meal with ANALYZING status
+                val placeholderMeal = MealEntity(
+                    name = "Analyzing...",
+                    calories = 0,
+                    protein = 0,
+                    carbs = 0,
+                    fats = 0,
+                    imagePath = imagePath,
+                    analysisStatus = AnalysisStatus.ANALYZING,
+                    analysisProgress = 0f
+                )
+                currentMealId = mealRepository.logMeal(placeholderMeal)
+                
+                // 3. Signal that we should navigate to dashboard
+                _uiState.value = ScannerUiState.NavigateToDashboard
+                
+                // 4. Update progress - starting analysis
                 updateProgress(25f)
-                delay(500)
+                
+                // 5. Perform actual AI analysis
                 updateProgress(50f)
-                delay(500)
+                
+                val result = foodAnalysisService.analyzeFoodImage(bitmap)
+                
+                // 6. Update progress - processing results
                 updateProgress(75f)
-            }
-            
-            // 5. Perform actual AI analysis
-            foodAnalysisService.analyzeFoodImage(bitmap)
-                .onSuccess { response ->
+                
+                result.onSuccess { response ->
                     // Update meal with analysis results
                     currentMealId?.let { id ->
                         val updatedMeal = MealEntity(
@@ -83,21 +84,40 @@ class ScannerViewModel @Inject constructor(
                         mealRepository.updateMeal(updatedMeal)
                     }
                     _uiState.value = ScannerUiState.Success(response)
-                }
-                .onFailure { error ->
+                }.onFailure { error ->
+                    android.util.Log.e("ScannerVM", "AI analysis failed: ${error.message}", error)
                     // Mark analysis as failed
                     currentMealId?.let { id ->
                         mealRepository.getMealById(id)?.let { meal ->
                             mealRepository.updateMeal(
                                 meal.copy(
                                     analysisStatus = AnalysisStatus.FAILED,
-                                    name = "Analysis Failed"
+                                    name = "Analysis Failed",
+                                    analysisProgress = 0f
                                 )
                             )
                         }
                     }
-                    _uiState.value = ScannerUiState.Error(error.message ?: "Unknown error")
+                    _uiState.value = ScannerUiState.Error(error.message ?: "Food analysis failed. Please try again.")
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("ScannerVM", "Unexpected error in analyzeImage: ${e.message}", e)
+                // Handle any unexpected exceptions
+                currentMealId?.let { id ->
+                    try {
+                        mealRepository.getMealById(id)?.let { meal ->
+                            mealRepository.updateMeal(
+                                meal.copy(
+                                    analysisStatus = AnalysisStatus.FAILED,
+                                    name = "Analysis Failed",
+                                    analysisProgress = 0f
+                                )
+                            )
+                        }
+                    } catch (_: Exception) { /* Ignore nested errors */ }
+                }
+                _uiState.value = ScannerUiState.Error(e.message ?: "An unexpected error occurred")
+            }
         }
     }
     
@@ -128,6 +148,46 @@ class ScannerViewModel @Inject constructor(
     fun reset() {
         _uiState.value = ScannerUiState.Idle
         currentMealId = null
+    }
+    
+    /**
+     * Directly logs a meal to the repository without image analysis.
+     * Used for manual food logging from the My Meals screen.
+     */
+    suspend fun logMealDirectly(meal: MealEntity): Long {
+        return mealRepository.logMeal(meal)
+    }
+    
+    /**
+     * Get all meals as a Flow for the My Meals screen.
+     */
+    fun getAllMealsFlow() = mealRepository.getAllMeals()
+    
+    /**
+     * Delete a meal by ID.
+     */
+    fun deleteMeal(mealId: Long) {
+        viewModelScope.launch {
+            mealRepository.deleteMealById(mealId)
+        }
+    }
+    
+    /**
+     * Create a custom meal manually.
+     */
+    fun createCustomMeal(name: String, calories: Int, protein: Int, carbs: Int, fats: Int) {
+        viewModelScope.launch {
+            val meal = MealEntity(
+                name = name,
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fats = fats,
+                analysisStatus = AnalysisStatus.COMPLETED,
+                analysisProgress = 100f
+            )
+            mealRepository.logMeal(meal)
+        }
     }
 }
 

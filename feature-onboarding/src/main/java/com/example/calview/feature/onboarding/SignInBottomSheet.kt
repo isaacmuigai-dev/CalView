@@ -28,13 +28,15 @@ import com.example.calview.core.ui.theme.Inter
 
 /**
  * Sign-in bottom sheet with Google Sign-In button only.
- * Matching the design from the provided mockup.
+ * Features clickable Terms and Conditions and Privacy Policy links.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInBottomSheet(
     onDismiss: () -> Unit,
     onGoogleSignIn: () -> Unit,
+    onTermsClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {},
     isLoading: Boolean = false,
     sheetState: SheetState = rememberModalBottomSheetState()
 ) {
@@ -77,7 +79,7 @@ fun SignInBottomSheet(
                 }
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             // Divider
             HorizontalDivider(
@@ -95,36 +97,62 @@ fun SignInBottomSheet(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Terms and Conditions text
-            Text(
-                text = buildAnnotatedString {
-                    append("By continuing, you agree to CalViewAI's ")
-                    withStyle(SpanStyle(
+            // Terms and Privacy Policy text with clickable links
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Text(
+                        text = "By continuing, you agree to Cal AI's ",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Terms and",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium,
                         textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.Medium
-                    )) {
-                        append("Terms and Conditions")
-                    }
-                    append(" and ")
-                    withStyle(SpanStyle(
+                        modifier = Modifier.clickable { onTermsClick() }
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Conditions",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium,
                         textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.Medium
-                    )) {
-                        append("Privacy Policy")
-                    }
-                },
-                fontFamily = Inter,
-                fontSize = 13.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                lineHeight = 18.sp
-            )
+                        modifier = Modifier.clickable { onTermsClick() }
+                    )
+                    Text(
+                        text = " and ",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "Privacy Policy",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable { onPrivacyClick() }
+                    )
+                }
+            }
         }
     }
 }
 
 /**
- * Google Sign-In button with Google logo.
+ * Google Sign-In button with official Google G icon.
  */
 @Composable
 fun GoogleSignInButton(
@@ -159,20 +187,8 @@ fun GoogleSignInButton(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Google logo (using text as fallback - in production use actual image)
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(Color.Transparent),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "G",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4285F4) // Google Blue
-                    )
-                }
+                // Google G icon (colored version)
+                GoogleGIcon()
                 
                 Spacer(modifier = Modifier.width(12.dp))
                 
@@ -184,6 +200,78 @@ fun GoogleSignInButton(
                     color = Color.Black
                 )
             }
+        }
+    }
+}
+
+/**
+ * Official Google G icon with proper colors
+ */
+@Composable
+private fun GoogleGIcon(
+    modifier: Modifier = Modifier
+) {
+    // Try to use the vector drawable, fallback to custom drawn G
+    Box(
+        modifier = modifier.size(20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Custom Google G with proper colors
+        androidx.compose.foundation.Canvas(
+            modifier = Modifier.size(20.dp)
+        ) {
+            val size = this.size
+            val centerX = size.width / 2
+            val centerY = size.height / 2
+            val radius = size.width * 0.4f
+            
+            // Draw the colored G segments
+            // Blue (right side)
+            drawArc(
+                color = Color(0xFF4285F4),
+                startAngle = -45f,
+                sweepAngle = 90f,
+                useCenter = true,
+                size = size
+            )
+            // Green (bottom right)
+            drawArc(
+                color = Color(0xFF34A853),
+                startAngle = 45f,
+                sweepAngle = 90f,
+                useCenter = true,
+                size = size
+            )
+            // Yellow (bottom left)
+            drawArc(
+                color = Color(0xFFFBBC05),
+                startAngle = 135f,
+                sweepAngle = 90f,
+                useCenter = true,
+                size = size
+            )
+            // Red (top left)
+            drawArc(
+                color = Color(0xFFEA4335),
+                startAngle = 225f,
+                sweepAngle = 90f,
+                useCenter = true,
+                size = size
+            )
+            
+            // White center circle
+            drawCircle(
+                color = Color.White,
+                radius = radius * 0.6f,
+                center = androidx.compose.ui.geometry.Offset(centerX, centerY)
+            )
+            
+            // Blue bar (horizontal line for the G)
+            drawRect(
+                color = Color(0xFF4285F4),
+                topLeft = androidx.compose.ui.geometry.Offset(centerX - radius * 0.1f, centerY - radius * 0.25f),
+                size = androidx.compose.ui.geometry.Size(radius * 0.8f, radius * 0.5f)
+            )
         }
     }
 }

@@ -47,6 +47,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     
+    // Window Size Class for adaptive layouts
+    api(libs.androidx.compose.material3.window.size)
+    
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 

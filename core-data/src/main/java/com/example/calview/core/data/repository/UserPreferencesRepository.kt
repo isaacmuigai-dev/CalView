@@ -14,10 +14,29 @@ interface UserPreferencesRepository {
     val recommendedCarbs: Flow<Int>
     val recommendedFats: Flow<Int>
     
-    // New calorie settings for dashboard
+    // User profile from Google sign-in
+    val userName: Flow<String>
+    val photoUrl: Flow<String>
+    
+    // Referral system
+    val referralCode: Flow<String>  // User's unique promo code
+    val usedReferralCode: Flow<String>  // Referral code user entered during onboarding
+    
+    // Calorie settings for dashboard
     val addCaloriesBack: Flow<Boolean>
     val rolloverExtraCalories: Flow<Boolean>
+    val rolloverCaloriesAmount: Flow<Int>  // Yesterday's leftover calories (max 200)
     val maxRolloverCalories: Int // Always 200 as per design
+    
+    // Appearance settings
+    val appearanceMode: Flow<String>  // "light", "dark", "automatic"
+    
+    // Personal details
+    val goalWeight: Flow<Float>  // Target weight in lbs
+    val dailyStepsGoal: Flow<Int>  // Daily step target (default 10000)
+    val birthMonth: Flow<String>  // "January", "February", etc.
+    val birthDay: Flow<Int>  // 1-31
+    val birthYear: Flow<Int>  // 1940-2010
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -29,8 +48,28 @@ interface UserPreferencesRepository {
     )
     suspend fun saveRecommendedMacros(calories: Int, protein: Int, carbs: Int, fats: Int)
     
-    // New methods for calorie settings
+    // User profile methods
+    suspend fun setUserName(name: String)
+    suspend fun setPhotoUrl(url: String)
+    
+    // Referral methods
+    suspend fun setReferralCode(code: String)
+    suspend fun setUsedReferralCode(code: String)
+    
+    // Calorie settings methods
     suspend fun setAddCaloriesBack(enabled: Boolean)
     suspend fun setRolloverExtraCalories(enabled: Boolean)
+    suspend fun setRolloverCaloriesAmount(amount: Int)
+    
+    // Appearance settings method
+    suspend fun setAppearanceMode(mode: String)
+    
+    // Personal details methods
+    suspend fun setGoalWeight(weight: Float)
+    suspend fun setDailyStepsGoal(steps: Int)
+    suspend fun setBirthDate(month: String, day: Int, year: Int)
+    suspend fun setGender(gender: String)
+    suspend fun setWeight(weight: Float)
+    suspend fun setHeight(heightCm: Int)
 }
 

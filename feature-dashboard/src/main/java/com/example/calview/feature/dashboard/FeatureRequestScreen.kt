@@ -1,0 +1,1261 @@
+package com.example.calview.feature.dashboard
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.Inter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+// Data Models
+data class FeatureRequest(
+    val id: String,
+    val title: String,
+    val description: String,
+    val authorName: String,
+    val authorPhotoUrl: String = "",
+    val votes: Int,
+    val commentCount: Int,
+    val createdAt: LocalDateTime,
+    val status: RequestStatus = RequestStatus.OPEN,
+    val hasVoted: Boolean = false,
+    val tags: List<String> = emptyList()
+)
+
+data class Comment(
+    val id: String,
+    val authorName: String,
+    val authorPhotoUrl: String = "",
+    val content: String,
+    val createdAt: LocalDateTime,
+    val likes: Int = 0,
+    val hasLiked: Boolean = false
+)
+
+enum class RequestStatus {
+    OPEN,
+    IN_PROGRESS,
+    COMPLETED,
+    DECLINED
+}
+
+enum class FilterTab {
+    TRENDING,
+    NEWEST,
+    MY_POSTS
+}
+
+// Accent Colors
+private val AccentCyan = Color(0xFF00D9FF)
+private val AccentPurple = Color(0xFF7B61FF)
+private val AccentGreen = Color(0xFF00C853)
+private val AccentOrange = Color(0xFFFF6D00)
+
+/**
+ * Feature Request Screen - X-inspired social feed for feature suggestions
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FeatureRequestScreen(
+    onBack: () -> Unit,
+    userName: String = "User",
+    userPhotoUrl: String = ""
+) {
+    var selectedTab by remember { mutableStateOf(FilterTab.TRENDING) }
+    var searchQuery by remember { mutableStateOf("") }
+    var showCreateSheet by remember { mutableStateOf(false) }
+    var selectedRequest by remember { mutableStateOf<FeatureRequest?>(null) }
+    
+    // Mock data - In production, this would come from Firebase/backend
+    var requests by remember { 
+        mutableStateOf(getSampleRequests())
+    }
+    
+    val filteredRequests = remember(requests, selectedTab, searchQuery) {
+        val filtered = when (selectedTab) {
+            FilterTab.TRENDING -> requests.sortedByDescending { it.votes }
+            FilterTab.NEWEST -> requests.sortedByDescending { it.createdAt }
+            FilterTab.MY_POSTS -> requests.filter { it.authorName == userName }
+        }
+        if (searchQuery.isNotEmpty()) {
+            filtered.filter { 
+                it.title.contains(searchQuery, ignoreCase = true) ||
+                it.description.contains(searchQuery, ignoreCase = true)
+            }
+        } else {
+            filtered
+        }
+    }
+    
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                FeatureRequestTopBar(
+                    onBack = onBack,
+                    onRefresh = { /* Refresh logic */ }
+                )
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { showCreateSheet = true },
+                    containerColor = AccentCyan,
+                    contentColor = Color.Black,
+                    shape = CircleShape,
+                    modifier = Modifier.size(60.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Create Request",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Header with gradient
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    AccentCyan.copy(alpha = 0.1f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            "Feature Requests",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 28.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Shape the future of CalView",
+                            fontFamily = Inter,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                // Filter Tabs
+                FilterTabRow(
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it }
+                )
+                
+                // Search Bar
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                
+                // Request Feed
+                if (filteredRequests.isEmpty()) {
+                    EmptyState(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp)
+                    )
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredRequests) { request ->
+                            FeatureRequestCard(
+                                request = request,
+                                onVote = { 
+                                    requests = requests.map { 
+                                        if (it.id == request.id) {
+                                            it.copy(
+                                                votes = if (it.hasVoted) it.votes - 1 else it.votes + 1,
+                                                hasVoted = !it.hasVoted
+                                            )
+                                        } else it
+                                    }
+                                },
+                                onClick = { selectedRequest = request }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
+                    }
+                }
+            }
+        }
+        
+        // Create Request Bottom Sheet
+        if (showCreateSheet) {
+            CreateRequestSheet(
+                userName = userName,
+                onDismiss = { showCreateSheet = false },
+                onSubmit = { title, description, tags ->
+                    val newRequest = FeatureRequest(
+                        id = "req_${System.currentTimeMillis()}",
+                        title = title,
+                        description = description,
+                        authorName = userName,
+                        authorPhotoUrl = userPhotoUrl,
+                        votes = 0,
+                        commentCount = 0,
+                        createdAt = LocalDateTime.now(),
+                        tags = tags
+                    )
+                    requests = listOf(newRequest) + requests
+                    showCreateSheet = false
+                }
+            )
+        }
+        
+        // Request Detail Sheet
+        selectedRequest?.let { request ->
+            RequestDetailSheet(
+                request = request,
+                userName = userName,
+                onDismiss = { selectedRequest = null },
+                onVote = {
+                    requests = requests.map { 
+                        if (it.id == request.id) {
+                            val updated = it.copy(
+                                votes = if (it.hasVoted) it.votes - 1 else it.votes + 1,
+                                hasVoted = !it.hasVoted
+                            )
+                            selectedRequest = updated
+                            updated
+                        } else it
+                    }
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeatureRequestTopBar(
+    onBack: () -> Unit,
+    onRefresh: () -> Unit
+) {
+    TopAppBar(
+        title = { 
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Lightbulb,
+                    contentDescription = null,
+                    tint = AccentCyan,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Feedback Hub",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onRefresh) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    )
+}
+
+@Composable
+private fun FilterTabRow(
+    selectedTab: FilterTab,
+    onTabSelected: (FilterTab) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterTab.entries.forEach { tab ->
+            val isSelected = tab == selectedTab
+            val bgColor by animateColorAsState(
+                if (isSelected) AccentCyan else MaterialTheme.colorScheme.surfaceVariant,
+                label = "tabBgColor"
+            )
+            val textColor by animateColorAsState(
+                if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+                label = "tabTextColor"
+            )
+            
+            Surface(
+                onClick = { onTabSelected(tab) },
+                color = bgColor,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = when (tab) {
+                        FilterTab.TRENDING -> "🔥 Trending"
+                        FilterTab.NEWEST -> "✨ Newest"
+                        FilterTab.MY_POSTS -> "👤 My Posts"
+                    },
+                    fontFamily = Inter,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 13.sp,
+                    color = textColor,
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusManager = LocalFocusManager.current
+    
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { 
+            Text(
+                "Search feature requests...",
+                fontFamily = Inter,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(24.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = AccentCyan,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun FeatureRequestCard(
+    request: FeatureRequest,
+    onVote: () -> Unit,
+    onClick: () -> Unit
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        if (isPressed) 0.98f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        label = "cardScale"
+    )
+    
+    Surface(
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Vote Section
+            VoteButton(
+                votes = request.votes,
+                hasVoted = request.hasVoted,
+                onVote = onVote
+            )
+            
+            // Content Section
+            Column(modifier = Modifier.weight(1f)) {
+                // Author Info
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(AccentCyan, AccentPurple)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            request.authorName.take(1).uppercase(),
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        request.authorName,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        " · ${formatTimeAgo(request.createdAt)}",
+                        fontFamily = Inter,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                // Title
+                Text(
+                    request.title,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                // Description
+                if (request.description.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        request.description,
+                        fontFamily = Inter,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 20.sp
+                    )
+                }
+                
+                // Tags
+                if (request.tags.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(request.tags) { tag ->
+                            TagChip(tag = tag)
+                        }
+                    }
+                }
+                
+                // Actions
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Comments
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { onClick() }
+                    ) {
+                        Icon(
+                            Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = "Comments",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            "${request.commentCount}",
+                            fontFamily = Inter,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    // Status Badge
+                    StatusBadge(status = request.status)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoteButton(
+    votes: Int,
+    hasVoted: Boolean,
+    onVote: () -> Unit
+) {
+    val bgColor by animateColorAsState(
+        if (hasVoted) AccentCyan.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+        label = "voteBgColor"
+    )
+    val iconColor by animateColorAsState(
+        if (hasVoted) AccentCyan else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "voteIconColor"
+    )
+    val scale by animateFloatAsState(
+        if (hasVoted) 1.1f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "voteScale"
+    )
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(bgColor)
+            .clickable { onVote() }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            if (hasVoted) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowUp,
+            contentDescription = "Upvote",
+            tint = iconColor,
+            modifier = Modifier
+                .size(24.dp)
+                .scale(scale)
+        )
+        Text(
+            "$votes",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            color = iconColor
+        )
+    }
+}
+
+@Composable
+private fun TagChip(tag: String) {
+    val tagColors = mapOf(
+        "bug" to AccentOrange,
+        "feature" to AccentCyan,
+        "ui" to AccentPurple,
+        "health" to AccentGreen
+    )
+    val color = tagColors[tag.lowercase()] ?: AccentCyan
+    
+    Surface(
+        color = color.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            "#$tag",
+            fontFamily = Inter,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = color,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun StatusBadge(status: RequestStatus) {
+    val (text, color) = when (status) {
+        RequestStatus.OPEN -> "Open" to MaterialTheme.colorScheme.onSurfaceVariant
+        RequestStatus.IN_PROGRESS -> "In Progress" to AccentOrange
+        RequestStatus.COMPLETED -> "Completed" to AccentGreen
+        RequestStatus.DECLINED -> "Declined" to Color.Gray
+    }
+    
+    if (status != RequestStatus.OPEN) {
+        Surface(
+            color = color.copy(alpha = 0.15f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text,
+                fontFamily = Inter,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = color,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Default.Lightbulb,
+            contentDescription = null,
+            tint = AccentCyan.copy(alpha = 0.5f),
+            modifier = Modifier.size(80.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            "No requests yet",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Be the first to suggest a feature!",
+            fontFamily = Inter,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreateRequestSheet(
+    userName: String,
+    onDismiss: () -> Unit,
+    onSubmit: (title: String, description: String, tags: List<String>) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedTags by remember { mutableStateOf<List<String>>(emptyList()) }
+    val availableTags = listOf("Feature", "UI", "Health", "Bug", "Performance")
+    
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(listOf(AccentCyan, AccentPurple))
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        userName.take(1).uppercase(),
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        "New Feature Request",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "Share your idea with the community",
+                        fontFamily = Inter,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Title Input
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Feature title", fontFamily = Inter) },
+                placeholder = { Text("What feature would you like?", fontFamily = Inter) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AccentCyan,
+                    focusedLabelColor = AccentCyan
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Description Input
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description", fontFamily = Inter) },
+                placeholder = { Text("Describe your idea in detail...", fontFamily = Inter) },
+                minLines = 3,
+                maxLines = 5,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AccentCyan,
+                    focusedLabelColor = AccentCyan
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Tags
+            Text(
+                "Add tags",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(availableTags) { tag ->
+                    val isSelected = selectedTags.contains(tag)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedTags = if (isSelected) {
+                                selectedTags - tag
+                            } else {
+                                selectedTags + tag
+                            }
+                        },
+                        label = { 
+                            Text(
+                                tag,
+                                fontFamily = Inter,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentCyan.copy(alpha = 0.2f),
+                            selectedLabelColor = AccentCyan
+                        )
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Submit Button
+            Button(
+                onClick = { onSubmit(title, description, selectedTags) },
+                enabled = title.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AccentCyan,
+                    contentColor = Color.Black,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Send,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Post Request",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RequestDetailSheet(
+    request: FeatureRequest,
+    userName: String,
+    onDismiss: () -> Unit,
+    onVote: () -> Unit
+) {
+    var commentText by remember { mutableStateOf("") }
+    var comments by remember { mutableStateOf(getSampleComments(request.id)) }
+    val focusManager = LocalFocusManager.current
+    
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                VoteButton(
+                    votes = request.votes,
+                    hasVoted = request.hasVoted,
+                    onVote = onVote
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        request.title,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(listOf(AccentCyan, AccentPurple))
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                request.authorName.take(1).uppercase(),
+                                fontFamily = Inter,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp,
+                                color = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            "${request.authorName} · ${formatTimeAgo(request.createdAt)}",
+                            fontFamily = Inter,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            
+            // Description
+            if (request.description.isNotEmpty()) {
+                Text(
+                    request.description,
+                    fontFamily = Inter,
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+            
+            // Tags
+            if (request.tags.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(request.tags) { tag ->
+                        TagChip(tag = tag)
+                    }
+                }
+            }
+            
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            
+            // Comments Section
+            Text(
+                "Comments (${comments.size})",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Comment Input
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = commentText,
+                    onValueChange = { commentText = it },
+                    placeholder = { 
+                        Text(
+                            "Add a comment...",
+                            fontFamily = Inter,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentCyan,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(
+                        onSend = {
+                            if (commentText.isNotBlank()) {
+                                val newComment = Comment(
+                                    id = "cmt_${System.currentTimeMillis()}",
+                                    authorName = userName,
+                                    content = commentText,
+                                    createdAt = LocalDateTime.now()
+                                )
+                                comments = listOf(newComment) + comments
+                                commentText = ""
+                                focusManager.clearFocus()
+                            }
+                        }
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = {
+                        if (commentText.isNotBlank()) {
+                            val newComment = Comment(
+                                id = "cmt_${System.currentTimeMillis()}",
+                                authorName = userName,
+                                content = commentText,
+                                createdAt = LocalDateTime.now()
+                            )
+                            comments = listOf(newComment) + comments
+                            commentText = ""
+                            focusManager.clearFocus()
+                        }
+                    },
+                    enabled = commentText.isNotBlank()
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        tint = if (commentText.isNotBlank()) AccentCyan else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Comments List
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 16.dp)
+            ) {
+                items(comments) { comment ->
+                    CommentItem(
+                        comment = comment,
+                        onLike = {
+                            comments = comments.map {
+                                if (it.id == comment.id) {
+                                    it.copy(
+                                        likes = if (it.hasLiked) it.likes - 1 else it.likes + 1,
+                                        hasLiked = !it.hasLiked
+                                    )
+                                } else it
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CommentItem(
+    comment: Comment,
+    onLike: () -> Unit
+) {
+    val likeScale by animateFloatAsState(
+        if (comment.hasLiked) 1.2f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "likeScale"
+    )
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        // Avatar
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.linearGradient(listOf(AccentPurple, AccentCyan))
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                comment.authorName.take(1).uppercase(),
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = Color.White
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(10.dp))
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    comment.authorName,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    " · ${formatTimeAgo(comment.createdAt)}",
+                    fontFamily = Inter,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                comment.content,
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            // Like Button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable { onLike() }
+            ) {
+                Icon(
+                    if (comment.hasLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = "Like",
+                    tint = if (comment.hasLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .scale(likeScale)
+                )
+                if (comment.likes > 0) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "${comment.likes}",
+                        fontFamily = Inter,
+                        fontSize = 12.sp,
+                        color = if (comment.hasLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Helper function to format time ago
+private fun formatTimeAgo(dateTime: LocalDateTime): String {
+    val now = LocalDateTime.now()
+    val minutes = ChronoUnit.MINUTES.between(dateTime, now)
+    val hours = ChronoUnit.HOURS.between(dateTime, now)
+    val days = ChronoUnit.DAYS.between(dateTime, now)
+    
+    return when {
+        minutes < 1 -> "just now"
+        minutes < 60 -> "${minutes}m"
+        hours < 24 -> "${hours}h"
+        days < 7 -> "${days}d"
+        else -> dateTime.format(DateTimeFormatter.ofPattern("MMM d"))
+    }
+}
+
+// Sample data for demonstration
+private fun getSampleRequests(): List<FeatureRequest> = listOf(
+    FeatureRequest(
+        id = "1",
+        title = "Sync with Samsung Health",
+        description = "Would love to see integration with Samsung Health for automatic step and workout tracking.",
+        authorName = "Jordan",
+        votes = 384,
+        commentCount = 45,
+        createdAt = LocalDateTime.now().minusDays(2),
+        status = RequestStatus.IN_PROGRESS,
+        tags = listOf("Health", "Feature")
+    ),
+    FeatureRequest(
+        id = "2",
+        title = "Dark mode improvements",
+        description = "The current dark mode is good but could use some refinements. Maybe add AMOLED black option?",
+        authorName = "Alex",
+        votes = 187,
+        commentCount = 23,
+        createdAt = LocalDateTime.now().minusHours(8),
+        tags = listOf("UI")
+    ),
+    FeatureRequest(
+        id = "3",
+        title = "Intermittent fasting timer",
+        description = "Add a feature to track intermittent fasting windows with start/end times and notifications.",
+        authorName = "Sam",
+        votes = 156,
+        commentCount = 18,
+        createdAt = LocalDateTime.now().minusDays(1),
+        tags = listOf("Health", "Feature")
+    ),
+    FeatureRequest(
+        id = "4",
+        title = "Recipe suggestions based on macros",
+        description = "Would be awesome to get recipe ideas that fit remaining daily macros!",
+        authorName = "Taylor",
+        votes = 89,
+        commentCount = 12,
+        createdAt = LocalDateTime.now().minusHours(4),
+        tags = listOf("Feature")
+    ),
+    FeatureRequest(
+        id = "5",
+        title = "Widget improvements",
+        description = "Make widgets more customizable - choose what data to display.",
+        authorName = "Morgan",
+        votes = 72,
+        commentCount = 8,
+        createdAt = LocalDateTime.now().minusMinutes(30),
+        tags = listOf("UI", "Feature")
+    )
+)
+
+private fun getSampleComments(requestId: String): List<Comment> = listOf(
+    Comment(
+        id = "c1",
+        authorName = "Riley",
+        content = "This would be amazing! Really need this feature.",
+        createdAt = LocalDateTime.now().minusHours(2),
+        likes = 12,
+        hasLiked = false
+    ),
+    Comment(
+        id = "c2",
+        authorName = "Casey",
+        content = "Upvoted! Would use this every day.",
+        createdAt = LocalDateTime.now().minusHours(5),
+        likes = 8,
+        hasLiked = true
+    ),
+    Comment(
+        id = "c3",
+        authorName = "Drew",
+        content = "Great suggestion. Hope the team considers this!",
+        createdAt = LocalDateTime.now().minusDays(1),
+        likes = 5
+    )
+)

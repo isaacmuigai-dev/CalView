@@ -63,16 +63,28 @@ fun WelcomeScreen(
             // Main content
             Column(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.weight(1f))
                 
-                // Phone mockup with nutrition UI
-                PhoneMockup(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 16.dp)
-                )
+                // App icon/branding
+                Surface(
+                    modifier = Modifier.size(100.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color(0xFFF5F5F5)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "🍎",
+                            fontSize = 48.sp
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(40.dp))
                 
                 // Title
                 Text(
@@ -82,9 +94,22 @@ fun WelcomeScreen(
                     fontSize = 36.sp,
                     lineHeight = 44.sp,
                     textAlign = TextAlign.Center,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 32.dp)
+                    color = Color.Black
                 )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Subtitle
+                Text(
+                    text = "Scan your food with AI and track\nyour nutrition effortlessly",
+                    fontFamily = Inter,
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+                
+                Spacer(modifier = Modifier.weight(1f))
                 
                 // Get Started button
                 CalAIButton(
@@ -119,6 +144,7 @@ fun WelcomeScreen(
         }
     }
 }
+
 
 /**
  * Phone mockup showing the nutrition analysis UI.

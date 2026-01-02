@@ -1,0 +1,323 @@
+package com.example.calview.feature.dashboard
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.Inter
+
+/**
+ * Refer your friend screen.
+ * Shows user's unique promo code with copy and share functionality.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReferYourFriendScreen(
+    referralCode: String,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    var showCopiedSnackbar by remember { mutableStateOf(false) }
+    
+    val playStoreUrl = "https://play.google.com/store/apps/details?id=com.example.calview"
+    val shareMessage = "Join me on CalViewAI! My referral code is: $referralCode\n$playStoreUrl"
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Refer your friend",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
+            )
+        },
+        snackbarHost = {
+            if (showCopiedSnackbar) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = {
+                        TextButton(onClick = { showCopiedSnackbar = false }) {
+                            Text("OK")
+                        }
+                    }
+                ) {
+                    Text("Code copied to clipboard!")
+                }
+            }
+        },
+        containerColor = Color.White
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Title
+            Text(
+                text = "Refer your friend",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
+                color = Color.Black
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Avatar circles illustration
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Center avatar (app logo)
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF5F5F5)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🍎",
+                        fontSize = 32.sp
+                    )
+                }
+                
+                // Surrounding friend avatars
+                listOf(
+                    Pair(-100.dp, -40.dp),
+                    Pair(-60.dp, 50.dp),
+                    Pair(60.dp, -50.dp),
+                    Pair(100.dp, 30.dp),
+                    Pair(0.dp, -70.dp),
+                    Pair(-30.dp, 70.dp)
+                ).forEachIndexed { index, (x, y) ->
+                    Box(
+                        modifier = Modifier
+                            .offset(x = x, y = y)
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(
+                                listOf(
+                                    Color(0xFFE8F5E9),
+                                    Color(0xFFFCE4EC),
+                                    Color(0xFFE3F2FD),
+                                    Color(0xFFFFF3E0),
+                                    Color(0xFFF3E5F5),
+                                    Color(0xFFE0F7FA)
+                                )[index]
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = listOf("👤", "👩", "👨", "👧", "🧑", "👴")[index],
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Empower text
+            Text(
+                text = "Empower your friends",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Color.Black
+            )
+            
+            Text(
+                text = "& lose weight together",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Promo code card
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFE5E5E5),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Your personal promo code",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        Text(
+                            text = referralCode,
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            color = Color.Black,
+                            letterSpacing = 2.sp
+                        )
+                    }
+                    
+                    // Copy button
+                    IconButton(
+                        onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("Referral Code", referralCode)
+                            clipboard.setPrimaryClip(clip)
+                            showCopiedSnackbar = true
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = "Copy code",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Share button
+            Button(
+                onClick = {
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, shareMessage)
+                        type = "text/plain"
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent, "Share referral code")
+                    context.startActivity(shareIntent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1C1C1E)
+                )
+            ) {
+                Text(
+                    text = "Share",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // How to earn card
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFF5F5F5),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "How to earn",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "💰", fontSize = 16.sp)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row {
+                        Text(text = "⭐", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Share your promo code to your friends",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row {
+                        Text(text = "⭐", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Earn \$10 per friend that signs up with your code",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}

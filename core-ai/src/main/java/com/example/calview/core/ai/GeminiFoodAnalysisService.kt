@@ -55,9 +55,12 @@ class GeminiFoodAnalysisService @Inject constructor(
             val result = json.decodeFromString<FoodAnalysisResponse>(cleanedJson)
             Result.success(result)
         } catch (e: Exception) {
-            // Fallback for Mock/Testing
-            kotlinx.coroutines.delay(2000) // Simulate network delay
-            Result.success(createMockResponse())
+            // Log the actual error for debugging
+            android.util.Log.e("GeminiAI", "Food analysis failed: ${e.message}", e)
+            
+            // Return the actual error instead of mock data
+            // This allows the UI to show proper error messages and retry options
+            Result.failure(e)
         }
     }
 

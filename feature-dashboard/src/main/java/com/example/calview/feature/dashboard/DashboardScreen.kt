@@ -2,7 +2,13 @@ package com.example.calview.feature.dashboard
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -11,6 +17,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,13 +47,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -58,6 +69,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.ui.components.CalAICard
+import com.example.calview.core.ui.util.AdaptiveLayoutUtils
+import com.example.calview.core.ui.util.LocalWindowSizeClass
 import com.example.calview.feature.dashboard.components.CalorieRing
 import com.example.calview.feature.dashboard.components.MacroStatsRow
 import java.text.SimpleDateFormat
@@ -72,8 +85,49 @@ fun DashboardScreen(
     val state by viewModel.dashboardState.collectAsState()
     val context = LocalContext.current
     
+    // Snackbar for burned calories notification
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     // State for showing Health Connect onboarding
     var showHealthOnboarding by remember { mutableStateOf(false) }
+    
+    // State for showing streak lost dialog
+    var showStreakLostDialog by remember { mutableStateOf(false) }
+    var hasShownStreakLostDialog by remember { mutableStateOf(false) }
+    
+    // State for showing food detail screen
+    var selectedMeal by remember { mutableStateOf<com.example.calview.core.data.local.MealEntity?>(null) }
+    
+    // Track if we've shown the burned calories notification this session
+    var hasShownBurnedCaloriesNotification by remember { mutableStateOf(false) }
+    
+    // Show Snackbar when burned calories are added (only once per significant change)
+    LaunchedEffect(state.burnedCaloriesAdded, state.addCaloriesBackEnabled) {
+        if (state.addCaloriesBackEnabled && 
+            state.burnedCaloriesAdded >= 100 && 
+            !hasShownBurnedCaloriesNotification) {
+            snackbarHostState.showSnackbar(
+                message = "🔥 ${state.burnedCaloriesAdded} calories burned! Added to your daily goal.",
+                duration = SnackbarDuration.Short
+            )
+            hasShownBurnedCaloriesNotification = true
+        }
+    }
+    
+    // Reset notification flag when setting is turned off
+    LaunchedEffect(state.addCaloriesBackEnabled) {
+        if (!state.addCaloriesBackEnabled) {
+            hasShownBurnedCaloriesNotification = false
+        }
+    }
+    
+    // Check if streak lost and show dialog once per session
+    LaunchedEffect(state.streakLost) {
+        if (state.streakLost && !hasShownStreakLostDialog) {
+            showStreakLostDialog = true
+            hasShownStreakLostDialog = true
+        }
+    }
     
     // Health Connect permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -125,6 +179,25 @@ fun DashboardScreen(
         showHealthOnboarding = true
     }
     
+    // Show Streak Lost Dialog
+    if (showStreakLostDialog) {
+        StreakLostDialog(
+            currentStreak = state.currentStreak,
+            completedDays = state.completedDays,
+            onDismiss = { showStreakLostDialog = false }
+        )
+    }
+    
+    // Show Food Detail Screen if meal selected
+    selectedMeal?.let { meal ->
+        FoodDetailScreen(
+            meal = meal,
+            onBack = { selectedMeal = null },
+            onDelete = { /* TODO: Delete from repository */ selectedMeal = null }
+        )
+        return
+    }
+    
     // Show Health Connect Onboarding or Dashboard
     if (showHealthOnboarding) {
         HealthConnectOnboardingScreen(
@@ -132,15 +205,24 @@ fun DashboardScreen(
             onGetStarted = onLaunchPermissions
         )
     } else {
-        DashboardContent(
-            state = state,
-            onDateSelected = { viewModel.selectDate(it) },
-            onAddWater = { viewModel.addWater() },
-            onRemoveWater = { viewModel.removeWater() },
-            onConnectHealth = onConnectHealth
-        )
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                DashboardContent(
+                    state = state,
+                    onDateSelected = { viewModel.selectDate(it) },
+                    onAddWater = { viewModel.addWater() },
+                    onRemoveWater = { viewModel.removeWater() },
+                    onConnectHealth = onConnectHealth,
+                    onMealClick = { selectedMeal = it }
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun DashboardContent(
@@ -148,15 +230,27 @@ fun DashboardContent(
     onDateSelected: (Calendar) -> Unit,
     onAddWater: () -> Unit,
     onRemoveWater: () -> Unit,
-    onConnectHealth: () -> Unit = {}
+    onConnectHealth: () -> Unit = {},
+    onMealClick: (com.example.calview.core.data.local.MealEntity) -> Unit = {}
 ) {
-    LazyColumn(
+    // Get adaptive layout values based on screen size
+    val windowSizeClass = LocalWindowSizeClass.current
+    val horizontalPadding = AdaptiveLayoutUtils.getHorizontalPadding(windowSizeClass.widthSizeClass)
+    val maxContentWidth = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass)
+    
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter
     ) {
+        LazyColumn(
+            modifier = Modifier
+                .widthIn(max = maxContentWidth)
+                .fillMaxSize()
+                .padding(horizontal = horizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
         item {
             HeaderSection()
         }
@@ -175,10 +269,10 @@ fun DashboardContent(
             remainingCalories = state.remainingCalories,
             consumedCalories = state.consumedCalories,
             goalCalories = state.goalCalories,
-            protein = state.proteinG,
-            carbs = state.carbsG,
-            fats = state.fatsG,
-            proteinConsumed = state.proteinG, // Assuming logic handles consumed vs goal
+            protein = state.proteinGoal,
+            carbs = state.carbsGoal,
+            fats = state.fatsGoal,
+            proteinConsumed = state.proteinG,
             carbsConsumed = state.carbsG,
             fatsConsumed = state.fatsG,
             fiber = 38,
@@ -186,7 +280,9 @@ fun DashboardContent(
             sodium = 2300,
             fiberConsumed = 0,
             sugarConsumed = 0,
-            sodiumConsumed = 0
+            sodiumConsumed = 0,
+            rolloverCaloriesEnabled = state.rolloverCaloriesEnabled,
+            rolloverCaloriesAmount = state.rolloverCaloriesAmount
         )
         }
         
@@ -222,7 +318,7 @@ fun DashboardContent(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.FavoriteBorder,
-                                contentDescription = null,
+                                contentDescription = "Health Connect",
                                 tint = Color(0xFFEA4335),
                                 modifier = Modifier.size(24.dp)
                             )
@@ -243,7 +339,7 @@ fun DashboardContent(
                         Spacer(modifier = Modifier.weight(1f))
                         Icon(
                             imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = null,
+                            contentDescription = "Open Health Connect settings",
                             tint = Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
@@ -256,7 +352,7 @@ fun DashboardContent(
         item {
             UnifiedActivityCard(
                 steps = state.steps.toInt(),
-                stepsGoal = 10000,
+                stepsGoal = state.stepsGoal,
                 calories = state.caloriesBurned,
                 isConnected = state.isHealthConnected
             )
@@ -295,7 +391,10 @@ fun DashboardContent(
         }
 
         items(state.recentUploads) { meal ->
-            RecentMealCard(meal)
+            RecentMealCard(
+                meal = meal,
+                onClick = { onMealClick(meal) }
+            )
         }
 
         item {
@@ -314,7 +413,8 @@ fun DashboardContent(
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
+        } // Close LazyColumn
+    } // Close Box
 }
 
 @Preview(showBackground = true)
@@ -472,32 +572,6 @@ fun HeaderSection() {
                     "Track & Thrive",
                     fontSize = 12.sp,
                     color = Color.Gray
-                )
-            }
-        }
-        
-        // Streak counter with modern pill design
-        Surface(
-            color = Color(0xFFFFF3E0),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.height(40.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.LocalFireDepartment, 
-                    null, 
-                    tint = Color(0xFFFF6B35), 
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    "0", 
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFF6B35)
                 )
             }
         }
@@ -752,7 +826,9 @@ fun NutritionOverviewCard(
     sodium: Int = 2300,
     fiberConsumed: Int = 0,
     sugarConsumed: Int = 0,
-    sodiumConsumed: Int = 0
+    sodiumConsumed: Int = 0,
+    rolloverCaloriesEnabled: Boolean = false,
+    rolloverCaloriesAmount: Int = 0
 ) {
     // Shared toggle state for all cards
     var showEaten by remember { mutableStateOf(true) }
@@ -818,18 +894,42 @@ fun NutritionOverviewCard(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Text(
-                                    text = buildAnnotatedString {
-                                        withStyle(SpanStyle(color = Color.Gray)) {
-                                            append("Calories ")
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                                                append("Calories ")
+                                            }
+                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)) {
+                                                append("left")
+                                            }
+                                        },
+                                        fontSize = 14.sp
+                                    )
+                                    // Rollover indicator
+                                    if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Schedule,
+                                                contentDescription = "Rollover calories",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                            Text(
+                                                text = "+$rolloverCaloriesAmount",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
-                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                            append("left")
-                                        }
-                                    },
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
-                                )
+                                    }
+                                }
                             }
                         }
                     }
@@ -1719,13 +1819,60 @@ fun MacroCardUnified(
 
 
 @Composable
-fun RecentMealCard(meal: MealEntity) {
+fun RecentMealCard(
+    meal: MealEntity,
+    onClick: () -> Unit = {}
+) {
     val isAnalyzing = meal.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.ANALYZING ||
                       meal.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.PENDING
     
+    // Animation for progress
+    val animatedProgress by animateFloatAsState(
+        targetValue = meal.analysisProgress / 100f,
+        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+        label = "progressAnimation"
+    )
+    
+    // Pulse animation for analyzing state
+    val infiniteTransition = rememberInfiniteTransition(label = "pulseTransition")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+    
+    // Shimmer animation offset
+    val shimmerOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerOffset"
+    )
+    
+    // Rotating animation for the progress circle
+    val rotationAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotationAngle"
+    )
+    
     CalAICard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = !isAnalyzing) { onClick() }
     ) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -1764,30 +1911,39 @@ fun RecentMealCard(meal: MealEntity) {
                     )
                 }
                 
-                // Progress overlay for analyzing state
+                // Animated progress overlay for analyzing state
                 if (isAnalyzing) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.4f)),
+                            .background(Color.Black.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Circular progress
-                        Box(contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                progress = { meal.analysisProgress / 100f },
-                                modifier = Modifier.size(50.dp),
-                                color = Color.White,
-                                trackColor = Color.White.copy(alpha = 0.3f),
-                                strokeWidth = 4.dp
-                            )
-                            Text(
-                                "${meal.analysisProgress.toInt()}%",
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        // Outer rotating ring
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .graphicsLayer { rotationZ = rotationAngle },
+                            color = Color.White.copy(alpha = 0.3f),
+                            strokeWidth = 3.dp
+                        )
+                        
+                        // Animated inner progress
+                        CircularProgressIndicator(
+                            progress = { animatedProgress },
+                            modifier = Modifier.size(50.dp),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color.White.copy(alpha = 0.3f),
+                            strokeWidth = 4.dp
+                        )
+                        
+                        // Percentage text with pulse
+                        Text(
+                            "${meal.analysisProgress.toInt()}%",
+                            color = Color.White.copy(alpha = pulseAlpha),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -1796,34 +1952,76 @@ fun RecentMealCard(meal: MealEntity) {
             
             Column(modifier = Modifier.weight(1f)) {
                 if (isAnalyzing) {
-                    // Analyzing state UI
-                    Text(
-                        "Separating ingredients...",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        maxLines = 1
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    // Progress bars
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        val progress = meal.analysisProgress / 100f
-                        ProgressSegment(active = progress >= 0.25f, modifier = Modifier.weight(1f))
-                        ProgressSegment(active = progress >= 0.50f, modifier = Modifier.weight(1f))
-                        ProgressSegment(active = progress >= 0.75f, modifier = Modifier.weight(1f))
-                        ProgressSegment(active = progress >= 1.0f, modifier = Modifier.weight(1f))
+                    // Analyzing state UI with animations
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Animated analyzing icon
+                        Icon(
+                            Icons.Filled.AutoAwesome,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .graphicsLayer { 
+                                    rotationZ = rotationAngle * 0.5f
+                                    alpha = pulseAlpha
+                                },
+                            tint = Color(0xFF4CAF50)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            getAnalyzingStepText(meal.analysisProgress),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1,
+                            color = Color.Black.copy(alpha = pulseAlpha)
+                        )
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    Text(
-                        "We'll notify you when done!",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
+                    // Animated progress bars with shimmer
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        AnimatedProgressSegment(
+                            active = animatedProgress >= 0.25f,
+                            shimmerOffset = shimmerOffset,
+                            modifier = Modifier.weight(1f)
+                        )
+                        AnimatedProgressSegment(
+                            active = animatedProgress >= 0.50f,
+                            shimmerOffset = shimmerOffset,
+                            modifier = Modifier.weight(1f)
+                        )
+                        AnimatedProgressSegment(
+                            active = animatedProgress >= 0.75f,
+                            shimmerOffset = shimmerOffset,
+                            modifier = Modifier.weight(1f)
+                        )
+                        AnimatedProgressSegment(
+                            active = animatedProgress >= 1.0f,
+                            shimmerOffset = shimmerOffset,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            "We'll notify you when done!",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
                 } else {
                     // Completed state UI
                     Row(
@@ -1871,6 +2069,56 @@ fun RecentMealCard(meal: MealEntity) {
             }
         }
     }
+}
+
+/**
+ * Get contextual text based on analysis progress
+ */
+private fun getAnalyzingStepText(progress: Float): String {
+    return when {
+        progress < 25f -> "Scanning image..."
+        progress < 50f -> "Separating ingredients..."
+        progress < 75f -> "Calculating nutrition..."
+        progress < 100f -> "Almost done..."
+        else -> "Completing analysis..."
+    }
+}
+
+@Composable
+fun AnimatedProgressSegment(
+    active: Boolean,
+    shimmerOffset: Float,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (active) Color(0xFF4CAF50) else Color(0xFFE0E0E0)
+    
+    Box(
+        modifier = modifier
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(backgroundColor)
+            .then(
+                if (active) {
+                    Modifier.drawWithContent {
+                        drawContent()
+                        // Shimmer effect on active segments
+                        val shimmerWidth = size.width * 0.5f
+                        val shimmerX = (shimmerOffset * (size.width + shimmerWidth)) - shimmerWidth
+                        drawRect(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.White.copy(alpha = 0.4f),
+                                    Color.Transparent
+                                ),
+                                start = Offset(shimmerX, 0f),
+                                end = Offset(shimmerX + shimmerWidth, 0f)
+                            )
+                        )
+                    }
+                } else Modifier
+            )
+    )
 }
 
 @Composable
@@ -2271,6 +2519,183 @@ fun HealthConnectOnboardingScreen(
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Streak Lost Dialog - Shows when user hasn't logged food in 24 hours
+ * Matches the design from mockup with Cal AI header, gray flame, week indicators
+ */
+@Composable
+fun StreakLostDialog(
+    currentStreak: Int = 0,
+    completedDays: List<Boolean> = listOf(false, false, false, false, false, false, false),
+    onDismiss: () -> Unit
+) {
+    val weekDays = listOf("S", "M", "T", "W", "T", "F", "S")
+    val todayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1 // 0 = Sunday
+    
+    // Auto-dismiss after 3 seconds
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(3000)
+        onDismiss()
+    }
+    
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            shadowElevation = 16.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header with Cal AI and streak count
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Cal AI icon placeholder - fire emoji
+                        Text(
+                            text = "🔥",
+                            fontSize = 18.sp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Cal AI",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                    
+                    // Streak count badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(Color(0xFFF5F5F5), RoundedCornerShape(16.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Whatshot,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.LightGray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$currentStreak",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // Large gray flame icon
+                Icon(
+                    Icons.Filled.Whatshot,
+                    contentDescription = "Streak lost",
+                    modifier = Modifier.size(100.dp),
+                    tint = Color(0xFFD9D9D9) // Light gray
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // "Streak lost" title
+                Text(
+                    text = "Streak lost",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Week day indicators
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    weekDays.forEachIndexed { index, day ->
+                        val isToday = index == todayIndex
+                        val isCompleted = completedDays.getOrElse(index) { false }
+                        
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = day,
+                                fontSize = 14.sp,
+                                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isToday) Color(0xFFE57373) else Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(
+                                        if (isCompleted) Color(0xFF424242) else Color(0xFFE5E5E5),
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isCompleted) {
+                                    Icon(
+                                        Icons.Filled.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Motivational message
+                Text(
+                    text = "Don't give up. Log your meals today\nto get back on track!",
+                    fontSize = 15.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Continue button
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFFE0E0E0))
+                ) {
+                    Text(
+                        text = "Continue",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }

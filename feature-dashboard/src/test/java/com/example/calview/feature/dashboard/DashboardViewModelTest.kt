@@ -12,8 +12,10 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -30,7 +32,9 @@ class DashboardViewModelTest {
     private val mealRepository: MealRepository = mockk()
     private val userPreferencesRepository: UserPreferencesRepository = mockk()
     private val healthConnectManager: HealthConnectManager = mockk(relaxed = true)
-    private val testDispatcher = StandardTestDispatcher()
+    
+    // Use UnconfinedTestDispatcher for immediate execution
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
@@ -39,7 +43,21 @@ class DashboardViewModelTest {
         // Mock default flows
         coEvery { mealRepository.getMealsForToday() } returns flowOf(emptyList())
         coEvery { mealRepository.getRecentUploads() } returns flowOf(emptyList())
+        coEvery { mealRepository.getAllMeals() } returns flowOf(emptyList())
+        
+        // User preferences - calorie and macro goals
         coEvery { userPreferencesRepository.recommendedCalories } returns flowOf(2000)
+        coEvery { userPreferencesRepository.recommendedProtein } returns flowOf(125)
+        coEvery { userPreferencesRepository.recommendedCarbs } returns flowOf(250)
+        coEvery { userPreferencesRepository.recommendedFats } returns flowOf(56)
+        
+        // User preferences - settings
+        coEvery { userPreferencesRepository.dailyStepsGoal } returns flowOf(10000)
+        coEvery { userPreferencesRepository.rolloverExtraCalories } returns flowOf(false)
+        coEvery { userPreferencesRepository.rolloverCaloriesAmount } returns flowOf(0)
+        coEvery { userPreferencesRepository.addCaloriesBack } returns flowOf(false)
+        
+        // Health Connect
         every { healthConnectManager.healthData } returns MutableStateFlow(HealthData())
         coEvery { healthConnectManager.isAvailable() } returns false
     }
@@ -52,9 +70,10 @@ class DashboardViewModelTest {
     @Test
     fun `initial state has correct default goal and zero consumption`() = runTest {
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        val state = viewModel.dashboardState.value
+        
+        // Get first state where goalCalories is set
+        val state = viewModel.dashboardState.first { it.goalCalories == 2000 }
+        
         assertEquals(0, state.consumedCalories)
         assertEquals(2000, state.goalCalories)
         assertEquals(2000, state.remainingCalories)
@@ -86,10 +105,11 @@ class DashboardViewModelTest {
 
         // Act
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for state with meals data
+        val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
 
         // Assert
-        val state = viewModel.dashboardState.value
         assertEquals(800, state.consumedCalories) // 300 + 500
         assertEquals(1200, state.remainingCalories) // 2000 - 800
         assertEquals(50, state.proteinG) // 10 + 40
@@ -132,10 +152,11 @@ class DashboardViewModelTest {
 
         // Act
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for state with consumed calories
+        val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
 
         // Assert - only the completed meal's calories should be counted
-        val state = viewModel.dashboardState.value
         assertEquals(500, state.consumedCalories) // Only completed meal
         assertEquals(1500, state.remainingCalories) // 2000 - 500
         assertEquals(20, state.proteinG)
@@ -161,10 +182,11 @@ class DashboardViewModelTest {
 
         // Act
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for state with recent uploads
+        val state = viewModel.dashboardState.first { it.recentUploads.isNotEmpty() }
 
         // Assert
-        val state = viewModel.dashboardState.value
         assertEquals(1, state.recentUploads.size)
         assertEquals("Recent Upload", state.recentUploads.first().name)
     }
@@ -173,14 +195,17 @@ class DashboardViewModelTest {
     fun `addWater increases water consumed`() = runTest {
         // Arrange
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for initial state
+        viewModel.dashboardState.first { it.goalCalories == 2000 }
         
         // Act
         viewModel.addWater(8)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for state with water
+        val state = viewModel.dashboardState.first { it.waterConsumed > 0 }
 
         // Assert
-        val state = viewModel.dashboardState.value
         assertEquals(8, state.waterConsumed)
     }
     
@@ -188,14 +213,17 @@ class DashboardViewModelTest {
     fun `removeWater decreases water consumed but not below zero`() = runTest {
         // Arrange
         viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Wait for initial state
+        viewModel.dashboardState.first { it.goalCalories == 2000 }
         
         // Act - try to remove water when at 0
         viewModel.removeWater(8)
-        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Get current state
+        val state = viewModel.dashboardState.first { it.goalCalories == 2000 }
 
         // Assert - should stay at 0
-        val state = viewModel.dashboardState.value
         assertEquals(0, state.waterConsumed)
     }
 }

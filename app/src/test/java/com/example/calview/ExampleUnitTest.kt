@@ -1,17 +1,36 @@
 package com.example.calview
 
 import org.junit.Test
-
 import org.junit.Assert.*
 
 /**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
+ * Sanity tests to verify basic app functionality.
  */
-class ExampleUnitTest {
+class CalViewSanityTest {
+
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun dashboardState_defaultIsNotNull() {
+        val state = com.example.calview.feature.dashboard.DashboardState()
+        assertNotNull(state)
+    }
+
+    @Test
+    fun progressUiState_defaultIsNotNull() {
+        val state = com.example.calview.feature.trends.ProgressUiState()
+        assertNotNull(state)
+    }
+
+    @Test
+    fun dashboardState_mealsListIsInitialized() {
+        val state = com.example.calview.feature.dashboard.DashboardState()
+        assertNotNull(state.meals)
+        assertEquals(0, state.meals.size)
+    }
+
+    @Test
+    fun progressUiState_weeklyCaloriesIsInitialized() {
+        val state = com.example.calview.feature.trends.ProgressUiState()
+        assertNotNull(state.weeklyCalories)
+        assertEquals(0, state.weeklyCalories.size)
     }
 }

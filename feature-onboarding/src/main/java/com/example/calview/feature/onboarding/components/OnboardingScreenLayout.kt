@@ -39,21 +39,23 @@ fun OnboardingScreenLayout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(horizontal = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
             
             // Back button and progress bar row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back button
+                // Back button - matches GoalPreferencesScreen styling
                 Surface(
                     onClick = onBack,
                     shape = CircleShape,
                     color = Color(0xFFF5F5F5),
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(40.dp)
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -62,20 +64,25 @@ fun OnboardingScreenLayout(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.Black,
-                            modifier = Modifier.size(20.dp)
+                            tint = Color.Black
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 
-                // Progress bar
-                OnboardingProgressBar(
-                    currentStep = currentStep,
-                    totalSteps = totalSteps,
-                    modifier = Modifier.weight(1f)
+                // Progress bar - using LinearProgressIndicator to match other screens
+                LinearProgressIndicator(
+                    progress = { currentStep.toFloat() / totalSteps },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = Color(0xFF1C1C1E),
+                    trackColor = Color(0xFFE5E5E5)
                 )
+                
+                Spacer(modifier = Modifier.width(40.dp))
             }
             
             Spacer(modifier = Modifier.height(32.dp))
