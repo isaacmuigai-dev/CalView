@@ -41,6 +41,7 @@ android {
 dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
+    implementation(project(":core-ai"))
     implementation(project(":feature-onboarding"))
     
     implementation(libs.androidx.core.ktx)

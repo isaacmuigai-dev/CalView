@@ -33,8 +33,17 @@ class OnboardingViewModel @Inject constructor(
                 gender = state.gender,
                 age = age,
                 weight = state.weight,
-                height = (state.heightFt * 12 + state.heightIn) // Simple inch conversion
+                height = state.heightCm // Save in CM
             )
+            
+            // Save goal weight if set
+            if (state.goalWeight > 0) {
+                userPreferencesRepository.setGoalWeight(state.goalWeight)
+            }
+            
+            // Save birth date for Personal Details screen
+            val monthName = getMonthName(state.birthMonth)
+            userPreferencesRepository.setBirthDate(monthName, state.birthDay, state.birthYear)
             
             userPreferencesRepository.saveRecommendedMacros(
                 calories = state.recommendedCalories,
@@ -49,6 +58,24 @@ class OnboardingViewModel @Inject constructor(
             
             userPreferencesRepository.setOnboardingComplete(true)
             onComplete()
+        }
+    }
+    
+    private fun getMonthName(month: Int): String {
+        return when (month) {
+            1 -> "January"
+            2 -> "February"
+            3 -> "March"
+            4 -> "April"
+            5 -> "May"
+            6 -> "June"
+            7 -> "July"
+            8 -> "August"
+            9 -> "September"
+            10 -> "October"
+            11 -> "November"
+            12 -> "December"
+            else -> "January"
         }
     }
 
@@ -71,9 +98,7 @@ class OnboardingViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(dietPreference = diet)
     }
 
-    fun onUnitToggle(isMetric: Boolean) {
-        _uiState.value = _uiState.value.copy(isMetric = isMetric)
-    }
+    // Removed onUnitToggle - metric-only app
 
     fun onHeightChanged(ft: Int, inches: Int) {
         _uiState.value = _uiState.value.copy(heightFt = ft, heightIn = inches)
@@ -121,6 +146,19 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    fun onReferenceSourceSelected(source: String) {
+        _uiState.value = _uiState.value.copy(referralSource = source)
+    }
+
+    fun onHeightCmChanged(cm: Int) {
+        _uiState.value = _uiState.value.copy(heightCm = cm)
+        recalculateRecommendations()
+    }
+
+    fun onGoalWeightChanged(weight: Float) {
+        _uiState.value = _uiState.value.copy(goalWeight = weight)
+    }
+
     /**
      * Recalculate nutrition recommendations based on current user profile.
      * Uses AI when available, falls back to BMR calculation.
@@ -139,11 +177,12 @@ class OnboardingViewModel @Inject constructor(
             val currentYear = Calendar.getInstance().get(Calendar.YEAR)
             val age = currentYear - state.birthYear
             
-            // Convert height to cm
-            val heightCm = (state.heightFt * 30.48 + state.heightIn * 2.54).toFloat()
+            // Height already in cm if set via onHeightCmChanged, otherwise calc from ft/in
+            // Prioritize heightCm if it's set (non-default/non-zero logic if needed, but here we trust the state)
+            val heightCm = state.heightCm.toFloat()
             
-            // Convert weight to kg if imperial
-            val weightKg = if (state.isMetric) state.weight else state.weight * 0.453592f
+            // Weight already in kg (metric-only app)
+            val weightKg = state.weight
             
             val profile = UserProfile(
                 gender = state.gender,
@@ -180,7 +219,8 @@ data class OnboardingUiState(
     val weight: Float = 119f,
     val heightFt: Int = 5,
     val heightIn: Int = 6,
-    val heightCm: Int = 170,
+    val heightCm: Int = 170, // Default 170cm
+    val goalWeight: Float = 0f, // Added for persistence
     val birthMonth: Int = 2,
     val birthDay: Int = 2,
     val birthYear: Int = 1998,

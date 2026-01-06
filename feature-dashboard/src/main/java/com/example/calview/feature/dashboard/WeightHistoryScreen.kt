@@ -48,11 +48,13 @@ fun WeightHistoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (weightHistory.isEmpty()) {
             // Empty state
@@ -71,7 +73,7 @@ fun WeightHistoryScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -79,7 +81,7 @@ fun WeightHistoryScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -107,8 +109,8 @@ private fun WeightEntryCard(entry: WeightEntry) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier
@@ -118,11 +120,11 @@ private fun WeightEntryCard(entry: WeightEntry) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${entry.weight.toInt()} lbs",
+                text = "${entry.weight.toInt()} kg",
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Text(
@@ -130,7 +132,7 @@ private fun WeightEntryCard(entry: WeightEntry) {
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

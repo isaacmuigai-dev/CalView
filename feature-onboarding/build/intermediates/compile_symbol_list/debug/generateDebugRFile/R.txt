@@ -1,0 +1,1 @@
+int drawable app_logo 0x0

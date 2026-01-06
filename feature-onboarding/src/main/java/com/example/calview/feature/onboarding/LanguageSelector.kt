@@ -63,7 +63,7 @@ fun LanguageSelector(
     // Selector button
     Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 2.dp,
         modifier = modifier.clickable { showLanguageSheet = true }
     ) {
@@ -80,12 +80,12 @@ fun LanguageSelector(
                 text = selectedLanguage.code,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowDown,
                 contentDescription = "Select language",
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -120,7 +120,7 @@ fun LanguagePickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         dragHandle = null
     ) {
@@ -139,7 +139,7 @@ fun LanguagePickerBottomSheet(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
                 
@@ -150,7 +150,7 @@ fun LanguagePickerBottomSheet(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Close",
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -192,8 +192,8 @@ fun LanguageOptionButton(
             .fillMaxWidth()
             .height(56.dp),
         shape = RoundedCornerShape(28.dp),
-        color = if (isSelected) Color(0xFF1C1C1E) else Color.White,
-        border = if (isSelected) null else BorderStroke(1.dp, Color(0xFFE5E5E5))
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier
@@ -212,7 +212,7 @@ fun LanguageOptionButton(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = if (isSelected) Color.White else Color.Black
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
             )
         }
     }

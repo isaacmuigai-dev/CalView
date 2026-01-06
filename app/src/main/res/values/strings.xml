@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CalViewAI - Calorie Tracker</string>
+    <string name="widget_calories_description">Track your remaining calories and macros at a glance</string>
+    <string name="widget_calories_name">Calories Widget</string>
 </resources>

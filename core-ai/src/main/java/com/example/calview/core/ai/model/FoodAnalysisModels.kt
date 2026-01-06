@@ -23,14 +23,20 @@ data class NutritionalData(
     val calories: Int,
     val protein: Int,
     val carbs: Int,
-    val fats: Int
+    val fats: Int,
+    val fiber: Int = 0,
+    val sugar: Int = 0,
+    val sodium: Int = 0
 )
 
 @Serializable
 data class Macros(
     val p: Int,
     val c: Int,
-    val f: Int
+    val f: Int,
+    val fi: Int = 0,  // Fiber
+    val s: Int = 0,   // Sugar
+    val na: Int = 0   // Sodium (mg)
 )
 
 @Serializable

@@ -93,7 +93,7 @@ fun NotificationsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 lineHeight = 36.sp
             )
@@ -103,7 +103,7 @@ fun NotificationsScreen(
             // Notification permission card
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF0F0F0),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
@@ -117,7 +117,7 @@ fun NotificationsScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         lineHeight = 24.sp
                     )
@@ -133,7 +133,7 @@ fun NotificationsScreen(
                         Surface(
                             onClick = { onNotificationChoice(false) },
                             shape = RoundedCornerShape(12.dp),
-                            color = if (!notificationsEnabled) Color(0xFFE0E0E0) else Color.White,
+                            color = if (!notificationsEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp)
@@ -147,7 +147,7 @@ fun NotificationsScreen(
                                     fontFamily = Inter,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -156,7 +156,7 @@ fun NotificationsScreen(
                         Surface(
                             onClick = onAllowClick,
                             shape = RoundedCornerShape(12.dp),
-                            color = if (notificationsEnabled) Color(0xFF1C1C1E) else Color(0xFFE0E0E0),
+                            color = if (notificationsEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp)
@@ -170,7 +170,7 @@ fun NotificationsScreen(
                                     fontFamily = Inter,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
-                                    color = if (notificationsEnabled) Color.White else Color.Black
+                                    color = if (notificationsEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }

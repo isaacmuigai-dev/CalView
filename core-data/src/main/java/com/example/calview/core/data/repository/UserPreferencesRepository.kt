@@ -32,11 +32,19 @@ interface UserPreferencesRepository {
     val appearanceMode: Flow<String>  // "light", "dark", "automatic"
     
     // Personal details
-    val goalWeight: Flow<Float>  // Target weight in lbs
+    val goalWeight: Flow<Float> // Target weight in kg
     val dailyStepsGoal: Flow<Int>  // Daily step target (default 10000)
     val birthMonth: Flow<String>  // "January", "February", etc.
     val birthDay: Flow<Int>  // 1-31
     val birthYear: Flow<Int>  // 1940-2010
+
+    // Widget Data
+    val waterConsumed: Flow<Int>
+    val waterDate: Flow<Long> // Timestamp of last water update
+    val lastKnownSteps: Flow<Int> // Cached steps for widget
+    
+    // Camera Tutorial
+    val hasSeenCameraTutorial: Flow<Boolean> // True if user has seen camera best practices
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -71,5 +79,18 @@ interface UserPreferencesRepository {
     suspend fun setGender(gender: String)
     suspend fun setWeight(weight: Float)
     suspend fun setHeight(heightCm: Int)
+    
+    // Widget Data methods
+    suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long)
+    suspend fun setLastKnownSteps(steps: Int)
+    
+    // Camera Tutorial methods
+    suspend fun setHasSeenCameraTutorial(seen: Boolean)
+    
+    /**
+     * Restore user data from Firestore cloud storage
+     * Should be called on app start if user is signed in
+     */
+    suspend fun restoreFromCloud(): Boolean
 }
 

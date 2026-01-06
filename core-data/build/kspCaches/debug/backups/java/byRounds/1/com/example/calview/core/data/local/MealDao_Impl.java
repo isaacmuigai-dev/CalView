@@ -47,31 +47,40 @@ public final class MealDao_Impl implements MealDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `meals` (`id`,`name`,`calories`,`protein`,`carbs`,`fats`,`timestamp`,`imagePath`,`analysisStatus`,`analysisProgress`,`healthInsight`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `meals` (`id`,`firestoreId`,`name`,`calories`,`protein`,`carbs`,`fats`,`fiber`,`sugar`,`sodium`,`timestamp`,`imagePath`,`imageUrl`,`analysisStatus`,`analysisProgress`,`healthInsight`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
       protected void bind(@NonNull final SupportSQLiteStatement statement,
           @NonNull final MealEntity entity) {
         statement.bindLong(1, entity.getId());
-        statement.bindString(2, entity.getName());
-        statement.bindLong(3, entity.getCalories());
-        statement.bindLong(4, entity.getProtein());
-        statement.bindLong(5, entity.getCarbs());
-        statement.bindLong(6, entity.getFats());
-        statement.bindLong(7, entity.getTimestamp());
+        statement.bindString(2, entity.getFirestoreId());
+        statement.bindString(3, entity.getName());
+        statement.bindLong(4, entity.getCalories());
+        statement.bindLong(5, entity.getProtein());
+        statement.bindLong(6, entity.getCarbs());
+        statement.bindLong(7, entity.getFats());
+        statement.bindLong(8, entity.getFiber());
+        statement.bindLong(9, entity.getSugar());
+        statement.bindLong(10, entity.getSodium());
+        statement.bindLong(11, entity.getTimestamp());
         if (entity.getImagePath() == null) {
-          statement.bindNull(8);
+          statement.bindNull(12);
         } else {
-          statement.bindString(8, entity.getImagePath());
+          statement.bindString(12, entity.getImagePath());
+        }
+        if (entity.getImageUrl() == null) {
+          statement.bindNull(13);
+        } else {
+          statement.bindString(13, entity.getImageUrl());
         }
         final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
-        statement.bindString(9, _tmp);
-        statement.bindDouble(10, entity.getAnalysisProgress());
+        statement.bindString(14, _tmp);
+        statement.bindDouble(15, entity.getAnalysisProgress());
         if (entity.getHealthInsight() == null) {
-          statement.bindNull(11);
+          statement.bindNull(16);
         } else {
-          statement.bindString(11, entity.getHealthInsight());
+          statement.bindString(16, entity.getHealthInsight());
         }
       }
     };
@@ -92,33 +101,42 @@ public final class MealDao_Impl implements MealDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `meals` SET `id` = ?,`name` = ?,`calories` = ?,`protein` = ?,`carbs` = ?,`fats` = ?,`timestamp` = ?,`imagePath` = ?,`analysisStatus` = ?,`analysisProgress` = ?,`healthInsight` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `meals` SET `id` = ?,`firestoreId` = ?,`name` = ?,`calories` = ?,`protein` = ?,`carbs` = ?,`fats` = ?,`fiber` = ?,`sugar` = ?,`sodium` = ?,`timestamp` = ?,`imagePath` = ?,`imageUrl` = ?,`analysisStatus` = ?,`analysisProgress` = ?,`healthInsight` = ? WHERE `id` = ?";
       }
 
       @Override
       protected void bind(@NonNull final SupportSQLiteStatement statement,
           @NonNull final MealEntity entity) {
         statement.bindLong(1, entity.getId());
-        statement.bindString(2, entity.getName());
-        statement.bindLong(3, entity.getCalories());
-        statement.bindLong(4, entity.getProtein());
-        statement.bindLong(5, entity.getCarbs());
-        statement.bindLong(6, entity.getFats());
-        statement.bindLong(7, entity.getTimestamp());
+        statement.bindString(2, entity.getFirestoreId());
+        statement.bindString(3, entity.getName());
+        statement.bindLong(4, entity.getCalories());
+        statement.bindLong(5, entity.getProtein());
+        statement.bindLong(6, entity.getCarbs());
+        statement.bindLong(7, entity.getFats());
+        statement.bindLong(8, entity.getFiber());
+        statement.bindLong(9, entity.getSugar());
+        statement.bindLong(10, entity.getSodium());
+        statement.bindLong(11, entity.getTimestamp());
         if (entity.getImagePath() == null) {
-          statement.bindNull(8);
+          statement.bindNull(12);
         } else {
-          statement.bindString(8, entity.getImagePath());
+          statement.bindString(12, entity.getImagePath());
+        }
+        if (entity.getImageUrl() == null) {
+          statement.bindNull(13);
+        } else {
+          statement.bindString(13, entity.getImageUrl());
         }
         final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
-        statement.bindString(9, _tmp);
-        statement.bindDouble(10, entity.getAnalysisProgress());
+        statement.bindString(14, _tmp);
+        statement.bindDouble(15, entity.getAnalysisProgress());
         if (entity.getHealthInsight() == null) {
-          statement.bindNull(11);
+          statement.bindNull(16);
         } else {
-          statement.bindString(11, entity.getHealthInsight());
+          statement.bindString(16, entity.getHealthInsight());
         }
-        statement.bindLong(12, entity.getId());
+        statement.bindLong(17, entity.getId());
       }
     };
   }
@@ -188,13 +206,18 @@ public final class MealDao_Impl implements MealDao {
         final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfFirestoreId = CursorUtil.getColumnIndexOrThrow(_cursor, "firestoreId");
           final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
           final int _cursorIndexOfCalories = CursorUtil.getColumnIndexOrThrow(_cursor, "calories");
           final int _cursorIndexOfProtein = CursorUtil.getColumnIndexOrThrow(_cursor, "protein");
           final int _cursorIndexOfCarbs = CursorUtil.getColumnIndexOrThrow(_cursor, "carbs");
           final int _cursorIndexOfFats = CursorUtil.getColumnIndexOrThrow(_cursor, "fats");
+          final int _cursorIndexOfFiber = CursorUtil.getColumnIndexOrThrow(_cursor, "fiber");
+          final int _cursorIndexOfSugar = CursorUtil.getColumnIndexOrThrow(_cursor, "sugar");
+          final int _cursorIndexOfSodium = CursorUtil.getColumnIndexOrThrow(_cursor, "sodium");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfImagePath = CursorUtil.getColumnIndexOrThrow(_cursor, "imagePath");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
@@ -203,6 +226,8 @@ public final class MealDao_Impl implements MealDao {
             final MealEntity _item;
             final long _tmpId;
             _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpFirestoreId;
+            _tmpFirestoreId = _cursor.getString(_cursorIndexOfFirestoreId);
             final String _tmpName;
             _tmpName = _cursor.getString(_cursorIndexOfName);
             final int _tmpCalories;
@@ -213,6 +238,12 @@ public final class MealDao_Impl implements MealDao {
             _tmpCarbs = _cursor.getInt(_cursorIndexOfCarbs);
             final int _tmpFats;
             _tmpFats = _cursor.getInt(_cursorIndexOfFats);
+            final int _tmpFiber;
+            _tmpFiber = _cursor.getInt(_cursorIndexOfFiber);
+            final int _tmpSugar;
+            _tmpSugar = _cursor.getInt(_cursorIndexOfSugar);
+            final int _tmpSodium;
+            _tmpSodium = _cursor.getInt(_cursorIndexOfSodium);
             final long _tmpTimestamp;
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpImagePath;
@@ -220,6 +251,12 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = null;
             } else {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
+            }
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
             }
             final AnalysisStatus _tmpAnalysisStatus;
             final String _tmp;
@@ -233,7 +270,7 @@ public final class MealDao_Impl implements MealDao {
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpTimestamp,_tmpImagePath,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
             _result.add(_item);
           }
           return _result;
@@ -264,13 +301,18 @@ public final class MealDao_Impl implements MealDao {
         final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfFirestoreId = CursorUtil.getColumnIndexOrThrow(_cursor, "firestoreId");
           final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
           final int _cursorIndexOfCalories = CursorUtil.getColumnIndexOrThrow(_cursor, "calories");
           final int _cursorIndexOfProtein = CursorUtil.getColumnIndexOrThrow(_cursor, "protein");
           final int _cursorIndexOfCarbs = CursorUtil.getColumnIndexOrThrow(_cursor, "carbs");
           final int _cursorIndexOfFats = CursorUtil.getColumnIndexOrThrow(_cursor, "fats");
+          final int _cursorIndexOfFiber = CursorUtil.getColumnIndexOrThrow(_cursor, "fiber");
+          final int _cursorIndexOfSugar = CursorUtil.getColumnIndexOrThrow(_cursor, "sugar");
+          final int _cursorIndexOfSodium = CursorUtil.getColumnIndexOrThrow(_cursor, "sodium");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfImagePath = CursorUtil.getColumnIndexOrThrow(_cursor, "imagePath");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
@@ -279,6 +321,8 @@ public final class MealDao_Impl implements MealDao {
             final MealEntity _item;
             final long _tmpId;
             _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpFirestoreId;
+            _tmpFirestoreId = _cursor.getString(_cursorIndexOfFirestoreId);
             final String _tmpName;
             _tmpName = _cursor.getString(_cursorIndexOfName);
             final int _tmpCalories;
@@ -289,6 +333,12 @@ public final class MealDao_Impl implements MealDao {
             _tmpCarbs = _cursor.getInt(_cursorIndexOfCarbs);
             final int _tmpFats;
             _tmpFats = _cursor.getInt(_cursorIndexOfFats);
+            final int _tmpFiber;
+            _tmpFiber = _cursor.getInt(_cursorIndexOfFiber);
+            final int _tmpSugar;
+            _tmpSugar = _cursor.getInt(_cursorIndexOfSugar);
+            final int _tmpSodium;
+            _tmpSodium = _cursor.getInt(_cursorIndexOfSodium);
             final long _tmpTimestamp;
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpImagePath;
@@ -296,6 +346,12 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = null;
             } else {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
+            }
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
             }
             final AnalysisStatus _tmpAnalysisStatus;
             final String _tmp;
@@ -309,7 +365,7 @@ public final class MealDao_Impl implements MealDao {
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpTimestamp,_tmpImagePath,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
             _result.add(_item);
           }
           return _result;
@@ -338,13 +394,18 @@ public final class MealDao_Impl implements MealDao {
         final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfFirestoreId = CursorUtil.getColumnIndexOrThrow(_cursor, "firestoreId");
           final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
           final int _cursorIndexOfCalories = CursorUtil.getColumnIndexOrThrow(_cursor, "calories");
           final int _cursorIndexOfProtein = CursorUtil.getColumnIndexOrThrow(_cursor, "protein");
           final int _cursorIndexOfCarbs = CursorUtil.getColumnIndexOrThrow(_cursor, "carbs");
           final int _cursorIndexOfFats = CursorUtil.getColumnIndexOrThrow(_cursor, "fats");
+          final int _cursorIndexOfFiber = CursorUtil.getColumnIndexOrThrow(_cursor, "fiber");
+          final int _cursorIndexOfSugar = CursorUtil.getColumnIndexOrThrow(_cursor, "sugar");
+          final int _cursorIndexOfSodium = CursorUtil.getColumnIndexOrThrow(_cursor, "sodium");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfImagePath = CursorUtil.getColumnIndexOrThrow(_cursor, "imagePath");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
@@ -353,6 +414,8 @@ public final class MealDao_Impl implements MealDao {
             final MealEntity _item;
             final long _tmpId;
             _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpFirestoreId;
+            _tmpFirestoreId = _cursor.getString(_cursorIndexOfFirestoreId);
             final String _tmpName;
             _tmpName = _cursor.getString(_cursorIndexOfName);
             final int _tmpCalories;
@@ -363,6 +426,12 @@ public final class MealDao_Impl implements MealDao {
             _tmpCarbs = _cursor.getInt(_cursorIndexOfCarbs);
             final int _tmpFats;
             _tmpFats = _cursor.getInt(_cursorIndexOfFats);
+            final int _tmpFiber;
+            _tmpFiber = _cursor.getInt(_cursorIndexOfFiber);
+            final int _tmpSugar;
+            _tmpSugar = _cursor.getInt(_cursorIndexOfSugar);
+            final int _tmpSodium;
+            _tmpSodium = _cursor.getInt(_cursorIndexOfSodium);
             final long _tmpTimestamp;
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpImagePath;
@@ -370,6 +439,12 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = null;
             } else {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
+            }
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
             }
             final AnalysisStatus _tmpAnalysisStatus;
             final String _tmp;
@@ -383,7 +458,7 @@ public final class MealDao_Impl implements MealDao {
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpTimestamp,_tmpImagePath,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
             _result.add(_item);
           }
           return _result;
@@ -413,13 +488,18 @@ public final class MealDao_Impl implements MealDao {
         final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfFirestoreId = CursorUtil.getColumnIndexOrThrow(_cursor, "firestoreId");
           final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
           final int _cursorIndexOfCalories = CursorUtil.getColumnIndexOrThrow(_cursor, "calories");
           final int _cursorIndexOfProtein = CursorUtil.getColumnIndexOrThrow(_cursor, "protein");
           final int _cursorIndexOfCarbs = CursorUtil.getColumnIndexOrThrow(_cursor, "carbs");
           final int _cursorIndexOfFats = CursorUtil.getColumnIndexOrThrow(_cursor, "fats");
+          final int _cursorIndexOfFiber = CursorUtil.getColumnIndexOrThrow(_cursor, "fiber");
+          final int _cursorIndexOfSugar = CursorUtil.getColumnIndexOrThrow(_cursor, "sugar");
+          final int _cursorIndexOfSodium = CursorUtil.getColumnIndexOrThrow(_cursor, "sodium");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfImagePath = CursorUtil.getColumnIndexOrThrow(_cursor, "imagePath");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
@@ -427,6 +507,8 @@ public final class MealDao_Impl implements MealDao {
           if (_cursor.moveToFirst()) {
             final long _tmpId;
             _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpFirestoreId;
+            _tmpFirestoreId = _cursor.getString(_cursorIndexOfFirestoreId);
             final String _tmpName;
             _tmpName = _cursor.getString(_cursorIndexOfName);
             final int _tmpCalories;
@@ -437,6 +519,12 @@ public final class MealDao_Impl implements MealDao {
             _tmpCarbs = _cursor.getInt(_cursorIndexOfCarbs);
             final int _tmpFats;
             _tmpFats = _cursor.getInt(_cursorIndexOfFats);
+            final int _tmpFiber;
+            _tmpFiber = _cursor.getInt(_cursorIndexOfFiber);
+            final int _tmpSugar;
+            _tmpSugar = _cursor.getInt(_cursorIndexOfSugar);
+            final int _tmpSodium;
+            _tmpSodium = _cursor.getInt(_cursorIndexOfSodium);
             final long _tmpTimestamp;
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpImagePath;
@@ -444,6 +532,12 @@ public final class MealDao_Impl implements MealDao {
               _tmpImagePath = null;
             } else {
               _tmpImagePath = _cursor.getString(_cursorIndexOfImagePath);
+            }
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
             }
             final AnalysisStatus _tmpAnalysisStatus;
             final String _tmp;
@@ -457,7 +551,7 @@ public final class MealDao_Impl implements MealDao {
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _result = new MealEntity(_tmpId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpTimestamp,_tmpImagePath,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            _result = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
           } else {
             _result = null;
           }

@@ -16,8 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,7 +41,6 @@ fun GoalPreferencesScreen(
     onGoalSelected: (String) -> Unit,
     // Weight (for target calculations)
     currentWeightKg: Float,
-    isMetric: Boolean,
     // Target weight (conditional - only for Lose/Gain)
     targetWeightKg: Float,
     onTargetWeightChanged: (Float) -> Unit,
@@ -66,7 +68,7 @@ fun GoalPreferencesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -82,12 +84,12 @@ fun GoalPreferencesScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF5F5F5))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -99,8 +101,8 @@ fun GoalPreferencesScreen(
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF1C1C1E),
-                trackColor = Color(0xFFE5E5E5)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
             
             Spacer(modifier = Modifier.width(40.dp))
@@ -119,14 +121,14 @@ fun GoalPreferencesScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Text(
                 text = "Set your fitness goals and preferences",
                 fontFamily = Inter,
                 fontSize = 15.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
             )
             
@@ -174,11 +176,8 @@ fun GoalPreferencesScreen(
                     )
                     
                     // Weight display
-                    val displayWeight = if (isMetric) {
-                        "${targetWeightKg.roundToInt()} kg"
-                    } else {
-                        "${(targetWeightKg * 2.205f).roundToInt()} lb"
-                    }
+                    // Display weight only in kg
+                    val displayWeight = "${targetWeightKg.roundToInt()} kg"
                     
                     val weightDiff = if (isGainWeight) {
                         targetWeightKg - currentWeightKg
@@ -186,16 +185,12 @@ fun GoalPreferencesScreen(
                         currentWeightKg - targetWeightKg
                     }
                     
-                    val diffText = if (isMetric) {
-                        "${weightDiff.roundToInt()} kg ${if (isGainWeight) "to gain" else "to lose"}"
-                    } else {
-                        "${(weightDiff * 2.205f).roundToInt()} lb ${if (isGainWeight) "to gain" else "to lose"}"
-                    }
+                    val diffText = "${weightDiff.roundToInt()} kg ${if (isGainWeight) "to gain" else "to lose"}"
                     
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFF8F8F8)
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -206,13 +201,13 @@ fun GoalPreferencesScreen(
                                 fontFamily = Inter,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 36.sp,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = diffText,
                                 fontFamily = Inter,
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             
                             Spacer(modifier = Modifier.height(16.dp))
@@ -227,9 +222,9 @@ fun GoalPreferencesScreen(
                                 valueRange = minWeight..maxWeight,
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = SliderDefaults.colors(
-                                    thumbColor = Color(0xFF1C1C1E),
-                                    activeTrackColor = Color(0xFF1C1C1E),
-                                    inactiveTrackColor = Color(0xFFE0E0E0)
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             )
                         }
@@ -239,61 +234,143 @@ fun GoalPreferencesScreen(
                     
                     // ===================== PACE SECTION =====================
                     GoalSectionTitle(
-                        title = "Weekly ${if (isGainWeight) "gain" else "loss"} pace",
+                        title = "How fast do you want to reach your goal?",
                         emoji = "⏱️"
                     )
                     
-                    val paceDisplay = if (isMetric) {
-                        "${weightChangePerWeek} kg/week"
-                    } else {
-                        "${(weightChangePerWeek * 2.205f).roundToInt() / 10f} lb/week"
+                    // Current vs Target weight display
+                    Text(
+                        text = "${currentWeightKg.roundToInt()} kg → $displayWeight",
+                        fontFamily = Inter,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    // Current value display - ensure exactly one decimal place
+                    // Use integer math to avoid floating-point precision issues
+                    val paceInt = (weightChangePerWeek * 10 + 0.5f).toInt().coerceIn(1, 15)
+                    val roundedPace = paceInt / 10f
+                    val paceDisplay = "${paceInt / 10}.${paceInt % 10} kg"
+                    
+                    Text(
+                        text = paceDisplay,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .semantics { contentDescription = "Weekly pace: $paceDisplay per week" }
+                    )
+                    
+                    // Animal emoji row (matches auto-generate design)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Sloth - slow (0.1 - 0.5 kg)
+                        Text(
+                            text = "🦥",
+                            fontSize = if (roundedPace <= 0.5f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace <= 0.5f) 1f else 0.5f)
+                        )
+                        
+                        // Hamster - medium pace (0.6 - 1.0 kg)
+                        Text(
+                            text = "🐹",
+                            fontSize = if (roundedPace in 0.6f..1.0f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace in 0.6f..1.0f) 1f else 0.5f)
+                        )
+                        
+                        // Rabbit - fast pace (1.1 - 1.5 kg)
+                        Text(
+                            text = "🐇",
+                            fontSize = if (roundedPace >= 1.1f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace >= 1.1f) 1f else 0.5f)
+                        )
                     }
                     
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Slider with 0.1 kg increments (0.1, 0.2, 0.3... 1.5)
+                    Slider(
+                        value = weightChangePerWeek,
+                        onValueChange = { newValue ->
+                            // Round to nearest 0.1 using proper rounding
+                            val rounded = ((newValue * 10 + 0.5f).toInt().coerceIn(1, 15)) / 10f
+                            onPaceChanged(rounded)
+                        },
+                        valueRange = 0.1f..1.5f,
+                        steps = 13, // 14 positions: 0.1, 0.2, 0.3... 1.5 (steps = positions - 2)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Weight change pace slider, from 0.1 to 1.5 kg per week" },
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.onBackground,
+                            activeTrackColor = MaterialTheme.colorScheme.onBackground,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    )
+                    
+                    // Scale labels
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "0.1 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "0.8 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "1.5 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Dynamic description label
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFF8F8F8)
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = paceDisplay,
-                                fontFamily = Inter,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp,
-                                color = Color.Black
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Text(
-                                text = when {
-                                    weightChangePerWeek <= 0.3f -> "Slow & steady"
-                                    weightChangePerWeek <= 0.6f -> "Recommended"
-                                    else -> "Aggressive"
-                                },
-                                fontFamily = Inter,
-                                fontSize = 14.sp,
-                                color = if (weightChangePerWeek <= 0.6f) Color(0xFF4CAF50) else Color(0xFFFF9800)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            Slider(
-                                value = weightChangePerWeek,
-                                onValueChange = onPaceChanged,
-                                valueRange = 0.2f..1.0f,
-                                steps = 3,
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = SliderDefaults.colors(
-                                    thumbColor = Color(0xFF1C1C1E),
-                                    activeTrackColor = Color(0xFF1C1C1E),
-                                    inactiveTrackColor = Color(0xFFE0E0E0)
-                                )
-                            )
-                        }
+                        Text(
+                            text = when {
+                                weightChangePerWeek <= 0.3f -> "Slow and Steady"
+                                weightChangePerWeek <= 0.5f -> "Moderate pace"
+                                weightChangePerWeek <= 1.0f -> "Recommended"
+                                weightChangePerWeek <= 1.3f -> "Fast pace"
+                                else -> "You may feel very tired and develop loose skin"
+                            },
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            color = when {
+                                weightChangePerWeek <= 1.0f -> MaterialTheme.colorScheme.onSurface
+                                else -> Color(0xFFFF5722) // Warning color
+                            },
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
                     }
                 }
             }
@@ -353,7 +430,7 @@ fun GoalPreferencesScreen(
                     .fillMaxWidth()
                     .clickable { onRolloverChanged(!rolloverEnabled) },
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF8F8F8)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier
@@ -368,13 +445,13 @@ fun GoalPreferencesScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Unused calories carry over to the next day",
                             fontFamily = Inter,
                             fontSize = 13.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -382,10 +459,10 @@ fun GoalPreferencesScreen(
                         checked = rolloverEnabled,
                         onCheckedChange = onRolloverChanged,
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF1C1C1E),
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color(0xFFE0E0E0)
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                 }
@@ -401,7 +478,7 @@ fun GoalPreferencesScreen(
                     .fillMaxWidth()
                     .clickable { onAddCaloriesBurnedChanged(!addCaloriesBurnedEnabled) },
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF8F8F8)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier
@@ -416,13 +493,13 @@ fun GoalPreferencesScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Calories burned from exercise are added back to your daily allowance",
                             fontFamily = Inter,
                             fontSize = 13.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -430,10 +507,10 @@ fun GoalPreferencesScreen(
                         checked = addCaloriesBurnedEnabled,
                         onCheckedChange = onAddCaloriesBurnedChanged,
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF1C1C1E),
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color(0xFFE0E0E0)
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                 }
@@ -452,8 +529,10 @@ fun GoalPreferencesScreen(
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1C1C1E),
-                disabledContainerColor = Color(0xFFE5E5E5)
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         ) {
             Text(
@@ -479,7 +558,7 @@ private fun GoalSectionTitle(title: String, emoji: String) {
             fontFamily = Inter,
             fontWeight = FontWeight.SemiBold,
             fontSize = 18.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
@@ -498,10 +577,10 @@ private fun GoalOption(
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .then(
-                if (isSelected) Modifier.border(2.dp, Color(0xFF1C1C1E), RoundedCornerShape(16.dp))
+                if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                 else Modifier
             ),
-        color = if (isSelected) Color(0xFFF0F0F0) else Color(0xFFF8F8F8),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(
@@ -520,13 +599,13 @@ private fun GoalOption(
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
@@ -534,7 +613,7 @@ private fun GoalOption(
                 Icon(
                     Icons.Filled.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF1C1C1E),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -556,10 +635,10 @@ private fun DietChip(
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .then(
-                if (isSelected) Modifier.border(2.dp, Color(0xFF1C1C1E), RoundedCornerShape(12.dp))
+                if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
                 else Modifier
             ),
-        color = if (isSelected) Color(0xFFF0F0F0) else Color(0xFFF8F8F8),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -575,7 +654,7 @@ private fun DietChip(
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

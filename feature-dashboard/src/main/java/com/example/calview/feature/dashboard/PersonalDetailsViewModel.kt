@@ -89,10 +89,11 @@ class PersonalDetailsViewModel @Inject constructor(
 }
 
 data class PersonalDetailsState(
-    val currentWeight: Float = 0f,  // in lbs
+    val currentWeight: Float = 0f,  // in kg
     val height: Int = 0,  // in cm
+    val age: Int = 0,
     val gender: String = "",
-    val goalWeight: Float = 0f,  // in lbs
+    val goalWeight: Float = 0f,  // in kg
     val dailyStepsGoal: Int = 10000,
     val birthMonth: String = "January",
     val birthDay: Int = 1,
@@ -103,14 +104,11 @@ data class PersonalDetailsState(
         get() = String.format("%02d/%02d/%d", 
             getMonthNumber(birthMonth), birthDay, birthYear)
     
-    // Formatted height for display (feet and inches)
+    // Formatted height for display (cm)
     val formattedHeight: String
         get() {
             if (height == 0) return ""
-            val totalInches = (height / 2.54).toInt()
-            val feet = totalInches / 12
-            val inches = totalInches % 12
-            return "$feet ft $inches in"
+            return "$height cm"
         }
     
     private fun getMonthNumber(month: String): Int {

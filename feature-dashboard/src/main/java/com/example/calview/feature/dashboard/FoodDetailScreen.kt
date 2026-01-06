@@ -67,20 +67,40 @@ private val MutedText = Color(0xFF6B7280)
 fun FoodDetailScreen(
     meal: MealEntity,
     onBack: () -> Unit,
-    onDelete: (MealEntity) -> Unit = {}
+    onDelete: (MealEntity) -> Unit = {},
+    onUpdate: (MealEntity) -> Unit = {},
+    onRecalibrate: suspend (MealEntity, List<String>, Int) -> MealEntity? = { _, _, _ -> null }
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
+    // Dark theme support
+    val isDarkTheme = !androidx.compose.foundation.isSystemInDarkTheme()
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    
     var showOptionsMenu by remember { mutableStateOf(false) }
     var showShareSheet by remember { mutableStateOf(false) }
+    var showAddIngredientDialog by remember { mutableStateOf(false) }
     var servingCount by remember { mutableIntStateOf(1) }
+    var isRecalibrating by remember { mutableStateOf(false) }
+    
+    // Track modifications
+    var additionalIngredients by remember { mutableStateOf(listOf<String>()) }
+    var currentMeal by remember { mutableStateOf(meal) }
+    val hasChanges by remember(servingCount, additionalIngredients, currentMeal) {
+        derivedStateOf { 
+            servingCount != 1 || additionalIngredients.isNotEmpty() || currentMeal != meal 
+        }
+    }
     
     // Calculate health score (simplified - based on macro balance)
-    val healthScore = remember(meal) {
-        val totalMacros = meal.protein + meal.carbs + meal.fats
+    val healthScore = remember(currentMeal) {
+        val totalMacros = currentMeal.protein + currentMeal.carbs + currentMeal.fats
         if (totalMacros > 0) {
-            val proteinRatio = meal.protein.toFloat() / totalMacros
+            val proteinRatio = currentMeal.protein.toFloat() / totalMacros
             val balance = minOf(proteinRatio * 10, 10f)
             (balance * 0.4f + 4f).toInt().coerceIn(1, 10)
         } else 4
@@ -90,7 +110,7 @@ fun FoodDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(backgroundColor)
         ) {
             // Full Image with overlay header
             Box(
@@ -424,19 +444,19 @@ fun FoodDetailScreen(
                                 ) {
                                     MicroDetailCard(
                                         label = "Fiber",
-                                        value = "0g",
+                                        value = "${meal.fiber * servingCount}g",
                                         emoji = "🌾",
                                         modifier = Modifier.weight(1f)
                                     )
                                     MicroDetailCard(
                                         label = "Sugar",
-                                        value = "0g",
+                                        value = "${meal.sugar * servingCount}g",
                                         emoji = "🍬",
                                         modifier = Modifier.weight(1f)
                                     )
                                     MicroDetailCard(
                                         label = "Sodium",
-                                        value = "0mg",
+                                        value = "${meal.sodium * servingCount}mg",
                                         emoji = "🧂",
                                         modifier = Modifier.weight(1f)
                                     )
@@ -546,24 +566,24 @@ fun FoodDetailScreen(
                         text = "Ingredients",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText
+                        color = onSurfaceColor
                     )
-                    TextButton(onClick = { /* TODO: Add ingredient */ }) {
+                    TextButton(onClick = { showAddIngredientDialog = true }) {
                         Text(
                             text = "+ Add more",
                             fontSize = 14.sp,
-                            color = MutedText
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Ingredient item
+                // Original ingredient item
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFF9FAFB)
+                    color = surfaceColor
                 ) {
                     Row(
                         modifier = Modifier
@@ -573,11 +593,55 @@ fun FoodDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${meal.name} • ${meal.calories} cal, $servingCount",
+                            text = "${currentMeal.name} • ${currentMeal.calories * servingCount} cal",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = DarkText
+                            color = onSurfaceColor
                         )
+                        Text(
+                            text = "×$servingCount",
+                            fontSize = 14.sp,
+                            color = onSurfaceVariantColor
+                        )
+                    }
+                }
+                
+                // Additional ingredients
+                additionalIngredients.forEachIndexed { index, ingredient ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = surfaceColor
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = ingredient,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = onSurfaceColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { 
+                                    additionalIngredients = additionalIngredients.toMutableList().also { it.removeAt(index) }
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = "Remove",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color(0xFFEF4444)
+                                )
+                            }
+                        }
                     }
                 }
                 
@@ -614,39 +678,81 @@ fun FoodDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { /* TODO: Fix results */ },
+                        onClick = {
+                            if (hasChanges && !isRecalibrating) {
+                                scope.launch {
+                                    isRecalibrating = true
+                                    try {
+                                        val recalibrated = onRecalibrate(currentMeal, additionalIngredients, servingCount)
+                                        if (recalibrated != null) {
+                                            currentMeal = recalibrated
+                                            Toast.makeText(context, "Results updated!", Toast.LENGTH_SHORT).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Failed to recalibrate", Toast.LENGTH_SHORT).show()
+                                    } finally {
+                                        isRecalibrating = false
+                                    }
+                                }
+                            } else if (!hasChanges) {
+                                Toast.makeText(context, "No changes to fix", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        enabled = hasChanges && !isRecalibrating,
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
                         shape = RoundedCornerShape(26.dp),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                        border = BorderStroke(1.dp, if (hasChanges) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB))
                     ) {
-                        Icon(
-                            Icons.Outlined.AutoFixHigh,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        if (isRecalibrating) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                Icons.Outlined.AutoFixHigh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Fix Results",
+                            text = if (isRecalibrating) "Fixing..." else "Fix Results",
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                     
                     Button(
-                        onClick = onBack,
+                        onClick = {
+                            // Update meal if changes were made
+                            if (hasChanges) {
+                                val updatedMeal = currentMeal.copy(
+                                    calories = currentMeal.calories * servingCount,
+                                    protein = currentMeal.protein * servingCount,
+                                    carbs = currentMeal.carbs * servingCount,
+                                    fats = currentMeal.fats * servingCount,
+                                    fiber = currentMeal.fiber * servingCount,
+                                    sugar = currentMeal.sugar * servingCount,
+                                    sodium = currentMeal.sodium * servingCount
+                                )
+                                onUpdate(updatedMeal)
+                            }
+                            onBack()
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
                         shape = RoundedCornerShape(26.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = DarkText
+                            containerColor = onSurfaceColor
                         )
                     ) {
                         Text(
                             text = "Done",
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = backgroundColor
                         )
                     }
                 }
@@ -658,9 +764,20 @@ fun FoodDetailScreen(
         // Share Sheet Dialog
         if (showShareSheet) {
             ShareFoodSheet(
-                meal = meal,
+                meal = currentMeal,
                 servingCount = servingCount,
                 onDismiss = { showShareSheet = false }
+            )
+        }
+        
+        // Add Ingredient Dialog
+        if (showAddIngredientDialog) {
+            AddIngredientDialog(
+                onDismiss = { showAddIngredientDialog = false },
+                onAdd = { ingredient ->
+                    additionalIngredients = additionalIngredients + ingredient
+                    showAddIngredientDialog = false
+                }
             )
         }
     }
@@ -752,6 +869,12 @@ private fun ShareFoodSheet(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
+    // Dark theme support
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -761,7 +884,7 @@ private fun ShareFoodSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            color = Color.White
+            color = backgroundColor
         ) {
             Column(
                 modifier = Modifier
@@ -775,12 +898,13 @@ private fun ShareFoodSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                        Icon(Icons.Filled.Close, contentDescription = "Close", tint = onSurfaceColor)
                     }
                     Text(
                         text = "Share",
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = onSurfaceColor
                     )
                     Spacer(modifier = Modifier.size(48.dp))
                 }
@@ -825,7 +949,7 @@ private fun ShareFoodSheet(
                         }
                     }
                     
-                    // Branding Overlay at bottom
+                    // Branding Overlay at bottom - More transparent
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -835,21 +959,28 @@ private fun ShareFoodSheet(
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            color = Color.White.copy(alpha = 0.95f),
+                            color = Color.Black.copy(alpha = 0.7f), // Semi-transparent for food visibility
                             shadowElevation = 8.dp
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp)
                             ) {
-                                // App branding
+                                // App branding with logo
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "🔥", fontSize = 16.sp)
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                    // App Logo
+                                    Image(
+                                        painter = androidx.compose.ui.res.painterResource(
+                                            id = com.example.calview.feature.dashboard.R.drawable.app_logo
+                                        ),
+                                        contentDescription = "CalViewAI Logo",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "CalViewAI",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MutedText
+                                        color = Color.White.copy(alpha = 0.9f)
                                     )
                                 }
                                 
@@ -860,7 +991,7 @@ private fun ShareFoodSheet(
                                     text = meal.name,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = DarkText
+                                    color = Color.White
                                 )
                                 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -874,7 +1005,7 @@ private fun ShareFoodSheet(
                                         icon = Icons.Filled.LocalFireDepartment,
                                         value = "${meal.calories * servingCount}",
                                         label = "Calories",
-                                        color = DarkText
+                                        color = Color.White
                                     )
                                     ShareMacroItem(
                                         icon = Icons.Filled.Favorite,
@@ -1016,7 +1147,7 @@ private fun formatMealTimeDetail(timestamp: Long): String {
     return sdf.format(Date(timestamp))
 }
 
-private suspend fun saveImageToGallery(context: Context, meal: MealEntity) {
+private suspend fun saveImageToGallery(context: Context, meal: MealEntity, servingCount: Int = 1) {
     withContext(Dispatchers.IO) {
         try {
             val fileName = "${meal.name.replace(" ", "_")}_CalViewAI_${System.currentTimeMillis()}.jpg"
@@ -1033,13 +1164,23 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity) {
                     contentValues
                 )
                 
-                uri?.let {
-                    meal.imagePath?.let { path ->
-                        val sourceFile = File(path)
-                        if (sourceFile.exists()) {
-                            context.contentResolver.openOutputStream(it)?.use { outputStream ->
-                                sourceFile.inputStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream)
+                uri?.let { contentUri ->
+                    // Generate branded image
+                    val brandedBitmap = generateBrandedImage(context, meal, servingCount)
+                    if (brandedBitmap != null) {
+                        context.contentResolver.openOutputStream(contentUri)?.use { outputStream ->
+                            brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
+                        }
+                        brandedBitmap.recycle()
+                    } else {
+                        // Fallback to original image
+                        meal.imagePath?.let { path ->
+                            val sourceFile = File(path)
+                            if (sourceFile.exists()) {
+                                context.contentResolver.openOutputStream(contentUri)?.use { outputStream ->
+                                    sourceFile.inputStream().use { inputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
                                 }
                             }
                         }
@@ -1052,50 +1193,210 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity) {
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Failed to save image: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
 
 private suspend fun shareFood(context: Context, meal: MealEntity, servingCount: Int) {
-    withContext(Dispatchers.Main) {
-        val shareText = buildString {
-            appendLine("🍽️ ${meal.name}")
-            appendLine()
-            appendLine("📊 Nutrition Info:")
-            appendLine("🔥 ${meal.calories * servingCount} Calories")
-            appendLine("💪 ${meal.protein * servingCount}g Protein")
-            appendLine("🌾 ${meal.carbs * servingCount}g Carbs")
-            appendLine("💧 ${meal.fats * servingCount}g Fats")
-            appendLine()
-            appendLine("Tracked with CalViewAI 📱")
-        }
-        
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, shareText)
+    withContext(Dispatchers.IO) {
+        try {
+            // Generate branded image
+            val brandedBitmap = generateBrandedImage(context, meal, servingCount)
             
-            // Add image if available
-            meal.imagePath?.let { path ->
-                try {
-                    val file = File(path)
-                    if (file.exists()) {
-                        val uri = FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.provider",
-                            file
-                        )
+            if (brandedBitmap != null) {
+                // Save to cache and share
+                val cacheDir = File(context.cacheDir, "share_images")
+                cacheDir.mkdirs()
+                val shareFile = File(cacheDir, "calviewai_${System.currentTimeMillis()}.jpg")
+                
+                FileOutputStream(shareFile).use { output ->
+                    brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
+                }
+                brandedBitmap.recycle()
+                
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    shareFile
+                )
+                
+                withContext(Dispatchers.Main) {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/jpeg"
                         putExtra(Intent.EXTRA_STREAM, uri)
-                        type = "image/*"
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                } catch (e: Exception) {
-                    // Continue without image
+                    context.startActivity(Intent.createChooser(intent, "Share ${meal.name}"))
+                }
+            } else {
+                // Fallback to text share
+                withContext(Dispatchers.Main) {
+                    val shareText = buildString {
+                        appendLine("🍽️ ${meal.name}")
+                        appendLine()
+                        appendLine("📊 Nutrition Info:")
+                        appendLine("🔥 ${meal.calories * servingCount} Calories")
+                        appendLine("💪 ${meal.protein * servingCount}g Protein")
+                        appendLine("🌾 ${meal.carbs * servingCount}g Carbs")
+                        appendLine("💧 ${meal.fats * servingCount}g Fats")
+                        appendLine()
+                        appendLine("Tracked with CalViewAI 📱")
+                    }
+                    
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                    }
+                    context.startActivity(Intent.createChooser(intent, "Share ${meal.name}"))
                 }
             }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Failed to share", Toast.LENGTH_SHORT).show()
+            }
         }
-        
-        context.startActivity(Intent.createChooser(intent, "Share ${meal.name}"))
     }
 }
+
+private fun generateBrandedImage(context: Context, meal: MealEntity, servingCount: Int): Bitmap? {
+    return try {
+        // Load food image
+        val foodBitmap = meal.imagePath?.let { path ->
+            val file = File(path)
+            if (file.exists()) {
+                android.graphics.BitmapFactory.decodeFile(path)
+            } else null
+        } ?: return null
+        
+        // Create output bitmap (square for social media)
+        val size = maxOf(foodBitmap.width, foodBitmap.height)
+        val outputBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(outputBitmap)
+        
+        // Draw food image centered
+        val left = (size - foodBitmap.width) / 2f
+        val top = (size - foodBitmap.height) / 2f
+        canvas.drawBitmap(foodBitmap, left, top, null)
+        
+        // Draw semi-transparent overlay at bottom
+        val overlayHeight = size * 0.35f
+        val overlayPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(200, 0, 0, 0)
+        }
+        canvas.drawRect(0f, size - overlayHeight, size.toFloat(), size.toFloat(), overlayPaint)
+        
+        // Load app logo
+        val logoBitmap = try {
+            val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.app_logo)
+            if (drawable != null) {
+                val logoSize = (size * 0.08f).toInt()
+                val bitmap = Bitmap.createBitmap(logoSize, logoSize, Bitmap.Config.ARGB_8888)
+                val logoCanvas = Canvas(bitmap)
+                drawable.setBounds(0, 0, logoSize, logoSize)
+                drawable.draw(logoCanvas)
+                bitmap
+            } else null
+        } catch (e: Exception) { null }
+        
+        // Draw logo and app name
+        val textPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.WHITE
+            textSize = size * 0.04f
+            isAntiAlias = true
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+        }
+        
+        val padding = size * 0.04f
+        var yPos = size - overlayHeight + padding + textPaint.textSize
+        
+        if (logoBitmap != null) {
+            canvas.drawBitmap(logoBitmap, padding, yPos - logoBitmap.height + 5, null)
+            canvas.drawText("CalViewAI", padding + logoBitmap.width + 10, yPos, textPaint)
+            logoBitmap.recycle()
+        } else {
+            canvas.drawText("CalViewAI", padding, yPos, textPaint)
+        }
+        
+        // Draw food name
+        yPos += textPaint.textSize * 1.8f
+        textPaint.textSize = size * 0.05f
+        canvas.drawText(meal.name, padding, yPos, textPaint)
+        
+        // Draw nutrition info
+        yPos += textPaint.textSize * 1.8f
+        textPaint.textSize = size * 0.035f
+        textPaint.typeface = android.graphics.Typeface.DEFAULT
+        
+        val calories = meal.calories * servingCount
+        val protein = meal.protein * servingCount
+        val carbs = meal.carbs * servingCount
+        val fats = meal.fats * servingCount
+        
+        val nutritionText = "🔥 $calories cal  •  💪 ${protein}g  •  🌾 ${carbs}g  •  💧 ${fats}g"
+        canvas.drawText(nutritionText, padding, yPos, textPaint)
+        
+        foodBitmap.recycle()
+        outputBitmap
+    } catch (e: Exception) {
+        null
+    }
+}
+
+/**
+ * Dialog for adding additional ingredients
+ */
+@Composable
+private fun AddIngredientDialog(
+    onDismiss: () -> Unit,
+    onAdd: (String) -> Unit
+) {
+    var ingredientText by remember { mutableStateOf("") }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Add Ingredient",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Enter an ingredient that the AI might have missed:",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = ingredientText,
+                    onValueChange = { ingredientText = it },
+                    label = { Text("Ingredient name") },
+                    placeholder = { Text("e.g., extra cheese, olive oil") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (ingredientText.isNotBlank()) {
+                        onAdd(ingredientText.trim())
+                    }
+                },
+                enabled = ingredientText.isNotBlank()
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+

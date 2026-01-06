@@ -68,11 +68,12 @@ fun EditNutritionGoalsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -87,7 +88,7 @@ fun EditNutritionGoalsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -95,8 +96,8 @@ fun EditNutritionGoalsScreen(
             // Calorie goal - with slider
             NutrientGoalCard(
                 icon = Icons.Default.LocalFireDepartment,
-                iconTint = Color(0xFF1C1C1E),
-                progressColor = Color(0xFF1C1C1E),
+                iconTint = MaterialTheme.colorScheme.onBackground,
+                progressColor = MaterialTheme.colorScheme.onBackground,
                 label = "Calorie goal",
                 value = calories,
                 unit = "",
@@ -165,13 +166,13 @@ fun EditNutritionGoalsScreen(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = if (showMicronutrients) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -227,10 +228,10 @@ fun EditNutritionGoalsScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, Color(0xFFE5E5E5)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Text(
@@ -266,8 +267,8 @@ private fun NutrientGoalCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -286,7 +287,7 @@ private fun NutrientGoalCard(
                         modifier = Modifier.fillMaxSize(),
                         color = progressColor,
                         strokeWidth = 4.dp,
-                        trackColor = Color(0xFFF5F5F5)
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                     Icon(
                         imageVector = icon,
@@ -305,7 +306,7 @@ private fun NutrientGoalCard(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
                     if (isEditing) {
@@ -332,7 +333,7 @@ private fun NutrientGoalCard(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.clickable { 
                                 isEditing = true
                                 editText = value.toString()
@@ -350,7 +351,7 @@ private fun NutrientGoalCard(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
-                            tint = Color.Gray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -378,9 +379,9 @@ private fun NutrientGoalCard(
                     valueRange = minValue.toFloat()..maxValue.toFloat(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
-                        thumbColor = Color(0xFF1C1C1E),
-                        activeTrackColor = Color(0xFF1C1C1E),
-                        inactiveTrackColor = Color(0xFFE5E5E5)
+                        thumbColor = MaterialTheme.colorScheme.onBackground,
+                        activeTrackColor = MaterialTheme.colorScheme.onBackground,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
             }

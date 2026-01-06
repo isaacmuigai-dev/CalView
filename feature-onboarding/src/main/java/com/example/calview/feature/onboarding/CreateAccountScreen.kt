@@ -41,7 +41,7 @@ fun CreateAccountScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
             .statusBarsPadding()
             .navigationBarsPadding()
@@ -58,12 +58,12 @@ fun CreateAccountScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF5F5F5))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -76,8 +76,8 @@ fun CreateAccountScreen(
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF1C1C1E),
-                trackColor = Color(0xFFE5E5E5)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
             
             Spacer(modifier = Modifier.width(40.dp))
@@ -91,14 +91,14 @@ fun CreateAccountScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         
         Spacer(modifier = Modifier.weight(1f))
         
         // Divider
         HorizontalDivider(
-            color = Color(0xFFE0E0E0),
+            color = MaterialTheme.colorScheme.outlineVariant,
             thickness = 1.dp
         )
         
@@ -113,19 +113,19 @@ fun CreateAccountScreen(
                 .height(54.dp),
             shape = RoundedCornerShape(27.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.Black
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ),
             border = androidx.compose.foundation.BorderStroke(
                 width = 1.dp,
-                color = Color(0xFFE0E0E0)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             } else {
                 Row(
@@ -142,7 +142,7 @@ fun CreateAccountScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -160,7 +160,7 @@ fun CreateAccountScreen(
                     text = "By continuing, you agree to Cal AI's ",
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Row {
@@ -168,7 +168,7 @@ fun CreateAccountScreen(
                     text = "Terms and",
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { onTermsClick() }
@@ -179,7 +179,7 @@ fun CreateAccountScreen(
                     text = "Conditions",
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { onTermsClick() }
@@ -188,13 +188,13 @@ fun CreateAccountScreen(
                     text = " and ",
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Privacy Policy",
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { onPrivacyClick() }

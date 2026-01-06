@@ -95,15 +95,7 @@ fun ProgressContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFF8FAFC),
-                        Color(0xFFEFF6FF),
-                        Color(0xFFF8FAFC)
-                    )
-                )
-            ),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -114,7 +106,7 @@ fun ProgressContent(
                 .padding(horizontal = horizontalPadding, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // Header
+        // Header - simplified without refresh button
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -125,63 +117,67 @@ fun ProgressContent(
                     text = "Progress",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Track your health journey",
                     fontSize = 14.sp,
-                    color = MutedText
-                )
-            }
-            
-            // Refresh button
-            IconButton(
-                onClick = onRefresh,
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(Color.White, CircleShape)
-                    .shadow(4.dp, CircleShape)
-            ) {
-                Icon(
-                    Icons.Outlined.Refresh,
-                    contentDescription = "Refresh",
-                    tint = GradientPurple
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
         
-        // Hero BMI Card - using CompactBMICard since AnimatedBMICard is not defined
-        // The CompactBMICard is placed at the bottom of the screen
-        // (see line ~246 where CompactBMICard is called)
+        // 1. Daily Motivation - First
+        MotivationalCard(
+            progress = uiState.weightProgress,
+            streak = uiState.dayStreak
+        )
         
-        // Stats Grid
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            AnimatedStatCard(
-                modifier = Modifier.weight(1f),
-                value = uiState.currentWeight,
-                label = "Weight",
-                unit = "kg",
-                icon = Icons.Outlined.Scale,
-                progress = uiState.weightProgress,
-                gradientColors = listOf(GradientCyan, GradientBlue),
-                animationTriggered = animationTriggered
-            )
-            AnimatedStatCard(
-                modifier = Modifier.weight(1f),
-                value = uiState.dayStreak.toFloat(),
-                label = "Streak",
-                unit = "days",
-                icon = Icons.Filled.Whatshot,
-                progress = (uiState.dayStreak / 30f).coerceIn(0f, 1f),
-                gradientColors = listOf(GradientOrange, GradientPink),
-                animationTriggered = animationTriggered,
-                isStreak = true
-            )
-        }
+        // 1.5. Weekly Streak Tracking Card
+        DayStreakCard(
+            streak = uiState.dayStreak,
+            completedDays = uiState.completedDays,
+            animationTriggered = animationTriggered
+        )
         
+        // 2. Weight Goal Card
+        WeightProgressCard(
+            currentWeight = uiState.currentWeight,
+            goalWeight = uiState.goalWeight,
+            progress = uiState.weightProgress,
+            animationTriggered = animationTriggered
+        )
+        
+        // 3. Weekly Calories Chart
+        WeeklyCaloriesChart(
+            weeklyData = uiState.weeklyCalories,
+            calorieGoal = uiState.calorieGoal,
+            animationTriggered = animationTriggered
+        )
+        
+        // 4. Today's Macros Donut
+        MacroDonutCard(
+            protein = uiState.todayProtein,
+            carbs = uiState.todayCarbs,
+            fats = uiState.todayFats,
+            proteinGoal = uiState.proteinGoal,
+            carbsGoal = uiState.carbsGoal,
+            fatsGoal = uiState.fatsGoal,
+            animationTriggered = animationTriggered
+        )
+        
+        // 4.5. Micronutrients (Fiber, Sugar, Sodium)
+        MicronutrientStatsRow(
+            fiber = uiState.todayFiber,
+            sugar = uiState.todaySugar,
+            sodium = uiState.todaySodium,
+            fiberGoal = 38f,
+            sugarGoal = 64f,
+            sodiumGoal = 2300f,
+            animationTriggered = animationTriggered
+        )
+        
+        // 5. Steps + Burned Calories - Combined into one row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -210,50 +206,12 @@ fun ProgressContent(
             )
         }
         
-        // Day Streak Visual - moved up for visibility
-        DayStreakCard(
-            streak = uiState.dayStreak,
-            bestStreak = uiState.bestStreak,
-            completedDays = uiState.completedDays,
-            animationTriggered = animationTriggered
-        )
-        
-        // Weight Progress Card
-        WeightProgressCard(
-            currentWeight = uiState.currentWeight,
-            goalWeight = uiState.goalWeight,
-            progress = uiState.weightProgress,
-            animationTriggered = animationTriggered
-        )
-        
-        // Weekly Calories Chart
-        WeeklyCaloriesChart(
-            weeklyData = uiState.weeklyCalories,
-            calorieGoal = uiState.calorieGoal,
-            animationTriggered = animationTriggered
-        )
-        
-        // Weekly Macros Donut
-        MacroDonutCard(
-            protein = uiState.todayProtein,
-            carbs = uiState.todayCarbs,
-            fats = uiState.todayFats,
-            proteinGoal = uiState.proteinGoal,
-            carbsGoal = uiState.carbsGoal,
-            fatsGoal = uiState.fatsGoal,
-            animationTriggered = animationTriggered
-        )
-        
-        // Motivational Banner
-        MotivationalCard(
-            progress = uiState.weightProgress,
-            streak = uiState.dayStreak
-        )
-        
-        // BMI Card - compact at the bottom
+        // 6. BMI Card - Last with height/weight
         CompactBMICard(
             bmi = uiState.bmi,
             bmiCategory = uiState.bmiCategory,
+            height = uiState.height.toFloat(),
+            weight = uiState.currentWeight,
             animationTriggered = animationTriggered
         )
         
@@ -267,6 +225,8 @@ fun ProgressContent(
 fun CompactBMICard(
     bmi: Float,
     bmiCategory: String,
+    height: Float = 0f,  // in cm
+    weight: Float = 0f,  // in kg
     animationTriggered: Boolean
 ) {
     val animatedBMI by animateFloatAsState(
@@ -335,6 +295,48 @@ fun CompactBMICard(
                             fontWeight = FontWeight.Medium,
                             color = animatedColor
                         )
+                    }
+                }
+            }
+            
+            // Height and Weight display
+            if (height > 0 || weight > 0) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (height > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Outlined.Height,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${height.toInt()} cm",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    if (weight > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Outlined.Scale,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = String.format("%.1f kg", weight),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -436,7 +438,7 @@ fun AnimatedStatCard(
             .height(140.dp)
             .semantics { contentDescription = accessibilityDescription },
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -505,7 +507,7 @@ fun AnimatedStatCard(
                             text = "${(animatedProgress * 100).toInt()}%",
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MutedText
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -519,13 +521,13 @@ fun AnimatedStatCard(
                                    else String.format("%.1f", animatedValue),
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DarkText
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         if (unit.isNotEmpty()) {
                             Text(
                                 text = " $unit",
                                 fontSize = 14.sp,
-                                color = MutedText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
@@ -533,7 +535,7 @@ fun AnimatedStatCard(
                     Text(
                         text = label,
                         fontSize = 13.sp,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -558,7 +560,7 @@ fun WeightProgressCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -571,7 +573,7 @@ fun WeightProgressCard(
                     text = "Weight Goal",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -595,7 +597,7 @@ fun WeightProgressCard(
                     .fillMaxWidth()
                     .height(12.dp)
                     .clip(RoundedCornerShape(6.dp))
-                    .background(Color(0xFFE5E7EB))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Box(
                     modifier = Modifier
@@ -618,20 +620,20 @@ fun WeightProgressCard(
                     Text(
                         text = "Current",
                         fontSize = 12.sp,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${currentWeight.toInt()} kg",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "Goal",
                         fontSize = 12.sp,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${goalWeight.toInt()} kg",
@@ -684,7 +686,7 @@ fun MacroDonutCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -692,7 +694,7 @@ fun MacroDonutCard(
                 text = "Today's Macros",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -755,12 +757,12 @@ fun MacroDonutCard(
                             text = "${total.toInt()}g",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DarkText
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Total",
                             fontSize = 11.sp,
-                            color = MutedText
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -812,12 +814,12 @@ private fun MacroLegendRow(
                 text = label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${value.toInt()}g / ${goal}g",
                 fontSize = 11.sp,
-                color = MutedText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -838,7 +840,7 @@ fun WeeklyCaloriesChart(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -851,7 +853,7 @@ fun WeeklyCaloriesChart(
                     text = "Weekly Calories",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -882,7 +884,7 @@ fun WeeklyCaloriesChart(
                         Text(
                             text = "${(maxCalories * i / gridLines)}",
                             fontSize = 9.sp,
-                            color = MutedText
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -985,7 +987,7 @@ fun WeeklyCaloriesChart(
                         text = day.day.take(1),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MutedText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
                     )
@@ -1005,14 +1007,14 @@ fun WeeklyCaloriesChart(
                         .size(10.dp)
                         .background(GradientCyan, CircleShape)
                 )
-                Text(" Under", fontSize = 11.sp, color = MutedText)
+                Text(" Under", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
                         .size(10.dp)
                         .background(GradientPink, CircleShape)
                 )
-                Text(" Over", fontSize = 11.sp, color = MutedText)
+                Text(" Over", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
@@ -1020,7 +1022,7 @@ fun WeeklyCaloriesChart(
                         .height(2.dp)
                         .background(GradientOrange)
                 )
-                Text(" Goal", fontSize = 11.sp, color = MutedText)
+                Text(" Goal", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1060,7 +1062,7 @@ fun DayStreakCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {
         Column(
@@ -1100,13 +1102,13 @@ fun DayStreakCard(
                     Text(
                         text = "Current",
                         fontSize = 12.sp,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "$streak days",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
@@ -1115,7 +1117,7 @@ fun DayStreakCard(
                     modifier = Modifier
                         .width(1.dp)
                         .height(80.dp)
-                        .background(Color(0xFFE5E7EB))
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
                 
                 // Best Streak
@@ -1137,7 +1139,7 @@ fun DayStreakCard(
                     Text(
                         text = "Best",
                         fontSize = 12.sp,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "$bestStreak days",
@@ -1172,7 +1174,7 @@ fun DayStreakCard(
                             text = day,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (isCompleted) DarkText else MutedText
+                            color = if (isCompleted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Box(
@@ -1208,7 +1210,7 @@ fun DayStreakCard(
                     text = "Milestones Unlocked",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MutedText
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1317,7 +1319,7 @@ fun MotivationalCard(
                         text = "Daily Motivation",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MutedText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     AnimatedContent(
@@ -1332,13 +1334,152 @@ fun MotivationalCard(
                             text = message,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = DarkText,
+                            color = MaterialTheme.colorScheme.onSurface,
                             lineHeight = 20.sp
                         )
                     }
                 }
             }
         }
+    }
+}
+
+// ============ MICRONUTRIENT STATS ROW ============
+@Composable
+fun MicronutrientStatsRow(
+    fiber: Float,
+    sugar: Float,
+    sodium: Float,
+    fiberGoal: Float,
+    sugarGoal: Float,
+    sodiumGoal: Float,
+    animationTriggered: Boolean
+) {
+    val fiberColor = Color(0xFF66BB6A)
+    val sugarColor = Color(0xFFFF7043)
+    val sodiumColor = Color(0xFF9575CD)
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Micronutrients",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MicronutrientItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Fiber",
+                    value = fiber,
+                    goal = fiberGoal,
+                    unit = "g",
+                    color = fiberColor,
+                    icon = Icons.Filled.Grass,
+                    animationTriggered = animationTriggered
+                )
+                MicronutrientItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Sugar",
+                    value = sugar,
+                    goal = sugarGoal,
+                    unit = "g",
+                    color = sugarColor,
+                    icon = Icons.Filled.Cookie,
+                    animationTriggered = animationTriggered
+                )
+                MicronutrientItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Sodium",
+                    value = sodium,
+                    goal = sodiumGoal,
+                    unit = "mg",
+                    color = sodiumColor,
+                    icon = Icons.Filled.Science,
+                    animationTriggered = animationTriggered
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MicronutrientItem(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: Float,
+    goal: Float,
+    unit: String,
+    color: Color,
+    icon: ImageVector,
+    animationTriggered: Boolean
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) (value / goal).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "progress"
+    )
+    
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = if (unit == "mg") "${value.toInt()}" else String.format("%.1f", value),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "$unit / ${goal.toInt()}$unit",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(color.copy(alpha = 0.2f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(animatedProgress)
+                    .fillMaxHeight()
+                    .background(color, RoundedCornerShape(3.dp))
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

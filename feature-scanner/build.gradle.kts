@@ -71,6 +71,11 @@ dependencies {
     
     // Image loading (Coil)
     implementation(libs.coil.compose)
+    
+    // ML Kit for barcode scanning and text recognition (OCR)
+    implementation(libs.mlkit.barcode)
+    implementation(libs.mlkit.text)
+    
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

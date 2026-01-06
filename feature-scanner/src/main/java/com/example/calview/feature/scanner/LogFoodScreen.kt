@@ -50,6 +50,7 @@ fun MyMealsScreen(
     meals: List<MealEntity>,
     onBack: () -> Unit,
     onScanFood: () -> Unit,
+    onMealClick: (MealEntity) -> Unit = {},
     onCreateMeal: (name: String, calories: Int, protein: Int, carbs: Int, fats: Int) -> Unit,
     onDeleteMeal: (Long) -> Unit
 ) {
@@ -60,7 +61,7 @@ fun MyMealsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(SurfaceBg)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Header
             Box(
@@ -114,7 +115,7 @@ fun MyMealsScreen(
                         text = "Quick Actions",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = DarkText,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     
@@ -156,12 +157,12 @@ fun MyMealsScreen(
                             text = "Your Meals",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = DarkText
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "${meals.size} meals",
                             fontSize = 13.sp,
-                            color = MutedText
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -178,6 +179,7 @@ fun MyMealsScreen(
                     ) { meal ->
                         MealCard(
                             meal = meal,
+                            onClick = { onMealClick(meal) },
                             onDelete = { mealToDelete = meal }
                         )
                     }
@@ -277,16 +279,23 @@ private fun QuickActionCard(
 @Composable
 private fun MealCard(
     meal: MealEntity,
+    onClick: () -> Unit = {},
     onDelete: () -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
     val dateString = dateFormat.format(Date(meal.timestamp))
     
+    val isAnalyzing = meal.analysisStatus == AnalysisStatus.ANALYZING ||
+                      meal.analysisStatus == AnalysisStatus.PENDING
+    
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = !isAnalyzing) { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = CardBg,
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
@@ -294,12 +303,11 @@ private fun MealCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Meal Image or Placeholder
+            // Meal Image - Larger to match RecentMealCard (100dp)
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(GradientStart.copy(alpha = 0.1f)),
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (meal.imagePath != null && File(meal.imagePath).exists()) {
@@ -312,7 +320,42 @@ private fun MealCard(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Text(text = "🍽️", fontSize = 28.sp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(GradientStart, GradientEnd)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.Restaurant,
+                            contentDescription = "Food placeholder",
+                            modifier = Modifier.size(40.dp),
+                            tint = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+                
+                // Analyzing overlay
+                if (isAnalyzing) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Color.White,
+                            strokeWidth = 3.dp
+                        )
+                    }
                 }
             }
             
@@ -330,67 +373,72 @@ private fun MealCard(
                             text = meal.name,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = DarkText,
-                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                         
-                        // Status badge for analyzing meals
-                        if (meal.analysisStatus == AnalysisStatus.ANALYZING) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(12.dp),
-                                    strokeWidth = 2.dp,
-                                    color = GradientStart
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Analyzing...",
-                                    fontSize = 12.sp,
-                                    color = GradientStart
-                                )
-                            }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        // Status or date
+                        if (isAnalyzing) {
+                            Text(
+                                text = "Analyzing...",
+                                fontSize = 12.sp,
+                                color = GradientStart,
+                                fontWeight = FontWeight.Medium
+                            )
+                        } else {
+                            Text(
+                                text = dateString,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     
+                    // Delete Icon Button
                     IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "Delete",
-                            tint = MutedText,
-                            modifier = Modifier.size(18.dp)
+                            contentDescription = "Delete meal",
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
-                // Calories and date
+                // Calories row with fire icon
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "🔥 ${meal.calories} cal",
-                        fontSize = 13.sp,
-                        color = MutedText
+                    Icon(
+                        Icons.Filled.LocalFireDepartment,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFFFF6B35)
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = " • $dateString",
-                        fontSize = 12.sp,
-                        color = MutedText.copy(alpha = 0.7f)
+                        text = "${meal.calories} cal",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
-                // Macros
+                // Macros row
                 if (meal.protein > 0 || meal.carbs > 0 || meal.fats > 0) {
                     Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MacroChip("P", "${meal.protein}g", Color(0xFFEF4444))
-                        MacroChip("C", "${meal.carbs}g", Color(0xFFF59E0B))
-                        MacroChip("F", "${meal.fats}g", Color(0xFF3B82F6))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MacroItem("P", "${meal.protein}g", Color(0xFFEF4444))
+                        MacroItem("C", "${meal.carbs}g", Color(0xFFF59E0B))
+                        MacroItem("F", "${meal.fats}g", Color(0xFF3B82F6))
                     }
                 }
             }
@@ -399,32 +447,23 @@ private fun MealCard(
 }
 
 @Composable
-private fun MacroChip(
+private fun MacroItem(
     label: String,
     value: String,
     color: Color
 ) {
-    Surface(
-        shape = RoundedCornerShape(4.dp),
-        color = color.copy(alpha = 0.1f)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            Text(
-                text = value,
-                fontSize = 10.sp,
-                color = color.copy(alpha = 0.8f)
-            )
-        }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(color, CircleShape)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$label $value",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -444,7 +483,7 @@ private fun EmptyMealsState() {
             text = "No meals yet",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = DarkText
+            color = MaterialTheme.colorScheme.onBackground
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -452,7 +491,7 @@ private fun EmptyMealsState() {
         Text(
             text = "Scan your food or create a custom meal",
             fontSize = 14.sp,
-            color = MutedText
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

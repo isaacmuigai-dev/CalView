@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import kotlin.math.roundToInt
 
 /**
@@ -136,12 +138,9 @@ fun AutoGenerateGoalsScreen(
     val scrollState = rememberScrollState()
     
     // Form state
-    var isMetric by remember { mutableStateOf(true) }
+    // Metric-only app (kg/cm)
     var heightCm by remember { mutableIntStateOf(initialHeightCm) }
-    var heightFeet by remember { mutableIntStateOf((initialHeightCm / 30.48).toInt()) }
-    var heightInches by remember { mutableIntStateOf(((initialHeightCm / 2.54) % 12).toInt()) }
     var weightKg by remember { mutableIntStateOf(initialWeightKg.toInt()) }
-    var weightLb by remember { mutableIntStateOf((initialWeightKg * 2.205).toInt()) }
     var selectedWorkouts by remember { mutableStateOf("") }
     var selectedGoal by remember { mutableStateOf("") }
     var targetWeightKg by remember { mutableFloatStateOf(initialWeightKg) }
@@ -154,8 +153,9 @@ fun AutoGenerateGoalsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         // Top bar
         Row(
@@ -169,12 +169,12 @@ fun AutoGenerateGoalsScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF5F5F5))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -185,7 +185,7 @@ fun AutoGenerateGoalsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
         
@@ -200,92 +200,38 @@ fun AutoGenerateGoalsScreen(
                 text = "Fill in your information to calculate personalized nutrition goals",
                 fontFamily = Inter,
                 fontSize = 15.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             
             // ===================== HEIGHT & WEIGHT SECTION =====================
             AutoGenSectionTitle(title = "Height & Weight", emoji = "📏")
             
-            // Metric/Imperial toggle
+            // Metric inputs - Dropdown selectors
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                AutoGenUnitToggle(
-                    label = "Imperial",
-                    isSelected = !isMetric,
-                    onClick = { isMetric = false }
+                AutoGenDropdownSelector(
+                    label = "Height",
+                    value = "$heightCm cm",
+                    options = (100..220).map { "$it cm" },
+                    onValueSelected = { 
+                        heightCm = it.replace(" cm", "").toInt()
+                        // recalculateGoals() // Assuming recalculateGoals() is defined elsewhere or will be added
+                    },
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                AutoGenUnitToggle(
-                    label = "Metric",
-                    isSelected = isMetric,
-                    onClick = { isMetric = true }
+                AutoGenDropdownSelector(
+                    label = "Weight",
+                    value = "$weightKg kg",
+                    options = (30..200).map { "$it kg" },
+                    onValueSelected = { 
+                        weightKg = it.replace(" kg", "").toInt()
+                        // recalculateGoals() // Assuming recalculateGoals() is defined elsewhere or will be added
+                    },
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            if (isMetric) {
-                // Metric inputs - Height (cm) and Weight (kg)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    AutoGenNumberInput(
-                        label = "Height",
-                        value = heightCm,
-                        suffix = "cm",
-                        onValueChange = { heightCm = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                    AutoGenNumberInput(
-                        label = "Weight",
-                        value = weightKg,
-                        suffix = "kg",
-                        onValueChange = { weightKg = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            } else {
-                // Imperial inputs - Height (ft/in) and Weight (lb)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    AutoGenNumberInput(
-                        label = "Height",
-                        value = heightFeet,
-                        suffix = "ft",
-                        onValueChange = { 
-                            heightFeet = it
-                            heightCm = ((heightFeet * 12 + heightInches) * 2.54).toInt()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    AutoGenNumberInput(
-                        label = " ",
-                        value = heightInches,
-                        suffix = "in",
-                        onValueChange = { 
-                            heightInches = it.coerceIn(0, 11)
-                            heightCm = ((heightFeet * 12 + heightInches) * 2.54).toInt()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    AutoGenNumberInput(
-                        label = "Weight",
-                        value = weightLb,
-                        suffix = "lb",
-                        onValueChange = { 
-                            weightLb = it
-                            weightKg = (it / 2.205).toInt()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
             }
             
             Spacer(modifier = Modifier.height(28.dp))
@@ -354,16 +300,12 @@ fun AutoGenerateGoalsScreen(
                         emoji = "🎯"
                     )
                     
-                    val displayWeight = if (isMetric) {
-                        "${targetWeightKg.roundToInt()} kg"
-                    } else {
-                        "${(targetWeightKg * 2.205f).roundToInt()} lb"
-                    }
+                    val displayWeight = "${targetWeightKg.roundToInt()} kg"
                     
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFF8F8F8)
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -374,7 +316,7 @@ fun AutoGenerateGoalsScreen(
                                 fontFamily = Inter,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 32.sp,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             
                             val minWeight = if (isGainWeight) weightKg.toFloat() else 40f
@@ -386,9 +328,9 @@ fun AutoGenerateGoalsScreen(
                                 valueRange = minWeight..maxWeight,
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = SliderDefaults.colors(
-                                    thumbColor = Color(0xFF1C1C1E),
-                                    activeTrackColor = Color(0xFF1C1C1E),
-                                    inactiveTrackColor = Color(0xFFE0E0E0)
+                                    thumbColor = MaterialTheme.colorScheme.onBackground,
+                                    activeTrackColor = MaterialTheme.colorScheme.onBackground,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             )
                         }
@@ -396,44 +338,111 @@ fun AutoGenerateGoalsScreen(
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Pace slider
-                    AutoGenSectionTitle(title = "Weekly Pace", emoji = "⏱️")
+                    // Pace section (matches onboarding design)
+                    AutoGenSectionTitle(title = "How fast do you want to reach your goal?", emoji = "⏱️")
                     
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFF8F8F8)
+                    Text(
+                        text = "${if (isGainWeight) "Gain" else "Lose"} weight speed per week",
+                        fontFamily = Inter,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    // Current value display - ensure exactly one decimal place
+                    // Use integer math to avoid floating-point precision issues
+                    val paceInt = (weightChangePerWeek * 10 + 0.5f).toInt().coerceIn(1, 15)
+                    val roundedPace = paceInt / 10f
+                    val paceDisplay = "${paceInt / 10}.${paceInt % 10} kg"
+                    
+                    Text(
+                        text = paceDisplay,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .semantics { contentDescription = "Weekly pace: $paceDisplay per week" }
+                    )
+                    
+                    // Animal emoji row (matches onboarding design)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            val paceDisplay = if (isMetric) {
-                                "${String.format("%.1f", weightChangePerWeek)} kg/week"
-                            } else {
-                                "${String.format("%.1f", weightChangePerWeek * 2.205f)} lb/week"
-                            }
-                            
-                            Text(
-                                text = paceDisplay,
-                                fontFamily = Inter,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                color = Color.Black
-                            )
-                            
-                            Slider(
-                                value = weightChangePerWeek,
-                                onValueChange = { weightChangePerWeek = it },
-                                valueRange = 0.2f..1.0f,
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = SliderDefaults.colors(
-                                    thumbColor = Color(0xFF1C1C1E),
-                                    activeTrackColor = Color(0xFF1C1C1E),
-                                    inactiveTrackColor = Color(0xFFE0E0E0)
-                                )
-                            )
-                        }
+                        // Sloth - slow (0.1 - 0.5 kg)
+                        Text(
+                            text = "🦥",
+                            fontSize = if (roundedPace <= 0.5f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace <= 0.5f) 1f else 0.5f)
+                        )
+                        
+                        // Hamster - medium pace (0.6 - 1.0 kg)
+                        Text(
+                            text = "🐹",
+                            fontSize = if (roundedPace in 0.6f..1.0f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace in 0.6f..1.0f) 1f else 0.5f)
+                        )
+                        
+                        // Rabbit - fast pace (1.1 - 1.5 kg)
+                        Text(
+                            text = "🐇",
+                            fontSize = if (roundedPace >= 1.1f) 32.sp else 24.sp,
+                            modifier = Modifier.alpha(if (roundedPace >= 1.1f) 1f else 0.5f)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Slider with 0.1 kg increments (0.1, 0.2, 0.3... 1.5)
+                    Slider(
+                        value = weightChangePerWeek,
+                        onValueChange = { newValue ->
+                            // Round to nearest 0.1 using proper rounding
+                            val rounded = ((newValue * 10 + 0.5f).toInt().coerceIn(1, 15)) / 10f
+                            weightChangePerWeek = rounded
+                        },
+                        valueRange = 0.1f..1.5f,
+                        steps = 13, // 14 positions: 0.1, 0.2, 0.3... 1.5 (steps = positions - 2)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Weight change pace slider, from 0.1 to 1.5 kg per week" },
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.onBackground,
+                            activeTrackColor = MaterialTheme.colorScheme.onBackground,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    )
+                    
+                    // Scale labels (updated for 0.1 - 1.5 range)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "0.1 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "0.8 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "1.5 kg",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -472,7 +481,8 @@ fun AutoGenerateGoalsScreen(
                 text = "Auto Generate Goals",
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = Color.White
             )
         }
     }
@@ -491,7 +501,7 @@ private fun AutoGenSectionTitle(title: String, emoji: String) {
             fontFamily = Inter,
             fontWeight = FontWeight.SemiBold,
             fontSize = 18.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
@@ -506,7 +516,7 @@ private fun AutoGenUnitToggle(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
-        color = if (isSelected) Color(0xFF1C1C1E) else Color(0xFFF5F5F5),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(20.dp)
     ) {
         Text(
@@ -514,7 +524,7 @@ private fun AutoGenUnitToggle(
             fontFamily = Inter,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = if (isSelected) Color.White else Color.Black,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
     }
@@ -533,7 +543,7 @@ private fun AutoGenNumberInput(
             text = label,
             fontFamily = Inter,
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         
@@ -544,13 +554,75 @@ private fun AutoGenNumberInput(
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            suffix = { Text(suffix, color = Color.Gray) },
+            suffix = { Text(suffix, color = MaterialTheme.colorScheme.onSurfaceVariant) },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF1C1C1E),
-                unfocusedBorderColor = Color(0xFFE0E0E0)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
             ),
             singleLine = true
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AutoGenDropdownSelector(
+    label: String,
+    value: String,
+    options: List<String>,
+    onValueSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Column(modifier = modifier) {
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                fontFamily = Inter,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+        
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                singleLine = true
+            )
+            
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onValueSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -586,13 +658,13 @@ private fun AutoGenActivityOption(
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
                     fontFamily = Inter,
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (isSelected) {
@@ -639,7 +711,7 @@ private fun AutoGenGoalOption(
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
             if (isSelected) {

@@ -55,8 +55,17 @@ dependencies {
     // Health Connect
     implementation(libs.androidx.health.connect)
     
+    // Firebase BoM (manages versions)
+    implementation(platform(libs.firebase.bom))
+    
     // Firebase Auth
     implementation(libs.firebase.auth)
+    
+    // Firebase Firestore
+    implementation(libs.firebase.firestore)
+    
+    // Firebase Storage
+    implementation(libs.firebase.storage)
     
     // Test dependencies
     testImplementation("junit:junit:4.13.2")

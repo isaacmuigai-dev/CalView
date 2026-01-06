@@ -3,6 +3,7 @@ package com.example.calview.core.data.di
 import android.content.Context
 import androidx.room.Room
 import com.example.calview.core.data.local.AppDatabase
+import com.example.calview.core.data.local.DailyLogDao
 import com.example.calview.core.data.local.MealDao
 import dagger.Module
 import dagger.Provides
@@ -30,5 +31,10 @@ object DatabaseModule {
     @Provides
     fun provideMealDao(database: AppDatabase): MealDao {
         return database.mealDao()
+    }
+    
+    @Provides
+    fun provideDailyLogDao(database: AppDatabase): DailyLogDao {
+        return database.dailyLogDao()
     }
 }

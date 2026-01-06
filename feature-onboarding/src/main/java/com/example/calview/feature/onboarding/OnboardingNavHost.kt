@@ -30,11 +30,9 @@ fun OnboardingNavHost(
     var selectedLanguage by remember { mutableStateOf(supportedLanguages.first()) }
     
     // Profile setup state
-    var isMetric by remember { mutableStateOf(true) }
-    var heightFeet by remember { mutableIntStateOf(5) }
-    var heightInches by remember { mutableIntStateOf(6) }
+    // Metric-only app (kg/cm)
+    // Metric-only app (kg/cm)
     var heightCm by remember { mutableIntStateOf(170) }
-    var weightLb by remember { mutableIntStateOf(150) }
     var weightKg by remember { mutableIntStateOf(68) }
     var birthMonth by remember { mutableStateOf("January") }
     var birthDay by remember { mutableIntStateOf(1) }
@@ -53,15 +51,26 @@ fun OnboardingNavHost(
     var usedReferralCode by remember { mutableStateOf("") }
     
     // Calculate current weight in kg
-    val currentWeightKg = if (isMetric) weightKg.toFloat() else weightLb / 2.205f
+    val currentWeightKg = weightKg.toFloat()
     
     // Total steps: 9 screens (removed AddCaloriesBurnedScreen)
     val totalSteps = 9
 
     NavHost(
         navController = navController,
-        startDestination = "welcome"
+        startDestination = "splash"
     ) {
+        // ============ SPLASH SCREEN ============
+        composable("splash") {
+            SplashScreen(
+                onTimeout = {
+                    navController.navigate("welcome") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         // ============ STEP 1: WELCOME ============
         composable("welcome") {
             WelcomeScreen(
@@ -84,22 +93,29 @@ fun OnboardingNavHost(
                 birthMonth = birthMonth,
                 birthDay = birthDay,
                 birthYear = birthYear,
-                onMonthChanged = { birthMonth = it },
-                onDayChanged = { birthDay = it },
-                onYearChanged = { birthYear = it },
-                // Height & Weight
-                isMetric = isMetric,
-                heightFeet = heightFeet,
-                heightInches = heightInches,
+                onMonthChanged = { 
+                    birthMonth = it
+                    viewModel.onBirthDateChanged(getMonthNumber(it), birthDay, birthYear)
+                },
+                onDayChanged = { 
+                    birthDay = it
+                    viewModel.onBirthDateChanged(getMonthNumber(birthMonth), it, birthYear)
+                },
+                onYearChanged = { 
+                    birthYear = it
+                    viewModel.onBirthDateChanged(getMonthNumber(birthMonth), birthDay, it)
+                },
+                // Height & Weight (metric only)
                 heightCm = heightCm,
-                weightLb = weightLb,
                 weightKg = weightKg,
-                onMetricToggle = { isMetric = it },
-                onHeightFeetChanged = { heightFeet = it },
-                onHeightInchesChanged = { heightInches = it },
-                onHeightCmChanged = { heightCm = it },
-                onWeightLbChanged = { weightLb = it },
-                onWeightKgChanged = { weightKg = it },
+                onHeightCmChanged = { 
+                    heightCm = it
+                    viewModel.onHeightCmChanged(it)
+                },
+                onWeightKgChanged = { 
+                    weightKg = it
+                    viewModel.onWeightChanged(it.toFloat())
+                },
                 // Activity Level
                 selectedWorkouts = uiState.workoutsPerWeek,
                 onWorkoutsSelected = { viewModel.onWorkoutsSelected(it) },
@@ -122,9 +138,11 @@ fun OnboardingNavHost(
                 },
                 // Weight
                 currentWeightKg = currentWeightKg,
-                isMetric = isMetric,
                 targetWeightKg = targetWeightKg,
-                onTargetWeightChanged = { targetWeightKg = it },
+                onTargetWeightChanged = { 
+                    targetWeightKg = it
+                    viewModel.onGoalWeightChanged(it)
+                },
                 // Pace
                 weightChangePerWeek = weightChangePerWeek,
                 onPaceChanged = { weightChangePerWeek = it },
@@ -187,11 +205,14 @@ fun OnboardingNavHost(
         
         // ============ STEP 7: CONGRATULATIONS ============
         composable("congratulations") {
+            // Weights in kg for display
             CongratulationsScreen(
                 currentStep = 7,
                 totalSteps = totalSteps,
                 goal = selectedGoal,
+                currentWeight = currentWeightKg,
                 targetWeight = targetWeightKg,
+                weeklyPace = weightChangePerWeek,
                 recommendedCalories = uiState.recommendedCalories,
                 recommendedCarbs = uiState.recommendedCarbs,
                 recommendedProtein = uiState.recommendedProtein,
@@ -224,7 +245,8 @@ fun OnboardingNavHost(
                 onBack = { navController.popBackStack() },
                 onGoogleSignIn = {
                     // Save all collected data before triggering sign-in
-                    viewModel.onHeightChanged(heightFeet, heightInches)
+                    viewModel.onHeightCmChanged(heightCm) // Height stored in cm
+                    viewModel.onGoalWeightChanged(targetWeightKg) // Goal weight
                     viewModel.onWeightChanged(currentWeightKg)
                     viewModel.onBirthDateChanged(
                         getMonthNumber(birthMonth),

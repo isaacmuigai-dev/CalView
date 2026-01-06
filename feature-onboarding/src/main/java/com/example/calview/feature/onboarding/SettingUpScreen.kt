@@ -75,7 +75,7 @@ fun SettingUpScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
             .statusBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -88,7 +88,7 @@ fun SettingUpScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Bold,
             fontSize = 64.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -99,7 +99,7 @@ fun SettingUpScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             lineHeight = 36.sp
         )
@@ -112,7 +112,7 @@ fun SettingUpScreen(
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE5E5E5))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Box(
                 modifier = Modifier
@@ -139,7 +139,7 @@ fun SettingUpScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Spacer(modifier = Modifier.height(32.dp))
@@ -147,7 +147,7 @@ fun SettingUpScreen(
         // Checklist card
         Surface(
             shape = RoundedCornerShape(20.dp),
-            color = Color(0xFFF8F8F8),
+            color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -158,7 +158,7 @@ fun SettingUpScreen(
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +175,7 @@ fun SettingUpScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         
@@ -183,7 +183,7 @@ fun SettingUpScreen(
                         if (index < currentStep) {
                             Surface(
                                 shape = CircleShape,
-                                color = Color(0xFF1C1C1E),
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Box(

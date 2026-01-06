@@ -90,29 +90,52 @@ private val AccentOrange = Color(0xFFFF6D00)
 
 /**
  * Feature Request Screen - X-inspired social feed for feature suggestions
+ * Connected to Firestore for real-time sync across all users
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeatureRequestScreen(
     onBack: () -> Unit,
-    userName: String = "User",
-    userPhotoUrl: String = ""
+    viewModel: FeedbackHubViewModel
 ) {
     var selectedTab by remember { mutableStateOf(FilterTab.TRENDING) }
     var searchQuery by remember { mutableStateOf("") }
     var showCreateSheet by remember { mutableStateOf(false) }
     var selectedRequest by remember { mutableStateOf<FeatureRequest?>(null) }
     
-    // Mock data - In production, this would come from Firebase/backend
-    var requests by remember { 
-        mutableStateOf(getSampleRequests())
+    // Collect ViewModel state
+    val requestDtos by viewModel.featureRequests.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    val currentUserName by viewModel.currentUserName.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    
+    // Convert DTOs to UI models
+    val requests = remember(requestDtos, currentUserId) {
+        requestDtos.map { dto ->
+            FeatureRequest(
+                id = dto.id,
+                title = dto.title,
+                description = dto.description,
+                authorName = dto.authorName,
+                authorPhotoUrl = dto.authorPhotoUrl,
+                votes = dto.votes,
+                commentCount = dto.commentCount,
+                createdAt = java.time.Instant.ofEpochMilli(dto.createdAt)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime(),
+                status = try { RequestStatus.valueOf(dto.status) } catch (e: Exception) { RequestStatus.OPEN },
+                hasVoted = dto.votedBy.contains(currentUserId),
+                tags = dto.tags
+            )
+        }
     }
     
-    val filteredRequests = remember(requests, selectedTab, searchQuery) {
+    val filteredRequests = remember(requests, selectedTab, searchQuery, currentUserName) {
         val filtered = when (selectedTab) {
             FilterTab.TRENDING -> requests.sortedByDescending { it.votes }
             FilterTab.NEWEST -> requests.sortedByDescending { it.createdAt }
-            FilterTab.MY_POSTS -> requests.filter { it.authorName == userName }
+            FilterTab.MY_POSTS -> requests.filter { it.authorName == currentUserName }
         }
         if (searchQuery.isNotEmpty()) {
             filtered.filter { 
@@ -124,12 +147,19 @@ fun FeatureRequestScreen(
         }
     }
     
+    // Show error snackbar
+    LaunchedEffect(error) {
+        if (error != null) {
+            // Error will auto-clear or user dismisses
+        }
+    }
+    
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
                 FeatureRequestTopBar(
                     onBack = onBack,
-                    onRefresh = { /* Refresh logic */ }
+                    onRefresh = { /* Firestore handles real-time refresh */ }
                 )
             },
             floatingActionButton = {
@@ -199,8 +229,16 @@ fun FeatureRequestScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
                 
+                // Loading indicator
+                if (isLoading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AccentCyan
+                    )
+                }
+                
                 // Request Feed
-                if (filteredRequests.isEmpty()) {
+                if (filteredRequests.isEmpty() && !isLoading) {
                     EmptyState(
                         modifier = Modifier
                             .fillMaxSize()
@@ -215,16 +253,12 @@ fun FeatureRequestScreen(
                             FeatureRequestCard(
                                 request = request,
                                 onVote = { 
-                                    requests = requests.map { 
-                                        if (it.id == request.id) {
-                                            it.copy(
-                                                votes = if (it.hasVoted) it.votes - 1 else it.votes + 1,
-                                                hasVoted = !it.hasVoted
-                                            )
-                                        } else it
-                                    }
+                                    viewModel.voteOnRequest(request.id)
                                 },
-                                onClick = { selectedRequest = request }
+                                onClick = { 
+                                    selectedRequest = request
+                                    viewModel.selectRequest(request.id) 
+                                }
                             )
                         }
                         item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -233,24 +267,29 @@ fun FeatureRequestScreen(
             }
         }
         
+        // Error Snackbar
+        error?.let { errorMessage ->
+            Snackbar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                action = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("Dismiss", color = Color.White)
+                    }
+                }
+            ) {
+                Text(errorMessage)
+            }
+        }
+        
         // Create Request Bottom Sheet
         if (showCreateSheet) {
             CreateRequestSheet(
-                userName = userName,
+                userName = currentUserName,
                 onDismiss = { showCreateSheet = false },
                 onSubmit = { title, description, tags ->
-                    val newRequest = FeatureRequest(
-                        id = "req_${System.currentTimeMillis()}",
-                        title = title,
-                        description = description,
-                        authorName = userName,
-                        authorPhotoUrl = userPhotoUrl,
-                        votes = 0,
-                        commentCount = 0,
-                        createdAt = LocalDateTime.now(),
-                        tags = tags
-                    )
-                    requests = listOf(newRequest) + requests
+                    viewModel.postFeatureRequest(title, description, tags)
                     showCreateSheet = false
                 }
             )
@@ -260,24 +299,19 @@ fun FeatureRequestScreen(
         selectedRequest?.let { request ->
             RequestDetailSheet(
                 request = request,
-                userName = userName,
-                onDismiss = { selectedRequest = null },
+                viewModel = viewModel,
+                onDismiss = { 
+                    selectedRequest = null 
+                    viewModel.selectRequest(null)
+                },
                 onVote = {
-                    requests = requests.map { 
-                        if (it.id == request.id) {
-                            val updated = it.copy(
-                                votes = if (it.hasVoted) it.votes - 1 else it.votes + 1,
-                                hasVoted = !it.hasVoted
-                            )
-                            selectedRequest = updated
-                            updated
-                        } else it
-                    }
+                    viewModel.voteOnRequest(request.id)
                 }
             )
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -866,13 +900,33 @@ private fun CreateRequestSheet(
 @Composable
 private fun RequestDetailSheet(
     request: FeatureRequest,
-    userName: String,
+    viewModel: FeedbackHubViewModel,
     onDismiss: () -> Unit,
     onVote: () -> Unit
 ) {
     var commentText by remember { mutableStateOf("") }
-    var comments by remember { mutableStateOf(getSampleComments(request.id)) }
     val focusManager = LocalFocusManager.current
+    
+    // Collect comments from ViewModel (real-time from Firestore)
+    val commentDtos by viewModel.comments.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    
+    // Convert DTOs to UI models
+    val comments = remember(commentDtos, currentUserId) {
+        commentDtos.map { dto ->
+            Comment(
+                id = dto.id,
+                authorName = dto.authorName,
+                authorPhotoUrl = dto.authorPhotoUrl,
+                content = dto.content,
+                createdAt = java.time.Instant.ofEpochMilli(dto.createdAt)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime(),
+                likes = dto.likes,
+                hasLiked = dto.likedBy.contains(currentUserId)
+            )
+        }
+    }
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -1006,13 +1060,7 @@ private fun RequestDetailSheet(
                     keyboardActions = KeyboardActions(
                         onSend = {
                             if (commentText.isNotBlank()) {
-                                val newComment = Comment(
-                                    id = "cmt_${System.currentTimeMillis()}",
-                                    authorName = userName,
-                                    content = commentText,
-                                    createdAt = LocalDateTime.now()
-                                )
-                                comments = listOf(newComment) + comments
+                                viewModel.postComment(commentText)
                                 commentText = ""
                                 focusManager.clearFocus()
                             }
@@ -1024,13 +1072,7 @@ private fun RequestDetailSheet(
                 IconButton(
                     onClick = {
                         if (commentText.isNotBlank()) {
-                            val newComment = Comment(
-                                id = "cmt_${System.currentTimeMillis()}",
-                                authorName = userName,
-                                content = commentText,
-                                createdAt = LocalDateTime.now()
-                            )
-                            comments = listOf(newComment) + comments
+                            viewModel.postComment(commentText)
                             commentText = ""
                             focusManager.clearFocus()
                         }
@@ -1048,29 +1090,55 @@ private fun RequestDetailSheet(
             Spacer(modifier = Modifier.height(12.dp))
             
             // Comments List
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                items(comments) { comment ->
-                    CommentItem(
-                        comment = comment,
-                        onLike = {
-                            comments = comments.map {
-                                if (it.id == comment.id) {
-                                    it.copy(
-                                        likes = if (it.hasLiked) it.likes - 1 else it.likes + 1,
-                                        hasLiked = !it.hasLiked
-                                    )
-                                } else it
+            if (comments.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "No comments yet",
+                            fontFamily = Inter,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Be the first to share your thoughts!",
+                            fontFamily = Inter,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(comments) { comment ->
+                        CommentItem(
+                            comment = comment,
+                            onLike = {
+                                viewModel.likeComment(comment.id)
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun CommentItem(

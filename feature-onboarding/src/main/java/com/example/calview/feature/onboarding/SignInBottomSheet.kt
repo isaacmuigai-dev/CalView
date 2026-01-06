@@ -43,7 +43,7 @@ fun SignInBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         dragHandle = null
     ) {
@@ -63,7 +63,7 @@ fun SignInBottomSheet(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 
@@ -74,7 +74,7 @@ fun SignInBottomSheet(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Close",
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -83,7 +83,7 @@ fun SignInBottomSheet(
             
             // Divider
             HorizontalDivider(
-                color = Color(0xFFE0E0E0),
+                color = MaterialTheme.colorScheme.outlineVariant,
                 thickness = 1.dp
             )
             
@@ -106,7 +106,7 @@ fun SignInBottomSheet(
                         text = "By continuing, you agree to Cal AI's ",
                         fontFamily = Inter,
                         fontSize = 13.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Row {
@@ -114,7 +114,7 @@ fun SignInBottomSheet(
                         text = "Terms and",
                         fontFamily = Inter,
                         fontSize = 13.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable { onTermsClick() }
@@ -125,7 +125,7 @@ fun SignInBottomSheet(
                         text = "Conditions",
                         fontFamily = Inter,
                         fontSize = 13.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable { onTermsClick() }
@@ -134,13 +134,13 @@ fun SignInBottomSheet(
                         text = " and ",
                         fontFamily = Inter,
                         fontSize = 13.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Privacy Policy",
                         fontFamily = Inter,
                         fontSize = 13.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable { onPrivacyClick() }
@@ -168,19 +168,19 @@ fun GoogleSignInButton(
             .height(54.dp),
         shape = RoundedCornerShape(27.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.White,
-            contentColor = Color.Black
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
         ),
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = Color(0xFFE0E0E0)
+            color = MaterialTheme.colorScheme.outlineVariant
         )
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         } else {
             Row(
@@ -197,7 +197,7 @@ fun GoogleSignInButton(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

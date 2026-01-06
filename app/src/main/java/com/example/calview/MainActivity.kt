@@ -21,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -88,9 +89,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository
     
+    @Inject
+    lateinit var mealRepository: com.example.calview.core.data.repository.MealRepository
+    
+    @Inject
+    lateinit var dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository
+    
+    @Inject
+    lateinit var firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Update widget when app opens to ensure it shows latest data
+        com.example.calview.widget.CaloriesWidgetProvider.requestUpdate(this)
+        
         setContent {
             // Calculate window size class for adaptive layouts
             val windowSizeClass = calculateWindowSizeClass(this)
@@ -104,7 +118,10 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         isSignedIn = authRepository.isSignedIn(),
                         userPreferencesRepository = userPreferencesRepository,
-                        authRepository = authRepository
+                        authRepository = authRepository,
+                        mealRepository = mealRepository,
+                        dailyLogRepository = dailyLogRepository,
+                        firestoreRepository = firestoreRepository
                     )
                 }
             }
@@ -117,7 +134,10 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(
     isSignedIn: Boolean = false,
     userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
-    authRepository: AuthRepository? = null
+    authRepository: AuthRepository? = null,
+    mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
+    dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository? = null,
+    firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository? = null
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -127,8 +147,8 @@ fun AppNavigation(
     var showSignInSheet by remember { mutableStateOf(false) }
     var isSigningIn by remember { mutableStateOf(false) }
     
-    // Determine start destination based on auth state
-    val startDestination = if (isSignedIn) "main" else "onboarding"
+    // Always start at splash - it will redirect based on auth state
+    val startDestination = "splash"
     
     // Google Sign-In function
     fun signInWithGoogle() {
@@ -156,13 +176,27 @@ fun AppNavigation(
                 handleSignInResult(result) { success, displayName, photoUrl ->
                     isSigningIn = false
                     if (success) {
-                        // Save Google profile info
+                        // Save Google profile info and restore data from cloud
                         scope.launch {
-                            userPreferencesRepository?.setUserName(displayName)
-                            userPreferencesRepository?.setPhotoUrl(photoUrl)
-                            // Generate referral code if needed
-                            val code = com.example.calview.core.data.repository.UserPreferencesRepositoryImpl.generateReferralCode()
-                            userPreferencesRepository?.setReferralCode(code)
+                            // Restore user data from Firestore first
+                            val restored = userPreferencesRepository?.restoreFromCloud() ?: false
+                            
+                            // Also restore meals and daily logs
+                            mealRepository?.restoreFromCloud()
+                            dailyLogRepository?.restoreFromCloud()
+                            
+                            if (!restored) {
+                                // If no cloud data found (new user), save profile info
+                                userPreferencesRepository?.setUserName(displayName)
+                                userPreferencesRepository?.setPhotoUrl(photoUrl)
+                                // Generate referral code if needed
+                                val code = com.example.calview.core.data.repository.UserPreferencesRepositoryImpl.generateReferralCode()
+                                userPreferencesRepository?.setReferralCode(code)
+                            } else {
+                                // Cloud data restored - update name/photo if they changed
+                                userPreferencesRepository?.setUserName(displayName)
+                                userPreferencesRepository?.setPhotoUrl(photoUrl)
+                            }
                         }
                         showSignInSheet = false
                         // Navigate to main (dashboard)
@@ -200,6 +234,18 @@ fun AppNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
+        // Splash screen - always shows first, then redirects based on auth state
+        composable("splash") {
+            com.example.calview.feature.onboarding.SplashScreen(
+                onTimeout = {
+                    val destination = if (isSignedIn) "main" else "onboarding"
+                    navController.navigate(destination) {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         composable("onboarding") {
             OnboardingNavHost(
                 onOnboardingComplete = {
@@ -239,10 +285,29 @@ fun AppNavigation(
                 onFeatureRequestClick = { navController.navigate("feature_request") },
                 onDeleteAccount = {
                     scope.launch {
+                        // Get user ID before deletion (needed for Firestore cleanup)
+                        val userId = authRepository?.getUserId() ?: ""
+                        
+                        if (userId.isEmpty()) {
+                            android.util.Log.e("DeleteAccount", "No user ID found")
+                            return@launch
+                        }
+                        
+                        // First, delete all user data from Firestore
+                        try {
+                            android.util.Log.d("DeleteAccount", "Deleting Firestore data for user: $userId")
+                            firestoreRepository?.deleteUserData(userId)
+                            android.util.Log.d("DeleteAccount", "Firestore data deleted successfully")
+                        } catch (e: Exception) {
+                            android.util.Log.e("DeleteAccount", "Failed to delete Firestore data", e)
+                            // Continue with auth deletion even if Firestore cleanup fails
+                        }
+                        
+                        // Then delete Firebase Auth account
                         authRepository?.deleteAccount()?.let { result ->
                             if (result.isSuccess) {
-                                // Navigate to login screen after account deletion
-                                navController.navigate("login") {
+                                // Navigate to onboarding screen after account deletion
+                                navController.navigate("onboarding") {
                                     popUpTo(0) { inclusive = true }
                                 }
                             } else {
@@ -274,7 +339,7 @@ fun AppNavigation(
                                                     // Retry delete after re-authentication
                                                     authRepository.deleteAccount().let { deleteResult ->
                                                         if (deleteResult.isSuccess) {
-                                                            navController.navigate("login") {
+                                                            navController.navigate("onboarding") {
                                                                 popUpTo(0) { inclusive = true }
                                                             }
                                                         }
@@ -315,19 +380,33 @@ fun AppNavigation(
         
         composable("terms_and_conditions") {
             TermsAndConditionsScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { 
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main?tab=2") { inclusive = true }
+                    }
+                }
             )
         }
         
         composable("privacy_policy") {
             PrivacyPolicyScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { 
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main?tab=2") { inclusive = true }
+                    }
+                }
             )
         }
         
         composable("feature_request") {
+            val feedbackHubViewModel: com.example.calview.feature.dashboard.FeedbackHubViewModel = hiltViewModel()
             FeatureRequestScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { 
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main?tab=2") { inclusive = true }
+                    }
+                },
+                viewModel = feedbackHubViewModel
             )
         }
         
@@ -335,7 +414,13 @@ fun AppNavigation(
             val scannerViewModel: ScannerViewModel = hiltViewModel()
             ScannerScreen(
                 viewModel = scannerViewModel,
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStack() },
+                onFoodCaptured = {
+                    // Navigate to dashboard (Home tab) after food capture
+                    navController.navigate("main?tab=0") {
+                        popUpTo("main?tab=0") { inclusive = true }
+                    }
+                }
             )
         }
         
@@ -374,7 +459,11 @@ fun AppNavigation(
             val uiState by settingsViewModel.uiState.collectAsState()
             ReferYourFriendScreen(
                 referralCode = uiState.referralCode,
-                onBack = { navController.popBackStack() }
+                onBack = { 
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main?tab=2") { inclusive = true }
+                    }
+                }
             )
         }
         
@@ -425,11 +514,11 @@ fun AppNavigation(
             val uiState by viewModel.uiState.collectAsState()
             EditHeightWeightScreen(
                 currentHeightCm = uiState.height,
-                currentWeightLbs = uiState.currentWeight,
+                currentWeightKg = uiState.currentWeight,
                 onBack = { navController.popBackStack() },
-                onSave = { heightCm, weightLbs ->
+                onSave = { heightCm, weightKg ->
                     viewModel.updateHeight(heightCm)
-                    viewModel.updateWeight(weightLbs)
+                    viewModel.updateWeight(weightKg)
                     navController.popBackStack()
                 }
             )
@@ -644,7 +733,7 @@ fun MainTabs(
     if (showCameraMenu) {
         ModalBottomSheet(
             onDismissRequest = { showCameraMenu = false },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
             Row(
@@ -700,8 +789,8 @@ fun MainTabs(
                 // FAB at the top of rail
                 FloatingActionButton(
                     onClick = { showCameraMenu = true },
-                    containerColor = Color.Black,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = "Log Food")
@@ -746,46 +835,63 @@ fun MainTabs(
             }
         }
     } else {
-        // Compact: Use Bottom Navigation Bar
+        // Compact: Use Bottom Navigation Bar with aligned FAB
         Scaffold(
             bottomBar = {
-                NavigationBar(
-                    containerColor = Color.White,
-                    tonalElevation = 8.dp
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.navigationBarsPadding()
                 ) {
-                    navigationItems.forEach { (icon, label, index) ->
-                        NavigationBarItem(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            icon = { Icon(icon, contentDescription = label) },
-                            label = { Text(label) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = Color.Black,
-                                unselectedIconColor = Color.Gray,
-                                unselectedTextColor = Color.Gray,
-                                indicatorColor = Color.Transparent
-                            )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Home
+                        NavigationItemButton(
+                            icon = Icons.Filled.Home,
+                            label = "Home",
+                            isSelected = selectedTab == 0,
+                            onClick = { selectedTab = 0 }
                         )
+                        
+                        // Progress
+                        NavigationItemButton(
+                            icon = Icons.Filled.BarChart,
+                            label = "Progress",
+                            isSelected = selectedTab == 1,
+                            onClick = { selectedTab = 1 }
+                        )
+                        
+                        // Settings
+                        NavigationItemButton(
+                            icon = Icons.Filled.Settings,
+                            label = "Settings",
+                            isSelected = selectedTab == 2,
+                            onClick = { selectedTab = 2 }
+                        )
+                        
+                        // Camera FAB at the end
+                        FloatingActionButton(
+                            onClick = { showCameraMenu = true },
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = CircleShape,
+                            modifier = Modifier.size(52.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.Add, 
+                                contentDescription = "Log Food", 
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
-                    // Offset for FAB
-                    Spacer(modifier = Modifier.width(72.dp))
                 }
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { showCameraMenu = true },
-                    containerColor = Color.Black,
-                    contentColor = Color.White,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .offset(y = 48.dp)
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Log Food", modifier = Modifier.size(32.dp))
-                }
-            },
-            floatingActionButtonPosition = FabPosition.End
+            }
         ) { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 MainTabsContent(
@@ -827,10 +933,15 @@ private fun MainTabsContent(
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
+    // Hoist scroll state for settings to preserve position when navigating back
+    val settingsScrollState = androidx.compose.foundation.rememberScrollState()
+    // Hoist lazy list state for dashboard to preserve scroll position
+    val dashboardLazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    
     when (selectedTab) {
         0 -> {
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
-            DashboardScreen(viewModel = dashboardViewModel)
+            DashboardScreen(viewModel = dashboardViewModel, lazyListState = dashboardLazyListState)
         }
         1 -> ProgressScreen()
         2 -> {
@@ -853,7 +964,8 @@ private fun MainTabsContent(
                 proteinLeft = dashboardState.proteinG,
                 carbsLeft = dashboardState.carbsG,
                 fatsLeft = dashboardState.fatsG,
-                streakDays = 0 // TODO: Add streak tracking
+                streakDays = 0, // TODO: Add streak tracking
+                scrollState = settingsScrollState
             )
         }
     }
@@ -870,7 +982,7 @@ fun CameraMenuItem(
         modifier = modifier
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5)
+        color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
@@ -881,13 +993,13 @@ fun CameraMenuItem(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color.White, CircleShape),
+                    .background(MaterialTheme.colorScheme.surface, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -896,9 +1008,47 @@ fun CameraMenuItem(
                 text = label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
+    }
+}
+
+/**
+ * Custom navigation item button for bottom bar with theme support.
+ */
+@Composable
+private fun NavigationItemButton(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (isSelected) 
+                MaterialTheme.colorScheme.primary 
+            else 
+                MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) 
+                MaterialTheme.colorScheme.primary 
+            else 
+                MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

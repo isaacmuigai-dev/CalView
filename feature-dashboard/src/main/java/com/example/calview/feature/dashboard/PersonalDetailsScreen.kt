@@ -55,11 +55,13 @@ fun PersonalDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -73,8 +75,8 @@ fun PersonalDetailsScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFFAFAFA),
-                border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Row(
                     modifier = Modifier
@@ -89,14 +91,14 @@ fun PersonalDetailsScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${uiState.goalWeight.toInt()} lbs",
+                            text = "${uiState.goalWeight.toInt()} kg",
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     
@@ -104,8 +106,8 @@ fun PersonalDetailsScreen(
                         onClick = onEditGoalWeight,
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF1C1C1E),
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
@@ -125,19 +127,19 @@ fun PersonalDetailsScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column {
                     // Current Weight
                     PersonalDetailItem(
                         label = "Current Weight",
-                        value = "${uiState.currentWeight.toInt()} lbs",
+                        value = "${uiState.currentWeight.toInt()} kg",
                         onClick = onEditHeightWeight
                     )
                     
                     HorizontalDivider(
-                        color = Color(0xFFF3F3F3),
+                        color = MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     
@@ -208,7 +210,7 @@ private fun PersonalDetailItem(
             fontFamily = Inter,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
         
         Row(
@@ -220,12 +222,12 @@ private fun PersonalDetailItem(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit $label",
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }

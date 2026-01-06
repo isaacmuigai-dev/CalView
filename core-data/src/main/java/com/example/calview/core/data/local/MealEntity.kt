@@ -14,13 +14,18 @@ enum class AnalysisStatus {
 @Entity(tableName = "meals")
 data class MealEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val firestoreId: String = java.util.UUID.randomUUID().toString(),
     val name: String,
     val calories: Int,
     val protein: Int,
     val carbs: Int,
     val fats: Int,
+    val fiber: Int = 0,
+    val sugar: Int = 0,
+    val sodium: Int = 0,
     val timestamp: Long = System.currentTimeMillis(),
     val imagePath: String? = null,
+    val imageUrl: String? = null, // Firebase Storage download URL
     val analysisStatus: AnalysisStatus = AnalysisStatus.COMPLETED,
     val analysisProgress: Float = 100f,  // 0-100 progress percentage
     val healthInsight: String? = null

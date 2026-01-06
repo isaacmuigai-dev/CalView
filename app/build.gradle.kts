@@ -94,8 +94,10 @@ dependencies {
     // DataStore (from former core-data)
     implementation(libs.androidx.datastore)
 
-    // Google AI (Gemini) (from former core-ai)
-    implementation(libs.google.ai.client)
+    // Firebase BoM and AI Logic (Gemini Developer API)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.ai)
+    implementation(libs.firebase.analytics)
 
     // Coroutines (used in core-data/core-ai)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")

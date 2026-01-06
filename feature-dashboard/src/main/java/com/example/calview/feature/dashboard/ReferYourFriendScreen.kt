@@ -62,7 +62,7 @@ fun ReferYourFriendScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -80,7 +80,7 @@ fun ReferYourFriendScreen(
                 }
             }
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -97,7 +97,7 @@ fun ReferYourFriendScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -165,7 +165,7 @@ fun ReferYourFriendScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Text(
@@ -173,7 +173,7 @@ fun ReferYourFriendScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -181,12 +181,12 @@ fun ReferYourFriendScreen(
             // Promo code card
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
                         width = 1.dp,
-                        color = Color(0xFFE5E5E5),
+                        color = MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(16.dp)
                     )
             ) {
@@ -202,7 +202,7 @@ fun ReferYourFriendScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         
                         Spacer(modifier = Modifier.height(4.dp))
@@ -212,7 +212,7 @@ fun ReferYourFriendScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = 2.sp
                         )
                     }
@@ -229,7 +229,7 @@ fun ReferYourFriendScreen(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Copy code",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -253,7 +253,7 @@ fun ReferYourFriendScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1C1C1E)
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Text(
@@ -269,7 +269,7 @@ fun ReferYourFriendScreen(
             // How to earn card
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF5F5F5),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -281,7 +281,7 @@ fun ReferYourFriendScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(text = "💰", fontSize = 16.sp)
@@ -297,7 +297,7 @@ fun ReferYourFriendScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     
@@ -311,7 +311,7 @@ fun ReferYourFriendScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

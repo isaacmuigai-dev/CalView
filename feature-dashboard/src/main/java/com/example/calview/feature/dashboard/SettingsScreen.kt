@@ -53,7 +53,9 @@ fun SettingsScreen(
     proteinLeft: Int = 0,
     carbsLeft: Int = 0,
     fatsLeft: Int = 0,
-    streakDays: Int = 0
+    streakDays: Int = 0,
+    // Scroll state for position memory
+    scrollState: androidx.compose.foundation.ScrollState = rememberScrollState()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -85,7 +87,8 @@ fun SettingsScreen(
         fatsLeft = fatsLeft,
         streakDays = streakDays,
         userEmail = uiState.userEmail,
-        userId = uiState.userId
+        userId = uiState.userId,
+        scrollState = scrollState
     )
 }
 
@@ -120,7 +123,9 @@ fun SettingsContent(
     streakDays: Int = 0,
     // Support email data
     userEmail: String = "",
-    userId: String = ""
+    userId: String = "",
+    // Scroll state for position memory
+    scrollState: androidx.compose.foundation.ScrollState = rememberScrollState()
 ) {
     val context = LocalContext.current
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
@@ -172,7 +177,7 @@ fun SettingsContent(
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontalPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -906,14 +911,14 @@ fun LogoutDialog(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFF5F5F5))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { onDismiss() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.Gray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -944,11 +949,11 @@ fun LogoutDialog(
                             .height(50.dp),
                         shape = RoundedCornerShape(25.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Black
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            Color.LightGray
+                            MaterialTheme.colorScheme.outline
                         )
                     ) {
                         Text(
@@ -958,7 +963,7 @@ fun LogoutDialog(
                         )
                     }
                     
-                    // Log out Button
+                    // Log out Button - use error color for destructive action
                     Button(
                         onClick = onConfirmLogout,
                         modifier = Modifier
@@ -966,8 +971,8 @@ fun LogoutDialog(
                             .height(50.dp),
                         shape = RoundedCornerShape(25.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF8A5A5),
-                            contentColor = Color(0xFFD32F2F)
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
                         )
                     ) {
                         Text(
@@ -1018,14 +1023,14 @@ fun DeleteAccountDialog(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFF5F5F5))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { onDismiss() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.Gray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1056,11 +1061,11 @@ fun DeleteAccountDialog(
                             .height(50.dp),
                         shape = RoundedCornerShape(25.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Black
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            Color.LightGray
+                            MaterialTheme.colorScheme.outline
                         )
                     ) {
                         Text(
@@ -1070,7 +1075,7 @@ fun DeleteAccountDialog(
                         )
                     }
                     
-                    // Delete Button
+                    // Delete Button - use error color for destructive action
                     Button(
                         onClick = onConfirmDelete,
                         modifier = Modifier
@@ -1078,8 +1083,8 @@ fun DeleteAccountDialog(
                             .height(50.dp),
                         shape = RoundedCornerShape(25.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF8A5A5),
-                            contentColor = Color(0xFFD32F2F)
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
                         )
                     ) {
                         Text(

@@ -33,13 +33,14 @@ fun OnboardingScreenLayout(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.background,
         modifier = modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
+                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
         ) {
             
@@ -54,7 +55,7 @@ fun OnboardingScreenLayout(
                 Surface(
                     onClick = onBack,
                     shape = CircleShape,
-                    color = Color(0xFFF5F5F5),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.size(40.dp)
                 ) {
                     Box(
@@ -64,7 +65,7 @@ fun OnboardingScreenLayout(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -78,8 +79,8 @@ fun OnboardingScreenLayout(
                         .weight(1f)
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
-                    color = Color(0xFF1C1C1E),
-                    trackColor = Color(0xFFE5E5E5)
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 
                 Spacer(modifier = Modifier.width(40.dp))
@@ -94,7 +95,7 @@ fun OnboardingScreenLayout(
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 lineHeight = 36.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             // Subtitle (optional)
@@ -105,7 +106,7 @@ fun OnboardingScreenLayout(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
@@ -124,7 +125,7 @@ fun OnboardingScreenLayout(
                 onClick = onContinue,
                 enabled = continueEnabled,
                 shape = RoundedCornerShape(28.dp),
-                color = if (continueEnabled) Color(0xFF1C1C1E) else Color(0xFFE5E5E5),
+                color = if (continueEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -138,12 +139,12 @@ fun OnboardingScreenLayout(
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
-                        color = if (continueEnabled) Color.White else Color.Gray
+                        color = if (continueEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }
@@ -163,14 +164,14 @@ fun OnboardingProgressBar(
         modifier = modifier
             .height(4.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(Color(0xFFF0F0F0))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(progress)
                 .clip(RoundedCornerShape(2.dp))
-                .background(Color(0xFF1C1C1E))
+                .background(MaterialTheme.colorScheme.primary)
         )
     }
 }

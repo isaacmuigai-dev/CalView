@@ -35,7 +35,9 @@ fun EditGoalWeightScreen(
     onBack: () -> Unit,
     onSave: (Float) -> Unit
 ) {
-    var selectedWeight by remember { mutableFloatStateOf(goalWeight) }
+    var selectedWeight by remember { 
+        mutableFloatStateOf(if (goalWeight > 0) goalWeight else currentWeight) 
+    }
     
     // Determine goal label based on comparison with current weight
     val goalLabel = when {
@@ -64,11 +66,11 @@ fun EditGoalWeightScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -85,18 +87,18 @@ fun EditGoalWeightScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Spacer(modifier = Modifier.height(8.dp))
             
             // Weight display
             Text(
-                text = String.format("%.1f lbs", selectedWeight),
+                text = String.format("%.1f kg", selectedWeight),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 48.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -121,8 +123,8 @@ fun EditGoalWeightScreen(
                     .padding(bottom = 0.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1C1C1E),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text(
@@ -154,22 +156,28 @@ private fun RulerScalePickerWidget(
     val itemWidthDp = 12.dp
     val itemWidthPx = with(density) { itemWidthDp.toPx() }
     
-    // Generate weight values (0.5 lb increments for smooth selection)
-    val stepSize = 0.5f
-    val weights = remember(minValue, maxValue) {
-        generateSequence(minValue) { it + stepSize }
-            .takeWhile { it <= maxValue }
-            .toList()
+    // Generate weight values (0.1 kg increments for smooth selection)
+    val weights = remember {
+        (200..4000).map { it / 10f } // 20.0 to 400.0 kg in 0.1 kg increments
     }
     
     // Calculate initial index based on current value
-    val initialIndex = remember(value, minValue, stepSize) {
-        ((value - minValue) / stepSize).toInt().coerceIn(0, weights.size - 1)
+    val initialIndex = remember(value) {
+         val index = weights.indexOfFirst { kotlin.math.abs(it - value) < 0.05f }
+         if (index >= 0) index else weights.size / 2
     }
     
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState(
+    val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = initialIndex
     )
+    
+    // Scroll to the correct position when value changes
+    LaunchedEffect(value) {
+        val targetIndex = weights.indexOfFirst { kotlin.math.abs(it - value) < 0.05f }
+        if (targetIndex >= 0 && targetIndex != listState.firstVisibleItemIndex) {
+            listState.scrollToItem(targetIndex)
+        }
+    }
     
     // Calculate the center offset for snapping
     BoxWithConstraints(modifier = modifier) {
@@ -203,6 +211,9 @@ private fun RulerScalePickerWidget(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Get color outside Canvas (Composable context)
+            val indicatorColor = MaterialTheme.colorScheme.primary
+            
             // Center indicator triangle
             Canvas(
                 modifier = Modifier
@@ -215,7 +226,7 @@ private fun RulerScalePickerWidget(
                     lineTo(size.width, 0f)
                     close()
                 }
-                drawPath(path, Color(0xFF1C1C1E), style = Fill)
+                drawPath(path, indicatorColor, style = Fill)
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -225,7 +236,7 @@ private fun RulerScalePickerWidget(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
-                    .background(Color(0xFFF8F8F8))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 androidx.compose.foundation.lazy.LazyRow(
                     state = listState,
@@ -237,8 +248,8 @@ private fun RulerScalePickerWidget(
                 ) {
                     items(weights.size) { index ->
                         val itemWeight = weights[index]
-                        val isMajor = (itemWeight * 10).toInt() % 50 == 0 // Every 5 lbs
-                        val isMedium = (itemWeight * 10).toInt() % 10 == 0 // Every 1 lb
+                        val isMajor = (itemWeight * 10).toInt() % 50 == 0 // Every 5 kg
+                        val isMedium = (itemWeight * 10).toInt() % 10 == 0 // Every 1 kg
                         
                         Column(
                             modifier = Modifier
@@ -254,7 +265,7 @@ private fun RulerScalePickerWidget(
                                     fontFamily = Inter,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                             }
@@ -290,7 +301,7 @@ private fun RulerScalePickerWidget(
                         .align(Alignment.Center)
                         .width(3.dp)
                         .height(60.dp)
-                        .background(Color(0xFF1C1C1E))
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
         }

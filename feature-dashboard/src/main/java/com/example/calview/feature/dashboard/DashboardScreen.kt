@@ -1,5 +1,6 @@
 package com.example.calview.feature.dashboard
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -73,6 +74,14 @@ import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import com.example.calview.feature.dashboard.components.CalorieRing
 import com.example.calview.feature.dashboard.components.MacroStatsRow
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -80,7 +89,8 @@ import java.util.Locale
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel
+    viewModel: DashboardViewModel,
+    lazyListState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
 ) {
     val state by viewModel.dashboardState.collectAsState()
     val context = LocalContext.current
@@ -193,7 +203,16 @@ fun DashboardScreen(
         FoodDetailScreen(
             meal = meal,
             onBack = { selectedMeal = null },
-            onDelete = { /* TODO: Delete from repository */ selectedMeal = null }
+            onDelete = { mealToDelete ->
+                viewModel.deleteMeal(mealToDelete)
+                selectedMeal = null
+            },
+            onUpdate = { updatedMeal ->
+                viewModel.updateMeal(updatedMeal)
+            },
+            onRecalibrate = { mealToRecalibrate, additionalIngredients, servingCount ->
+                viewModel.recalibrateMeal(mealToRecalibrate, additionalIngredients, servingCount)
+            }
         )
         return
     }
@@ -205,33 +224,40 @@ fun DashboardScreen(
             onGetStarted = onLaunchPermissions
         )
     } else {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                DashboardContent(
-                    state = state,
-                    onDateSelected = { viewModel.selectDate(it) },
-                    onAddWater = { viewModel.addWater() },
-                    onRemoveWater = { viewModel.removeWater() },
-                    onConnectHealth = onConnectHealth,
-                    onMealClick = { selectedMeal = it }
-                )
-            }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            DashboardContent(
+                state = state,
+                onDateSelected = { viewModel.selectDate(it) },
+                onAddWater = { amount -> viewModel.addWater(amount) },
+                onRemoveWater = { amount -> viewModel.removeWater(amount) },
+                onConnectHealth = onConnectHealth,
+                onMealClick = { selectedMeal = it },
+                lazyListState = lazyListState
+            )
+            
+            // Snackbar host at bottom
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
-
 
 @Composable
 fun DashboardContent(
     state: DashboardState,
     onDateSelected: (Calendar) -> Unit,
-    onAddWater: () -> Unit,
-    onRemoveWater: () -> Unit,
+    onAddWater: (Int) -> Unit,
+    onRemoveWater: (Int) -> Unit,
     onConnectHealth: () -> Unit = {},
-    onMealClick: (com.example.calview.core.data.local.MealEntity) -> Unit = {}
+    onMealClick: (com.example.calview.core.data.local.MealEntity) -> Unit = {},
+    // Scroll state for position memory
+    lazyListState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
 ) {
     // Get adaptive layout values based on screen size
     val windowSizeClass = LocalWindowSizeClass.current
@@ -245,6 +271,7 @@ fun DashboardContent(
         contentAlignment = Alignment.TopCenter
     ) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
@@ -252,7 +279,7 @@ fun DashboardContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
         item {
-            HeaderSection()
+            HeaderSection(streakDays = state.currentStreak)
         }
 
         item {
@@ -275,12 +302,12 @@ fun DashboardContent(
             proteinConsumed = state.proteinG,
             carbsConsumed = state.carbsG,
             fatsConsumed = state.fatsG,
-            fiber = 38,
-            sugar = 64,
-            sodium = 2300,
-            fiberConsumed = 0,
-            sugarConsumed = 0,
-            sodiumConsumed = 0,
+            fiber = state.fiberGoal,
+            sugar = state.sugarGoal,
+            sodium = state.sodiumGoal,
+            fiberConsumed = state.fiberG,
+            sugarConsumed = state.sugarG,
+            sodiumConsumed = state.sodiumG,
             rolloverCaloriesEnabled = state.rolloverCaloriesEnabled,
             rolloverCaloriesAmount = state.rolloverCaloriesAmount
         )
@@ -296,53 +323,70 @@ fun DashboardContent(
             item {
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            android.util.Log.d("HealthConnect", "Button CLICKED!")
-                            onConnectHealth()
-                        },
+                        .fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 2.dp
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color(0xFFF5F5F5), RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.FavoriteBorder,
-                                contentDescription = "Health Connect",
-                                tint = Color(0xFFEA4335),
-                                modifier = Modifier.size(24.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.FavoriteBorder,
+                                    contentDescription = "Health Connect",
+                                    tint = Color(0xFFEA4335),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "Connect Google Health",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Sync steps and calories",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                        Column {
+                        
+                        // Dark rounded pill button like the image
+                        Button(
+                            onClick = {
+                                android.util.Log.d("HealthConnect", "Button CLICKED!")
+                                onConnectHealth()
+                            },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1C1C1E)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                        ) {
                             Text(
-                                text = "Connect Google Health",
+                                text = "Connect",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF424242)
-                            )
-                            Text(
-                                text = "Tap to sync steps and calories",
-                                fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.White
                             )
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Icon(
-                            imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = "Open Health Connect settings",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(24.dp)
-                        )
                     }
                 }
             }
@@ -366,8 +410,8 @@ fun DashboardContent(
             WaterCardPremium(
                 consumed = state.waterConsumed,
                 servingSize = waterServingSize,
-                onAdd = onAddWater,
-                onRemove = onRemoveWater,
+                onAdd = { onAddWater(waterServingSize) },
+                onRemove = { onRemoveWater(waterServingSize) },
                 onSettingsClick = { showWaterSettings = true }
             )
             
@@ -417,33 +461,83 @@ fun DashboardContent(
     } // Close Box
 }
 
-@Preview(showBackground = true)
+@OptIn(androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, widthDp = 375, heightDp = 812)
 @Composable
 fun DashboardScreenPreview() {
-    DashboardContent(
-        state = DashboardState(),
-        onDateSelected = {},
-        onAddWater = {},
-        onRemoveWater = {}
+    val windowSizeClass = androidx.compose.material3.windowsizeclass.WindowSizeClass.calculateFromSize(
+        androidx.compose.ui.unit.DpSize(375.dp, 812.dp)
     )
-}
-
-@Composable
-fun MicroStatsRow(fiber: Int, sugar: Int, sodium: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        MicroCard(label = "Fiber left", value = "${fiber}g", icon = Icons.Filled.Grass, iconTint = Color(0xFF66BB6A), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sugar left", value = "${sugar}g", icon = Icons.Filled.Cake, iconTint = Color(0xFFEC407A), modifier = Modifier.weight(1f))
-        MicroCard(label = "Sodium left", value = "${sodium}mg", icon = Icons.Filled.WaterDrop, iconTint = Color(0xFFFFA726), modifier = Modifier.weight(1f))
+    CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {
+        MaterialTheme {
+            DashboardContent(
+                state = DashboardState(),
+                onDateSelected = {},
+                onAddWater = {},
+                onRemoveWater = {}
+            )
+        }
     }
 }
 
 @Composable
-fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, modifier: Modifier = Modifier) {
+fun MicroStatsRow(
+    fiber: Int, 
+    sugar: Int, 
+    sodium: Int,
+    fiberConsumed: Int = 0,
+    sugarConsumed: Int = 0,
+    sodiumConsumed: Int = 0
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MicroCard(
+            label = "Fiber left", 
+            value = "${fiber}g", 
+            icon = Icons.Filled.Grass, 
+            iconTint = Color(0xFF66BB6A), 
+            progress = if (fiber + fiberConsumed > 0) fiberConsumed.toFloat() / (fiber + fiberConsumed) else 0f,
+            modifier = Modifier.weight(1f)
+        )
+        MicroCard(
+            label = "Sugar left", 
+            value = "${sugar}g", 
+            icon = Icons.Filled.Cake, 
+            iconTint = Color(0xFFEC407A), 
+            progress = if (sugar + sugarConsumed > 0) sugarConsumed.toFloat() / (sugar + sugarConsumed) else 0f,
+            modifier = Modifier.weight(1f)
+        )
+        MicroCard(
+            label = "Sodium left", 
+            value = "${sodium}mg", 
+            icon = Icons.Filled.WaterDrop, 
+            iconTint = Color(0xFFFFA726), 
+            progress = if (sodium + sodiumConsumed > 0) sodiumConsumed.toFloat() / (sodium + sodiumConsumed) else 0f,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun MicroCard(
+    label: String, 
+    value: String, 
+    icon: ImageVector, 
+    iconTint: Color, 
+    progress: Float = 0f,
+    modifier: Modifier = Modifier
+) {
     // Use a more visible track color
     val trackColor = Color(0xFFE0E0E0) // Light gray track that's visible on white cards
+    
+    // Animate progress changes
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(500),
+        label = "microProgress"
+    )
     
     CalAICard(modifier = modifier) {
         Column(
@@ -481,6 +575,17 @@ fun MicroCard(label: String, value: String, icon: ImageVector, iconTint: Color, 
                         color = trackColor,
                         startAngle = 0f,
                         sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 6.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                    // Progress arc
+                    drawArc(
+                        color = iconTint,
+                        startAngle = -90f,
+                        sweepAngle = 360f * animatedProgress,
                         useCenter = false,
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = 6.dp.toPx(),
@@ -532,7 +637,7 @@ val RecentMealIcon: ImageVector
     get() = Icons.Filled.Restaurant // Fallback
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(streakDays: Int = 0) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -541,38 +646,53 @@ fun HeaderSection() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Camera icon with gradient background
-            Box(
+            // App logo
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "CalViewAI Logo",
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                            colors = listOf(Color(0xFF667EEA), Color(0xFF764BA2))
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Filled.CameraAlt, 
-                    contentDescription = "Camera", 
-                    modifier = Modifier.size(22.dp),
-                    tint = Color.White
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(14.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
                     "CalViewAI",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1C1C1E)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     "Track & Thrive",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+        
+        // Streak badge
+        if (streakDays > 0) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "🔥",
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "$streakDays",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }
@@ -1047,6 +1167,16 @@ fun MicroCardUnified(
 ) {
     val remaining = goalValue - consumedValue
     
+    // Calculate progress
+    val progress = if (goalValue > 0) (consumedValue.toFloat() / goalValue).coerceIn(0f, 1f) else 0f
+    
+    // Animate progress changes
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(500),
+        label = "microProgress"
+    )
+    
     CalAICard(modifier = modifier, onClick = onClick) {
         Column(
             modifier = Modifier
@@ -1125,10 +1255,22 @@ fun MicroCardUnified(
                     .align(Alignment.CenterHorizontally)
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Track
                     drawArc(
                         color = trackColor,
                         startAngle = 0f,
                         sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                    // Progress arc
+                    drawArc(
+                        color = color,
+                        startAngle = -90f,
+                        sweepAngle = 360f * animatedProgress,
                         useCenter = false,
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = 4.dp.toPx(),
@@ -1665,27 +1807,27 @@ fun WaterCardPremium(
             
             // +/- buttons
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Minus button - outline
+                // Minus button - outline (theme-aware)
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .border(1.5.dp, Color(0xFF1C1C1E), CircleShape)
+                        .border(1.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                         .clickable { onRemove() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Remove,
                         contentDescription = "Remove",
-                        tint = Color(0xFF1C1C1E),
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
                 }
                 
-                // Plus button - filled
+                // Plus button - filled (theme-aware)
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0xFF1C1C1E), CircleShape)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
                         .clickable { onAdd() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -1714,6 +1856,16 @@ fun MacroCardUnified(
     modifier: Modifier = Modifier
 ) {
     val remaining = goalValue - consumedValue
+    
+    // Calculate progress
+    val progress = if (goalValue > 0) (consumedValue.toFloat() / goalValue).coerceIn(0f, 1f) else 0f
+    
+    // Animate progress changes
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(500),
+        label = "macroProgress"
+    )
     
     CalAICard(modifier = modifier, onClick = onClick) {
         Column(
@@ -1793,10 +1945,22 @@ fun MacroCardUnified(
                     .align(Alignment.CenterHorizontally)
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Track
                     drawArc(
                         color = trackColor,
                         startAngle = 0f,
                         sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                    // Progress arc
+                    drawArc(
+                        color = color,
+                        startAngle = -90f,
+                        sweepAngle = 360f * animatedProgress,
                         useCenter = false,
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = 4.dp.toPx(),
@@ -1868,9 +2032,8 @@ fun RecentMealCard(
     )
     
     CalAICard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isAnalyzing) { onClick() }
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { if (!isAnalyzing) onClick() }
     ) {
 
         Row(
@@ -1882,32 +2045,46 @@ fun RecentMealCard(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF5F5F5)),
-                contentAlignment = Alignment.Center
-            ) {
-                // Placeholder food image (in real app would use AsyncImage with imagePath)
+                ) {
+                // Load food image from path using Coil AsyncImage
                 if (meal.imagePath != null) {
-                    // Would use Coil/Glide to load image from path
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFE8EAF6))
-                    ) {
-                        Icon(
-                            Icons.Filled.Restaurant,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .align(Alignment.Center),
-                            tint = Color(0xFF7986CB)
+                    var imageLoadError by remember { mutableStateOf(false) }
+                    
+                    if (!imageLoadError) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(File(meal.imagePath))
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Food image for ${meal.name}",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            onError = { imageLoadError = true }
                         )
+                    }
+                    
+                    // Show fallback icon if image fails to load or while loading
+                    if (imageLoadError) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.Restaurant,
+                                contentDescription = "Food placeholder",
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 } else {
                     Icon(
                         Icons.Filled.Restaurant,
-                        contentDescription = null,
+                        contentDescription = "No food image available",
                         modifier = Modifier.size(40.dp),
-                        tint = Color(0xFFBDBDBD)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
@@ -1916,7 +2093,7 @@ fun RecentMealCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.5f)),
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center
                     ) {
                         // Outer rotating ring
@@ -1924,7 +2101,7 @@ fun RecentMealCard(
                             modifier = Modifier
                                 .size(60.dp)
                                 .graphicsLayer { rotationZ = rotationAngle },
-                            color = Color.White.copy(alpha = 0.3f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             strokeWidth = 3.dp
                         )
                         
@@ -1932,15 +2109,15 @@ fun RecentMealCard(
                         CircularProgressIndicator(
                             progress = { animatedProgress },
                             modifier = Modifier.size(50.dp),
-                            color = Color(0xFF4CAF50),
-                            trackColor = Color.White.copy(alpha = 0.3f),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             strokeWidth = 4.dp
                         )
                         
                         // Percentage text with pulse
                         Text(
                             "${meal.analysisProgress.toInt()}%",
-                            color = Color.White.copy(alpha = pulseAlpha),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = pulseAlpha),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -1964,7 +2141,7 @@ fun RecentMealCard(
                                     rotationZ = rotationAngle * 0.5f
                                     alpha = pulseAlpha
                                 },
-                            tint = Color(0xFF4CAF50)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
@@ -1973,7 +2150,7 @@ fun RecentMealCard(
                                 fontWeight = FontWeight.Bold
                             ),
                             maxLines = 1,
-                            color = Color.Black.copy(alpha = pulseAlpha)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = pulseAlpha)
                         )
                     }
                     
@@ -2013,13 +2190,13 @@ fun RecentMealCard(
                             Icons.Filled.Notifications,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             "We'll notify you when done!",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
@@ -2060,10 +2237,18 @@ fun RecentMealCard(
                     
                     Spacer(modifier = Modifier.height(12.dp))
                     
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         MacroInfo(text = "${meal.protein}g", icon = Icons.Filled.Favorite, Color(0xFFFF5252))
                         MacroInfo(text = "${meal.carbs}g", icon = Icons.Filled.Eco, Color(0xFFFFAB40))
                         MacroInfo(text = "${meal.fats}g", icon = Icons.Filled.WaterDrop, Color(0xFF448AFF))
+                    }
+                    
+                    Spacer(modifier = Modifier.height(6.dp))
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MacroInfo(text = "${meal.fiber}g", icon = Icons.Filled.Grass, Color(0xFF66BB6A))
+                        MacroInfo(text = "${meal.sugar}g", icon = Icons.Filled.Cookie, Color(0xFFFF7043))
+                        MacroInfo(text = "${meal.sodium}mg", icon = Icons.Filled.Science, Color(0xFF9575CD))
                     }
                 }
             }
@@ -2090,7 +2275,9 @@ fun AnimatedProgressSegment(
     shimmerOffset: Float,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (active) Color(0xFF4CAF50) else Color(0xFFE0E0E0)
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = if (active) activeColor else inactiveColor
     
     Box(
         modifier = modifier
@@ -2302,7 +2489,7 @@ fun HealthConnectOnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
             .padding(top = 48.dp)
     ) {
@@ -2311,7 +2498,7 @@ fun HealthConnectOnboardingScreen(
             text = "Get started with\nHealth Connect",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             lineHeight = 36.sp,
             modifier = Modifier.fillMaxWidth()
@@ -2323,7 +2510,7 @@ fun HealthConnectOnboardingScreen(
         Text(
             text = "CalViewAI stores your health and fitness data, giving you a simple way to sync the different apps on your phone",
             fontSize = 15.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 22.sp,
             modifier = Modifier.fillMaxWidth()
@@ -2336,7 +2523,7 @@ fun HealthConnectOnboardingScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(Color(0xFFF8F8F8), RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -2389,8 +2576,8 @@ fun HealthConnectOnboardingScreen(
                 Box(
                     modifier = Modifier
                         .size(70.dp)
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .border(1.dp, Color(0xFFE8E8E8), RoundedCornerShape(16.dp)),
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -2456,13 +2643,13 @@ fun HealthConnectOnboardingScreen(
                 text = "Share data with your apps",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A)
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Choose the data that each app can read or write to Health Connect",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
         }
@@ -2475,13 +2662,13 @@ fun HealthConnectOnboardingScreen(
                 text = "Manage your settings and privacy",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A)
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Change app permissions and manage your data at any time",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
         }
@@ -2501,7 +2688,7 @@ fun HealthConnectOnboardingScreen(
                 Text(
                     text = "Go back",
                     fontSize = 16.sp,
-                    color = Color(0xFF1976D2),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -2509,7 +2696,7 @@ fun HealthConnectOnboardingScreen(
             // Get started button
             Button(
                 onClick = onGetStarted,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.height(48.dp)
             ) {

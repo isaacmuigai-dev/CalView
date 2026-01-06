@@ -38,8 +38,9 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     
-    // Google AI (Gemini)
-    implementation(libs.google.ai.client)
+    // Firebase BoM and AI Logic (Gemini Developer API)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.ai)
 
     // Hilt
     implementation(libs.hilt.android)

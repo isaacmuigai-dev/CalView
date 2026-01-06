@@ -1,7 +1,7 @@
 package com.example.calview.core.ai
 
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.type.content
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject

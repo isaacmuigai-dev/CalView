@@ -8,17 +8,24 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.health.HealthData
+import com.example.calview.core.ai.FoodAnalysisService
+import android.content.Context
+import android.graphics.BitmapFactory
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val mealRepository: MealRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    val healthConnectManager: HealthConnectManager
+    val healthConnectManager: HealthConnectManager,
+    private val foodAnalysisService: FoodAnalysisService,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     // Load goal from preferences, defaulting to 2000 if not set or 0
@@ -51,11 +58,53 @@ class DashboardViewModel @Inject constructor(
     private val _selectedDate = MutableStateFlow(Calendar.getInstance())
     val selectedDate = _selectedDate.asStateFlow()
     
+    // Water consumption (persisted)
     private val _waterConsumed = MutableStateFlow(0)
     val waterConsumed = _waterConsumed.asStateFlow()
+    
+    // Observe repository for water updates and date checks
+    init {
+        viewModelScope.launch {
+            combine(
+                userPreferencesRepository.waterConsumed,
+                userPreferencesRepository.waterDate
+            ) { consumed, timestamp ->
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+                
+                val recordParams = Calendar.getInstance().apply { timeInMillis = timestamp }
+                val recordStartOfDay = recordParams.apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
 
-    val meals = mealRepository.getMealsForToday()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+                if (today == recordStartOfDay) {
+                    _waterConsumed.value = consumed
+                } else {
+                    // Reset if different day
+                    _waterConsumed.value = 0
+                    if (consumed > 0) {
+                        // Update repo to clean state for new day
+                        userPreferencesRepository.setWaterConsumed(0, System.currentTimeMillis())
+                    }
+                }
+            }.collect()
+        }
+    }
+
+    // Meals for selected date (reactive to date changes)
+    private val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+    
+    val meals = selectedDate.flatMapLatest { date ->
+        val dateString = dateFormat.format(date.time)
+        mealRepository.getMealsForDate(dateString)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
     // Recent uploads for the "Recently uploaded" section
     val recentUploads = mealRepository.getRecentUploads()
@@ -85,6 +134,9 @@ class DashboardViewModel @Inject constructor(
         val protein = completedMeals.sumOf { it.protein }
         val carbs = completedMeals.sumOf { it.carbs }
         val fats = completedMeals.sumOf { it.fats }
+        val fiber = completedMeals.sumOf { it.fiber }
+        val sugar = completedMeals.sumOf { it.sugar }
+        val sodium = completedMeals.sumOf { it.sodium }
         
         // Calculate effective rollover (0 if disabled)
         val effectiveRollover = if (rolloverOn) rolloverAmt else 0
@@ -99,7 +151,10 @@ class DashboardViewModel @Inject constructor(
             rolloverOn = rolloverOn,
             protein = protein,
             carbs = carbs,
-            fats = fats
+            fats = fats,
+            fiber = fiber,
+            sugar = sugar,
+            sodium = sodium
         )
     }.combine(addCaloriesBackEnabled) { intermediate, addCaloriesOn ->
         Pair(intermediate, addCaloriesOn)
@@ -128,6 +183,9 @@ class DashboardViewModel @Inject constructor(
             proteinG = intermediate.protein,
             carbsG = intermediate.carbs,
             fatsG = intermediate.fats,
+            fiberG = intermediate.fiber,
+            sugarG = intermediate.sugar,
+            sodiumG = intermediate.sodium,
             proteinGoal = proteinGoal,
             carbsGoal = carbsGoal,
             fatsGoal = fatsGoalFinal,
@@ -253,18 +311,57 @@ class DashboardViewModel @Inject constructor(
                 healthConnectManager.readTodayData()
             }
         }
+        
+        // Sync steps to DataStore for Widget
+        viewModelScope.launch {
+            healthConnectManager.healthData.collect { data ->
+                if (data.steps > 0) {
+                    userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
+                    userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
+                    updateWidget()
+                }
+            }
+        }
     }
     
     fun selectDate(date: Calendar) {
         _selectedDate.value = date
     }
     
-    fun addWater(amount: Int = 8) {
-        _waterConsumed.value += amount
+    fun addWater(amount: Int = 1) {
+        val newValue = _waterConsumed.value + amount
+        viewModelScope.launch {
+            userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
+            _waterConsumed.value = newValue // Updates immediately for UI responsiveness
+            updateWidget()
+        }
     }
     
-    fun removeWater(amount: Int = 8) {
-        _waterConsumed.value = (_waterConsumed.value - amount).coerceAtLeast(0)
+    fun removeWater(amount: Int = 1) {
+        val newValue = (_waterConsumed.value - amount).coerceAtLeast(0)
+        viewModelScope.launch {
+            userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
+            _waterConsumed.value = newValue
+            updateWidget()
+        }
+    }
+    
+    // Helper to trigger widget update without circular dependency
+    private fun updateWidget() {
+        try {
+            val widgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+            val widgetComponent = android.content.ComponentName(context.packageName, "com.example.calview.widget.CaloriesWidgetProvider")
+            val widgetIds = widgetManager.getAppWidgetIds(widgetComponent)
+            
+            if (widgetIds.isNotEmpty()) {
+                val updateIntent = android.content.Intent(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                updateIntent.component = widgetComponent
+                updateIntent.putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+                context.sendBroadcast(updateIntent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
     
     fun onHealthPermissionsGranted() {
@@ -276,6 +373,93 @@ class DashboardViewModel @Inject constructor(
     fun refreshHealthData() {
         viewModelScope.launch {
             healthConnectManager.readTodayData()
+        }
+    }
+    
+    /**
+     * Update a meal (e.g., after editing in FoodDetailScreen)
+     */
+    fun updateMeal(meal: MealEntity) {
+        viewModelScope.launch {
+            try {
+                mealRepository.updateMeal(meal)
+                updateWidget()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Delete a meal
+     */
+    fun deleteMeal(meal: MealEntity) {
+        viewModelScope.launch {
+            try {
+                mealRepository.deleteMeal(meal)
+                updateWidget()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Recalibrate a meal using AI with additional ingredients
+     * @param meal Original meal entity
+     * @param additionalIngredients List of ingredients user added that AI missed
+     * @param servingCount Number of servings
+     * @return Updated MealEntity with recalculated nutrition, or null if failed
+     */
+    suspend fun recalibrateMeal(
+        meal: MealEntity,
+        additionalIngredients: List<String>,
+        servingCount: Int
+    ): MealEntity? {
+        return try {
+            // If no image path, just multiply by serving count
+            if (meal.imagePath == null) {
+                return meal.copy(
+                    calories = meal.calories * servingCount,
+                    protein = meal.protein * servingCount,
+                    carbs = meal.carbs * servingCount,
+                    fats = meal.fats * servingCount,
+                    fiber = meal.fiber * servingCount,
+                    sugar = meal.sugar * servingCount,
+                    sodium = meal.sodium * servingCount
+                )
+            }
+            
+            // Reload the image from path
+            val imageFile = File(meal.imagePath)
+            if (!imageFile.exists()) {
+                return null
+            }
+            
+            val bitmap = BitmapFactory.decodeFile(meal.imagePath) ?: return null
+            
+            // Re-analyze with AI
+            val result = foodAnalysisService.analyzeFoodImage(bitmap)
+            bitmap.recycle()
+            
+            result.getOrNull()?.let { response ->
+                // Calculate adjustments for additional ingredients if needed
+                // For now, just use the AI's new analysis multiplied by serving count
+                val total = response.total
+                meal.copy(
+                    calories = total.calories * servingCount,
+                    protein = total.protein * servingCount,
+                    carbs = total.carbs * servingCount,
+                    fats = total.fats * servingCount,
+                    fiber = (total.fiber ?: meal.fiber) * servingCount,
+                    sugar = (total.sugar ?: meal.sugar) * servingCount,
+                    sodium = (total.sodium ?: meal.sodium) * servingCount,
+                    healthInsight = response.health_insight
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }
@@ -299,7 +483,10 @@ private data class IntermediateState(
     val rolloverOn: Boolean,
     val protein: Int,
     val carbs: Int,
-    val fats: Int
+    val fats: Int,
+    val fiber: Int,
+    val sugar: Int,
+    val sodium: Int
 )
 
 // Helper state for macro goals combine
@@ -317,10 +504,16 @@ data class DashboardState(
     val proteinG: Int = 0,
     val carbsG: Int = 0,
     val fatsG: Int = 0,
+    val fiberG: Int = 0,
+    val sugarG: Int = 0,
+    val sodiumG: Int = 0,
     // Macro goals calculated from calorie goal
     val proteinGoal: Int = 125, // Default for 2000 cal (25% protein)
     val carbsGoal: Int = 250,   // Default for 2000 cal (50% carbs)
     val fatsGoal: Int = 56,     // Default for 2000 cal (25% fats)
+    val fiberGoal: Int = 38,    // Daily recommended fiber
+    val sugarGoal: Int = 64,    // Approx 200-400 cal from sugar
+    val sodiumGoal: Int = 2300, // mg, FDA recommended limit
     val meals: List<MealEntity> = emptyList(),
     val selectedDate: Calendar = Calendar.getInstance(),
     val waterConsumed: Int = 0,

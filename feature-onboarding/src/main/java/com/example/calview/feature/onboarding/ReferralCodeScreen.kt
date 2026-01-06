@@ -39,7 +39,7 @@ fun ReferralCodeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
             .statusBarsPadding()
             .navigationBarsPadding()
@@ -56,12 +56,12 @@ fun ReferralCodeScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF5F5F5))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -74,8 +74,8 @@ fun ReferralCodeScreen(
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF1C1C1E),
-                trackColor = Color(0xFFE5E5E5)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
             
             Spacer(modifier = Modifier.width(40.dp))
@@ -89,7 +89,7 @@ fun ReferralCodeScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -100,7 +100,7 @@ fun ReferralCodeScreen(
             fontFamily = Inter,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 24.sp
         )
         
@@ -114,7 +114,7 @@ fun ReferralCodeScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 letterSpacing = 4.sp
             ),
@@ -124,7 +124,7 @@ fun ReferralCodeScreen(
                 .height(64.dp)
                 .border(
                     width = 1.dp,
-                    color = if (referralCode.isNotEmpty()) Color.Black else Color(0xFFE5E5E5),
+                    color = if (referralCode.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(horizontal = 16.dp),
@@ -139,7 +139,7 @@ fun ReferralCodeScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
-                            color = Color(0xFFE5E5E5),
+                            color = MaterialTheme.colorScheme.outlineVariant,
                             letterSpacing = 4.sp
                         )
                     }
@@ -158,7 +158,7 @@ fun ReferralCodeScreen(
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1C1C1E)
+                containerColor = MaterialTheme.colorScheme.primary
             ),
             enabled = referralCode.length == 6
         ) {
@@ -182,7 +182,7 @@ fun ReferralCodeScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         

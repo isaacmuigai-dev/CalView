@@ -43,7 +43,7 @@ fun WelcomeScreen(
     onLanguageSelected: (LanguageOption) -> Unit = {}
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
     ) {
         Box(
@@ -72,7 +72,7 @@ fun WelcomeScreen(
                 Surface(
                     modifier = Modifier.size(100.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = Color(0xFFF5F5F5)
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Box(
                         contentAlignment = Alignment.Center
@@ -94,7 +94,7 @@ fun WelcomeScreen(
                     fontSize = 36.sp,
                     lineHeight = 44.sp,
                     textAlign = TextAlign.Center,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -104,7 +104,7 @@ fun WelcomeScreen(
                     text = "Scan your food with AI and track\nyour nutrition effortlessly",
                     fontFamily = Inter,
                     fontSize = 16.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     lineHeight = 24.sp
                 )
@@ -126,14 +126,14 @@ fun WelcomeScreen(
                         text = "Already have an account? ",
                         fontFamily = Inter,
                         fontSize = 15.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Sign in",
                         fontFamily = Inter,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable { onSignIn() }
                     )

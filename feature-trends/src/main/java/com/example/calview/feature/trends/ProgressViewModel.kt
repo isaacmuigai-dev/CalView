@@ -61,6 +61,9 @@ data class ProgressUiState(
     val todayProtein: Float = 0f,
     val todayCarbs: Float = 0f,
     val todayFats: Float = 0f,
+    val todayFiber: Float = 0f,
+    val todaySugar: Float = 0f,
+    val todaySodium: Float = 0f,
     val todaySteps: Int = 0,
     val caloriesBurned: Int = 0,
     
@@ -178,12 +181,18 @@ class ProgressViewModel @Inject constructor(
                 val todayProtein = meals.sumOf { it.protein.toDouble() }.toFloat()
                 val todayCarbs = meals.sumOf { it.carbs.toDouble() }.toFloat()
                 val todayFats = meals.sumOf { it.fats.toDouble() }.toFloat()
+                val todayFiber = meals.sumOf { it.fiber.toDouble() }.toFloat()
+                val todaySugar = meals.sumOf { it.sugar.toDouble() }.toFloat()
+                val todaySodium = meals.sumOf { it.sodium.toDouble() }.toFloat()
                 
                 _uiState.update { it.copy(
                     todayCalories = todayCalories,
                     todayProtein = todayProtein,
                     todayCarbs = todayCarbs,
-                    todayFats = todayFats
+                    todayFats = todayFats,
+                    todayFiber = todayFiber,
+                    todaySugar = todaySugar,
+                    todaySodium = todaySodium
                 )}
             }
         }

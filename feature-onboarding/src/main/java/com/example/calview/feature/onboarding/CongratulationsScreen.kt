@@ -45,8 +45,9 @@ fun CongratulationsScreen(
     currentStep: Int,
     totalSteps: Int,
     goal: String,
-    targetWeight: Float,
-    targetDate: String = calculateTargetDate(),
+    currentWeight: Float, // in kg
+    targetWeight: Float,  // in kg (goal weight)
+    weeklyPace: Float,    // in kg/week
     recommendedCalories: Int,
     recommendedCarbs: Int,
     recommendedProtein: Int,
@@ -93,7 +94,7 @@ fun CongratulationsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -109,12 +110,12 @@ fun CongratulationsScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF5F5F5))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -126,8 +127,8 @@ fun CongratulationsScreen(
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF1C1C1E),
-                trackColor = Color(0xFFE5E5E5)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
             
             Spacer(modifier = Modifier.width(40.dp))
@@ -140,14 +141,13 @@ fun CongratulationsScreen(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
         ) {
-            // Checkmark icon
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFF1C1C1E),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(
@@ -157,7 +157,7 @@ fun CongratulationsScreen(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Complete",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -172,7 +172,7 @@ fun CongratulationsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 lineHeight = 36.sp,
                 modifier = Modifier.fillMaxWidth()
@@ -180,27 +180,180 @@ fun CongratulationsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Target info
+            // Target info - Calculate dynamic values
             if (goal != "Maintain") {
-                Text(
-                    text = "You should $actionWord:",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    color = Color.Black,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Calculate weight difference
+                val weightDiff = kotlin.math.abs(targetWeight - currentWeight).toInt()
                 
-                Text(
-                    text = "${targetWeight.toInt()} lbs by $targetDate",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Color.Black,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Calculate weeks to reach goal based on weekly pace (kg/week)
+                val weeksToGoal = if (weeklyPace > 0) (weightDiff / weeklyPace).toInt() else 12
+                
+                // Calculate target date
+                val targetDate = LocalDate.now().plusWeeks(weeksToGoal.toLong())
+                val targetDateStr = targetDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
+                
+                // Goal Progress Card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Your Goal Journey",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Current Weight → Goal Weight
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Current Weight
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Current",
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${currentWeight.toInt()} kg",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 24.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            
+                            // Arrow
+                            Text(
+                                text = if (goal == "Lose Weight") "→" else "→",
+                                fontSize = 24.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            
+                            // Goal Weight
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Goal",
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${targetWeight.toInt()} kg",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 24.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Details Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            // Weekly Pace
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "⚡ Weekly Pace",
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${"%.1f".format(weeklyPace)} kg",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            
+                            // To ${actionWord}
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "📊 To $actionWord",
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "$weightDiff kg",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            
+                            // Time Estimate
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "⏱️ Estimated",
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "$weeksToGoal weeks",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Target Date
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "🎯 Estimated Goal Date: ",
+                                    fontFamily = Inter,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = targetDateStr,
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -211,7 +364,7 @@ fun CongratulationsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Text(
@@ -219,7 +372,7 @@ fun CongratulationsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -233,7 +386,7 @@ fun CongratulationsScreen(
                     title = "Calories",
                     value = recommendedCalories.toString(),
                     emoji = "🔥",
-                    color = Color(0xFF1C1C1E),
+                    color = MaterialTheme.colorScheme.primary,
                     progress = 1f, // Calories always shows full ring
                     startAnimation = startAnimation,
                     animationDelay = 0,
@@ -284,7 +437,7 @@ fun CongratulationsScreen(
             // Health Score card with animation
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF8F8F8),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -317,7 +470,7 @@ fun CongratulationsScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         
                         Spacer(modifier = Modifier.height(8.dp))
@@ -328,7 +481,7 @@ fun CongratulationsScreen(
                                 .fillMaxWidth()
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFFE5E5E5))
+                                .background(MaterialTheme.colorScheme.surface)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -353,7 +506,7 @@ fun CongratulationsScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -363,7 +516,7 @@ fun CongratulationsScreen(
             // How to reach your goals section
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF8F8F8),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -374,7 +527,7 @@ fun CongratulationsScreen(
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -415,7 +568,7 @@ fun CongratulationsScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 lineHeight = 20.sp
             )
             
@@ -441,7 +594,7 @@ fun CongratulationsScreen(
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1C1C1E)
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Text(
@@ -486,7 +639,7 @@ private fun AnimatedMacroCard(
     
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8F8F8),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier.height(140.dp)
     ) {
         Column(
@@ -504,7 +657,7 @@ private fun AnimatedMacroCard(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -542,7 +695,7 @@ private fun AnimatedMacroCard(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
@@ -552,7 +705,7 @@ private fun AnimatedMacroCard(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -564,7 +717,7 @@ private fun AnimatedMacroCard(
 private fun GoalTip(emoji: String, text: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -580,7 +733,7 @@ private fun GoalTip(emoji: String, text: String) {
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -594,7 +747,7 @@ private fun SourceItem(text: String) {
         fontFamily = Inter,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        color = Color.Black,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(vertical = 2.dp)
     )
 }

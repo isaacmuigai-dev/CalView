@@ -26,20 +26,31 @@ import javax.inject.Provider;
 public final class UserPreferencesRepositoryImpl_Factory implements Factory<UserPreferencesRepositoryImpl> {
   private final Provider<Context> contextProvider;
 
-  public UserPreferencesRepositoryImpl_Factory(Provider<Context> contextProvider) {
+  private final Provider<AuthRepository> authRepositoryProvider;
+
+  private final Provider<FirestoreRepository> firestoreRepositoryProvider;
+
+  public UserPreferencesRepositoryImpl_Factory(Provider<Context> contextProvider,
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<FirestoreRepository> firestoreRepositoryProvider) {
     this.contextProvider = contextProvider;
+    this.authRepositoryProvider = authRepositoryProvider;
+    this.firestoreRepositoryProvider = firestoreRepositoryProvider;
   }
 
   @Override
   public UserPreferencesRepositoryImpl get() {
-    return newInstance(contextProvider.get());
+    return newInstance(contextProvider.get(), authRepositoryProvider.get(), firestoreRepositoryProvider.get());
   }
 
-  public static UserPreferencesRepositoryImpl_Factory create(Provider<Context> contextProvider) {
-    return new UserPreferencesRepositoryImpl_Factory(contextProvider);
+  public static UserPreferencesRepositoryImpl_Factory create(Provider<Context> contextProvider,
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<FirestoreRepository> firestoreRepositoryProvider) {
+    return new UserPreferencesRepositoryImpl_Factory(contextProvider, authRepositoryProvider, firestoreRepositoryProvider);
   }
 
-  public static UserPreferencesRepositoryImpl newInstance(Context context) {
-    return new UserPreferencesRepositoryImpl(context);
+  public static UserPreferencesRepositoryImpl newInstance(Context context,
+      AuthRepository authRepository, FirestoreRepository firestoreRepository) {
+    return new UserPreferencesRepositoryImpl(context, authRepository, firestoreRepository);
   }
 }

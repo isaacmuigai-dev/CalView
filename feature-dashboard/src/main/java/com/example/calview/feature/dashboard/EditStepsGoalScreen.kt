@@ -55,11 +55,11 @@ fun EditStepsGoalScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -73,7 +73,7 @@ fun EditStepsGoalScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -82,8 +82,8 @@ fun EditStepsGoalScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF8F8F8),
-                border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -100,15 +100,15 @@ fun EditStepsGoalScreen(
                         CircularProgressIndicator(
                             progress = { 1f },
                             modifier = Modifier.size(56.dp),
-                            color = Color(0xFF1C1C1E),
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 3.dp,
-                            trackColor = Color(0xFFE5E5E5)
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         // Footprint icon
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
                             contentDescription = "Steps",
-                            tint = Color(0xFF1C1C1E),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -121,14 +121,14 @@ fun EditStepsGoalScreen(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Previous goal $previousGoal steps",
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -158,10 +158,10 @@ fun EditStepsGoalScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF1C1C1E),
-                    unfocusedBorderColor = Color(0xFFE5E5E5),
-                    focusedLabelColor = Color(0xFF1C1C1E),
-                    unfocusedLabelColor = Color.Gray
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             
@@ -181,10 +181,10 @@ fun EditStepsGoalScreen(
                         .weight(1f)
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E5E5)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     )
                 ) {
                     Text(
@@ -208,10 +208,10 @@ fun EditStepsGoalScreen(
                     shape = RoundedCornerShape(28.dp),
                     enabled = isValid && hasChanged,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1C1C1E),
-                        contentColor = Color.White,
-                        disabledContainerColor = Color(0xFFE5E5E5),
-                        disabledContentColor = Color.Gray
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     Text(

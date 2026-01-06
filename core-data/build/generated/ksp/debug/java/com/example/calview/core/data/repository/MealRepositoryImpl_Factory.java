@@ -26,20 +26,37 @@ import javax.inject.Provider;
 public final class MealRepositoryImpl_Factory implements Factory<MealRepositoryImpl> {
   private final Provider<MealDao> mealDaoProvider;
 
-  public MealRepositoryImpl_Factory(Provider<MealDao> mealDaoProvider) {
+  private final Provider<FirestoreRepository> firestoreRepositoryProvider;
+
+  private final Provider<AuthRepository> authRepositoryProvider;
+
+  private final Provider<StorageRepository> storageRepositoryProvider;
+
+  public MealRepositoryImpl_Factory(Provider<MealDao> mealDaoProvider,
+      Provider<FirestoreRepository> firestoreRepositoryProvider,
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<StorageRepository> storageRepositoryProvider) {
     this.mealDaoProvider = mealDaoProvider;
+    this.firestoreRepositoryProvider = firestoreRepositoryProvider;
+    this.authRepositoryProvider = authRepositoryProvider;
+    this.storageRepositoryProvider = storageRepositoryProvider;
   }
 
   @Override
   public MealRepositoryImpl get() {
-    return newInstance(mealDaoProvider.get());
+    return newInstance(mealDaoProvider.get(), firestoreRepositoryProvider.get(), authRepositoryProvider.get(), storageRepositoryProvider.get());
   }
 
-  public static MealRepositoryImpl_Factory create(Provider<MealDao> mealDaoProvider) {
-    return new MealRepositoryImpl_Factory(mealDaoProvider);
+  public static MealRepositoryImpl_Factory create(Provider<MealDao> mealDaoProvider,
+      Provider<FirestoreRepository> firestoreRepositoryProvider,
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<StorageRepository> storageRepositoryProvider) {
+    return new MealRepositoryImpl_Factory(mealDaoProvider, firestoreRepositoryProvider, authRepositoryProvider, storageRepositoryProvider);
   }
 
-  public static MealRepositoryImpl newInstance(MealDao mealDao) {
-    return new MealRepositoryImpl(mealDao);
+  public static MealRepositoryImpl newInstance(MealDao mealDao,
+      FirestoreRepository firestoreRepository, AuthRepository authRepository,
+      StorageRepository storageRepository) {
+    return new MealRepositoryImpl(mealDao, firestoreRepository, authRepository, storageRepository);
   }
 }

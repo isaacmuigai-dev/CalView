@@ -53,15 +53,15 @@ fun GeneratePlanScreen(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFFF8E8F8),
-                                Color(0xFFE8F0F8),
-                                Color.White
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.background
                             )
                         )
                     )
                     .border(
                         width = 1.dp,
-                        color = Color(0xFFE5E5E5),
+                        color = MaterialTheme.colorScheme.outlineVariant,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -92,7 +92,7 @@ fun GeneratePlanScreen(
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 18.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             
@@ -104,7 +104,7 @@ fun GeneratePlanScreen(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 lineHeight = 40.sp
             )

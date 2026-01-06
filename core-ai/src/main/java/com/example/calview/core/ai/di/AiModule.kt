@@ -4,7 +4,10 @@ import com.example.calview.core.ai.FoodAnalysisService
 import com.example.calview.core.ai.GeminiFoodAnalysisService
 import com.example.calview.core.ai.GeminiNutritionRecommendationService
 import com.example.calview.core.ai.NutritionRecommendationService
-import com.google.ai.client.generativeai.GenerativeModel
+import com.google.firebase.Firebase
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,10 +21,9 @@ object AiModule {
     @Provides
     @Singleton
     fun provideGenerativeModel(): GenerativeModel {
-        return GenerativeModel(
-            modelName = "gemini-1.5-flash",
-            apiKey = "AIzaSyAWUnVT_UwvfXoZXDvAbV5AX-HnDumod0c"
-        )
+        // Initialize using Firebase AI Logic SDK with Gemini Developer API backend
+        return Firebase.ai(backend = GenerativeBackend.googleAI())
+            .generativeModel("gemini-2.5-flash")
     }
 
     @Provides

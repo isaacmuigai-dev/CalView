@@ -41,18 +41,10 @@ fun ProfileSetupScreen(
     onMonthChanged: (String) -> Unit,
     onDayChanged: (Int) -> Unit,
     onYearChanged: (Int) -> Unit,
-    // Height & Weight
-    isMetric: Boolean,
-    heightFeet: Int,
-    heightInches: Int,
+    // Height & Weight (Metric only - kg/cm)
     heightCm: Int,
-    weightLb: Int,
     weightKg: Int,
-    onMetricToggle: (Boolean) -> Unit,
-    onHeightFeetChanged: (Int) -> Unit,
-    onHeightInchesChanged: (Int) -> Unit,
     onHeightCmChanged: (Int) -> Unit,
-    onWeightLbChanged: (Int) -> Unit,
     onWeightKgChanged: (Int) -> Unit,
     // Activity Level
     selectedWorkouts: String,
@@ -127,7 +119,7 @@ fun ProfileSetupScreen(
                 text = "Tell us about yourself to personalize your experience",
                 fontFamily = Inter,
                 fontSize = 15.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
             )
             
@@ -206,76 +198,25 @@ fun ProfileSetupScreen(
             // ===================== HEIGHT & WEIGHT SECTION =====================
             SectionTitle(title = "Height & Weight", emoji = "📏")
             
-            // Metric/Imperial toggle
+            // Metric inputs - Dropdown selectors
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                UnitToggleChip(
-                    label = "Imperial",
-                    isSelected = !isMetric,
-                    onClick = { onMetricToggle(false) }
+                DropdownSelector(
+                    label = "Height",
+                    value = "$heightCm cm",
+                    options = (100..220).map { "$it cm" },
+                    onValueSelected = { onHeightCmChanged(it.replace(" cm", "").toInt()) },
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                UnitToggleChip(
-                    label = "Metric",
-                    isSelected = isMetric,
-                    onClick = { onMetricToggle(true) }
+                DropdownSelector(
+                    label = "Weight",
+                    value = "$weightKg kg",
+                    options = (30..200).map { "$it kg" },
+                    onValueSelected = { onWeightKgChanged(it.replace(" kg", "").toInt()) },
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            if (isMetric) {
-                // Metric inputs
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    NumberInputField(
-                        label = "Height",
-                        value = heightCm,
-                        suffix = "cm",
-                        onValueChange = onHeightCmChanged,
-                        modifier = Modifier.weight(1f)
-                    )
-                    NumberInputField(
-                        label = "Weight",
-                        value = weightKg,
-                        suffix = "kg",
-                        onValueChange = onWeightKgChanged,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            } else {
-                // Imperial inputs
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Bottom  // Align fields at bottom for consistent row
-                ) {
-                    NumberInputField(
-                        label = "Height",
-                        value = heightFeet,
-                        suffix = "ft",
-                        onValueChange = onHeightFeetChanged,
-                        modifier = Modifier.weight(1f)
-                    )
-                    NumberInputField(
-                        label = " ",  // Space to maintain alignment
-                        value = heightInches,
-                        suffix = "in",
-                        onValueChange = onHeightInchesChanged,
-                        modifier = Modifier.weight(1f)
-                    )
-                    NumberInputField(
-                        label = "Weight",
-                        value = weightLb,
-                        suffix = "lb",
-                        onValueChange = onWeightLbChanged,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
             }
             
             Spacer(modifier = Modifier.height(28.dp))
