@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.view.View
 import android.widget.RemoteViews
 import androidx.room.Room
@@ -17,18 +18,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import java.util.Calendar
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
 /**
  * AppWidgetProvider for the Calories Widget that displays remaining calories, macros,
  * streak, steps, and water on the user's home screen.
+ * 
+ * NOTE: Uses SharedPreferences instead of DataStore to avoid conflicts with app's DataStore singleton.
  */
 class CaloriesWidgetProvider : AppWidgetProvider() {
 
@@ -52,34 +48,81 @@ class CaloriesWidgetProvider : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         // Called when the last widget is removed
     }
+    
+    /**
+     * Get SharedPreferences for widget data (synced from DataStore by app)
+     */
+    private fun getWidgetPrefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences("widget_data", Context.MODE_PRIVATE)
+    }
 
     private fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        // Create RemoteViews FIRST - outside try block so widget always has valid views
-        val views = RemoteViews(context.packageName, R.layout.widget_calories)
+        // Wrap EVERYTHING in try-catch to prevent "problem loading widget"
+        try {
+            // Create RemoteViews FIRST - outside inner try block so widget always has valid views
+            val views = RemoteViews(context.packageName, R.layout.widget_calories)
+            
+            // Set click intent to open app (always needed)
+            val intent = Intent(context, MainActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
+            
+            // Set click intent for Scan Food button
+            val scanFoodIntent = Intent(context, MainActivity::class.java).apply {
+                putExtra("navigate_to", "scanner")
+                putExtra("scan_mode", "scan_food")
+            }
+            val scanFoodPendingIntent = PendingIntent.getActivity(
+                context,
+                1, // Different request code
+                scanFoodIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_scan_food_button, scanFoodPendingIntent)
+            
+            // Set click intent for Barcode button
+            val barcodeIntent = Intent(context, MainActivity::class.java).apply {
+                putExtra("navigate_to", "scanner")
+                putExtra("scan_mode", "barcode")
+            }
+            val barcodePendingIntent = PendingIntent.getActivity(
+                context,
+                2, // Different request code
+                barcodeIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_barcode_button, barcodePendingIntent)
         
-        // Set click intent to open app (always needed)
-        val intent = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
+        // Set initial fallback values IMMEDIATELY to prevent "problem loading widget"
+        views.setTextViewText(R.id.widget_calories_remaining, "—")
+        views.setTextViewText(R.id.widget_protein, "—")
+        views.setTextViewText(R.id.widget_carbs, "—")
+        views.setTextViewText(R.id.widget_fats, "—")
+        views.setTextViewText(R.id.widget_protein_status, "Loading...")
+        views.setTextViewText(R.id.widget_carbs_status, "")
+        views.setTextViewText(R.id.widget_fats_status, "")
+        
+        // Update widget immediately with loading state
+        appWidgetManager.updateAppWidget(appWidgetId, views)
         
         scope.launch {
             try {
-                // Read goals from DataStore
-                val preferences = context.dataStore.data.first()
+                // Read goals from SharedPreferences (synced from DataStore by app)
+                val prefs = getWidgetPrefs(context)
                 
-                val goalCalories = preferences[intPreferencesKey("recommended_calories")] ?: 2000
-                val goalProtein = preferences[intPreferencesKey("recommended_protein")] ?: 117
-                val goalCarbs = preferences[intPreferencesKey("recommended_carbs")] ?: 203
-                val goalFats = preferences[intPreferencesKey("recommended_fats")] ?: 47
+                val goalCalories = prefs.getInt("recommended_calories", 2000)
+                val goalProtein = prefs.getInt("recommended_protein", 117)
+                val goalCarbs = prefs.getInt("recommended_carbs", 203)
+                val goalFats = prefs.getInt("recommended_fats", 47)
                 
                 // Get today's meals from Room database
                 val database = Room.databaseBuilder(
@@ -112,14 +155,14 @@ class CaloriesWidgetProvider : AppWidgetProvider() {
                 // Calculate streak (simple: consecutive days with logged meals)
                 val streak = calculateStreak(database)
                 
-                // Get steps from DataStore (cached by DashboardViewModel)
-                val steps = preferences[intPreferencesKey("last_known_steps")] ?: 0
-                val stepsGoal = preferences[intPreferencesKey("daily_steps_goal")] ?: 10000
+                // Get steps from SharedPreferences (synced by app)
+                val steps = prefs.getInt("last_known_steps", 0)
+                val stepsGoal = prefs.getInt("daily_steps_goal", 10000)
                 val stepsPercent = if (stepsGoal > 0) ((steps * 100) / stepsGoal).coerceIn(0, 100) else 0
                 
-                // Get water from DataStore
-                val rawWater = preferences[intPreferencesKey("water_consumed")] ?: 0
-                val waterDate = preferences[longPreferencesKey("water_date")] ?: 0L
+                // Get water from SharedPreferences (synced by app)
+                val rawWater = prefs.getInt("water_consumed", 0)
+                val waterDate = prefs.getLong("water_date", 0L)
                 
                 // Verify water is from today
                 val (tStart, tEnd) = getTodayTimestamps()
@@ -133,64 +176,47 @@ class CaloriesWidgetProvider : AppWidgetProvider() {
                     R.id.widget_calories_remaining,
                     formatNumber(caloriesRemaining)
                 )
-                views.setTextViewText(
-                    R.id.widget_calories_goal,
-                    "of ${formatNumber(goalCalories)}"
-                )
-                views.setTextViewText(
-                    R.id.widget_progress_percent,
-                    "($progressPercent%)"
-                )
                 
-                // Update macro display
-                views.setTextViewText(R.id.widget_protein, "${proteinRemaining}g")
-                views.setTextViewText(R.id.widget_carbs, "${carbsRemaining}g")
-                views.setTextViewText(R.id.widget_fats, "${fatsRemaining}g")
+                // Update macro display with over/under status
+                val proteinOver = consumedProtein > goalProtein
+                val carbsOver = consumedCarbs > goalCarbs
+                val fatsOver = consumedFats > goalFats
                 
-                // Update streak
-                views.setTextViewText(R.id.widget_streak, streak.toString())
+                val proteinDiff = if (proteinOver) consumedProtein - goalProtein else goalProtein - consumedProtein
+                val carbsDiff = if (carbsOver) consumedCarbs - goalCarbs else goalCarbs - consumedCarbs
+                val fatsDiff = if (fatsOver) consumedFats - goalFats else goalFats - consumedFats
                 
-                // Update steps
-                if (steps > 0) {
-                    views.setTextViewText(R.id.widget_steps, "${formatNumber(steps)} / ${formatNumber(stepsGoal)}")
-                    views.setProgressBar(R.id.widget_steps_progress, 100, stepsPercent, false)
-                    views.setTextViewText(R.id.widget_steps_percent, "$stepsPercent%")
-                } else {
-                    views.setTextViewText(R.id.widget_steps, "—")
-                    views.setProgressBar(R.id.widget_steps_progress, 100, 0, false)
-                    views.setTextViewText(R.id.widget_steps_percent, "—")
-                }
+                views.setTextViewText(R.id.widget_protein, "${proteinDiff}g")
+                views.setTextViewText(R.id.widget_protein_status, "Protein ${if (proteinOver) "over" else "left"}")
                 
-                // Update water
-                if (waterConsumed >= 0) {
-                    views.setTextViewText(R.id.widget_water, "$waterConsumed / $waterGoal")
-                    views.setProgressBar(R.id.widget_water_progress, 100, waterPercent, false)
-                    views.setTextViewText(R.id.widget_water_percent, "$waterPercent%")
-                } else {
-                    views.setTextViewText(R.id.widget_water, "—")
-                    views.setProgressBar(R.id.widget_water_progress, 100, 0, false)
-                    views.setTextViewText(R.id.widget_water_percent, "—")
-                }
+                views.setTextViewText(R.id.widget_carbs, "${carbsDiff}g")
+                views.setTextViewText(R.id.widget_carbs_status, "Carbs ${if (carbsOver) "over" else "left"}")
+                
+                views.setTextViewText(R.id.widget_fats, "${fatsDiff}g")
+                views.setTextViewText(R.id.widget_fats_status, "Fats ${if (fatsOver) "over" else "left"}")
                 
                 // Close database
                 database.close()
                 
+                // Update widget with actual data
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+                
             } catch (e: Exception) {
                 android.util.Log.e("CaloriesWidget", "Error updating widget: ${e.message}", e)
-                // Set fallback values on error
-                views.setTextViewText(R.id.widget_calories_remaining, "—")
-                views.setTextViewText(R.id.widget_calories_goal, "Open app")
-                views.setTextViewText(R.id.widget_progress_percent, "")
-                views.setTextViewText(R.id.widget_protein, "—")
-                views.setTextViewText(R.id.widget_carbs, "—")
-                views.setTextViewText(R.id.widget_fats, "—")
-                views.setTextViewText(R.id.widget_streak, "0")
-                views.setTextViewText(R.id.widget_steps, "—")
-                views.setTextViewText(R.id.widget_water, "—")
+                // Leave fallback values since we already set them
             }
-            
-            // Always update widget - even on error we have valid fallback views
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+        } catch (t: Throwable) {
+            // Outermost catch - prevent ANY crash from causing "problem loading widget"
+            android.util.Log.e("CaloriesWidget", "Critical widget error: ${t.message}", t)
+            try {
+                // Create minimal fallback views
+                val fallbackViews = RemoteViews(context.packageName, R.layout.widget_calories)
+                fallbackViews.setTextViewText(R.id.widget_calories_remaining, "Tap to open")
+                appWidgetManager.updateAppWidget(appWidgetId, fallbackViews)
+            } catch (e2: Throwable) {
+                android.util.Log.e("CaloriesWidget", "Failed to create fallback views", e2)
+            }
         }
     }
     

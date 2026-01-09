@@ -6,10 +6,13 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.health.HealthData
+import com.example.calview.core.ai.FoodAnalysisService
+import android.content.Context
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -25,6 +28,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModelTest {
 
@@ -32,6 +38,8 @@ class DashboardViewModelTest {
     private val mealRepository: MealRepository = mockk()
     private val userPreferencesRepository: UserPreferencesRepository = mockk()
     private val healthConnectManager: HealthConnectManager = mockk(relaxed = true)
+    private val foodAnalysisService: FoodAnalysisService = mockk(relaxed = true)
+    private val context: Context = mockk(relaxed = true)
     
     // Use UnconfinedTestDispatcher for immediate execution
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -40,10 +48,11 @@ class DashboardViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         
-        // Mock default flows
+        // Mock default flows - meals
         coEvery { mealRepository.getMealsForToday() } returns flowOf(emptyList())
         coEvery { mealRepository.getRecentUploads() } returns flowOf(emptyList())
         coEvery { mealRepository.getAllMeals() } returns flowOf(emptyList())
+        coEvery { mealRepository.getMealsForDate(any()) } returns flowOf(emptyList())
         
         // User preferences - calorie and macro goals
         coEvery { userPreferencesRepository.recommendedCalories } returns flowOf(2000)
@@ -57,6 +66,13 @@ class DashboardViewModelTest {
         coEvery { userPreferencesRepository.rolloverCaloriesAmount } returns flowOf(0)
         coEvery { userPreferencesRepository.addCaloriesBack } returns flowOf(false)
         
+        // Water consumption preferences
+        coEvery { userPreferencesRepository.waterConsumed } returns flowOf(0)
+        coEvery { userPreferencesRepository.waterDate } returns flowOf(System.currentTimeMillis())
+        coEvery { userPreferencesRepository.setWaterConsumed(any(), any()) } returns Unit
+        coEvery { userPreferencesRepository.syncWidgetData() } returns Unit
+        coEvery { userPreferencesRepository.setLastKnownSteps(any()) } returns Unit
+        
         // Health Connect
         every { healthConnectManager.healthData } returns MutableStateFlow(HealthData())
         coEvery { healthConnectManager.isAvailable() } returns false
@@ -68,8 +84,8 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `initial state has correct default goal and zero consumption`() = runTest {
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+    fun `initial state has correct default goal and zero consumption`() = runBlocking {
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Get first state where goalCalories is set
         val state = viewModel.dashboardState.first { it.goalCalories == 2000 }
@@ -77,10 +93,11 @@ class DashboardViewModelTest {
         assertEquals(0, state.consumedCalories)
         assertEquals(2000, state.goalCalories)
         assertEquals(2000, state.remainingCalories)
+        viewModel.viewModelScope.cancel()
     }
 
     @Test
-    fun `state updates correctly when meals are emitted`() = runTest {
+    fun `state updates correctly when meals are emitted`() = runBlocking {
         // Arrange
         val meal1 = MealEntity(
             name = "Oatmeal", 
@@ -104,7 +121,7 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getMealsForToday() } returns flowOf(listOf(meal1, meal2))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Wait for state with meals data
         val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
@@ -115,10 +132,11 @@ class DashboardViewModelTest {
         assertEquals(50, state.proteinG) // 10 + 40
         assertEquals(50, state.carbsG) // 50 + 0
         assertEquals(15, state.fatsG) // 5 + 10
+        viewModel.viewModelScope.cancel()
     }
     
     @Test
-    fun `only COMPLETED meals count toward calorie totals`() = runTest {
+    fun `only COMPLETED meals count toward calorie totals`() = runBlocking {
         // Arrange - mix of analyzing and completed meals
         val completedMeal = MealEntity(
             name = "Completed Meal", 
@@ -151,7 +169,7 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getMealsForToday() } returns flowOf(listOf(completedMeal, analyzingMeal, pendingMeal))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Wait for state with consumed calories
         val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
@@ -162,10 +180,11 @@ class DashboardViewModelTest {
         assertEquals(20, state.proteinG)
         assertEquals(30, state.carbsG)
         assertEquals(10, state.fatsG)
+        viewModel.viewModelScope.cancel()
     }
     
     @Test
-    fun `recentUploads are included in dashboard state`() = runTest {
+    fun `recentUploads are included in dashboard state`() = runBlocking {
         // Arrange
         val recentMeal = MealEntity(
             name = "Recent Upload", 
@@ -181,7 +200,7 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getRecentUploads() } returns flowOf(listOf(recentMeal))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Wait for state with recent uploads
         val state = viewModel.dashboardState.first { it.recentUploads.isNotEmpty() }
@@ -189,12 +208,13 @@ class DashboardViewModelTest {
         // Assert
         assertEquals(1, state.recentUploads.size)
         assertEquals("Recent Upload", state.recentUploads.first().name)
+        viewModel.viewModelScope.cancel()
     }
     
     @Test
-    fun `addWater increases water consumed`() = runTest {
+    fun `addWater increases water consumed`() = runBlocking {
         // Arrange
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Wait for initial state
         viewModel.dashboardState.first { it.goalCalories == 2000 }
@@ -207,12 +227,13 @@ class DashboardViewModelTest {
 
         // Assert
         assertEquals(8, state.waterConsumed)
+        viewModel.viewModelScope.cancel()
     }
     
     @Test
-    fun `removeWater decreases water consumed but not below zero`() = runTest {
+    fun `removeWater decreases water consumed but not below zero`() = runBlocking {
         // Arrange
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager)
+        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
         
         // Wait for initial state
         viewModel.dashboardState.first { it.goalCalories == 2000 }
@@ -225,5 +246,6 @@ class DashboardViewModelTest {
 
         // Assert - should stay at 0
         assertEquals(0, state.waterConsumed)
+        viewModel.viewModelScope.cancel()
     }
 }

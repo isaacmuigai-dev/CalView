@@ -14,17 +14,27 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.calview"
+        applicationId = "com.calviewai.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.jks")
+            storePassword = "calview123"
+            keyAlias = "key0"
+            keyPassword = "calview123"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -53,6 +63,7 @@ dependencies {
     implementation(project(":feature-dashboard"))
     implementation(project(":feature-scanner"))
     implementation(project(":feature-trends"))
+    implementation(project(":feature-subscription"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -113,6 +124,11 @@ dependencies {
 
     // Health Connect
     implementation(libs.androidx.health.connect)
+    
+    // WorkManager for background sync
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.work.compiler)
 
     // Unit Testing
     testImplementation(libs.junit)

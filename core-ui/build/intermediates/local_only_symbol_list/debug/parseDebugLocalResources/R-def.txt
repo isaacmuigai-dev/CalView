@@ -1,2 +1,4 @@
 R_DEF: Internal format may change without notice
 local
+drawable ic_logo_black
+drawable ic_logo_white

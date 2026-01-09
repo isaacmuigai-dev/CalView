@@ -10,6 +10,7 @@ import com.example.calview.core.ai.model.NutritionalData
 import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.data.repository.MealRepository
+import com.example.calview.core.data.repository.UserPreferencesRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,6 +36,7 @@ class ScannerViewModelTest {
     private lateinit var viewModel: ScannerViewModel
     private val foodAnalysisService: FoodAnalysisService = mockk()
     private val mealRepository: MealRepository = mockk(relaxed = true)
+    private val userPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val context: Context = mockk()
     private val testDispatcher = StandardTestDispatcher()
 
@@ -47,7 +49,7 @@ class ScannerViewModelTest {
         every { context.filesDir } returns mockFilesDir
         every { mockFilesDir.absolutePath } returns "/mock/path"
         
-        viewModel = ScannerViewModel(foodAnalysisService, mealRepository, context)
+        viewModel = ScannerViewModel(foodAnalysisService, mealRepository, userPreferencesRepository, context)
     }
 
     @After

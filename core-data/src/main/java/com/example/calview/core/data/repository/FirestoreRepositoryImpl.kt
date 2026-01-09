@@ -29,15 +29,29 @@ class FirestoreRepositoryImpl @Inject constructor(
     
     override suspend fun saveUserData(userId: String, userData: UserData) {
         try {
-            Log.d(TAG, "Attempting to save data for user: $userId to collection: $USERS_COLLECTION")
-            Log.d(TAG, "Firestore instance: ${firestore.app.name}, database: ${firestore.firestoreSettings}")
-            firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .set(userData)
-                .await()
-            Log.d(TAG, "Successfully saved user data to Firestore")
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "📝 saveUserData called")
+            Log.d(TAG, "   userId: '$userId'")
+            Log.d(TAG, "   collection: '$USERS_COLLECTION'")
+            Log.d(TAG, "   Firestore instance: ${firestore.app.name}")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            val docRef = firestore.collection(USERS_COLLECTION).document(userId)
+            Log.d(TAG, "📄 Document path: ${docRef.path}")
+            
+            Log.d(TAG, "⏳ Calling .set() on Firestore...")
+            val startTime = System.currentTimeMillis()
+            
+            docRef.set(userData).await()
+            
+            val elapsed = System.currentTimeMillis() - startTime
+            Log.d(TAG, "✅ Firestore write SUCCESS in ${elapsed}ms")
+            Log.d(TAG, "   Document written to: ${docRef.path}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error saving to Firestore: ${e.message}", e)
+            Log.e(TAG, "❌ Firestore write FAILED!")
+            Log.e(TAG, "   Error message: ${e.message}")
+            Log.e(TAG, "   Exception type: ${e.javaClass.simpleName}")
+            Log.e(TAG, "   Full stack trace:")
             e.printStackTrace()
         }
     }

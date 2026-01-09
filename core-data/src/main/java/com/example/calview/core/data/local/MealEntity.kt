@@ -28,5 +28,9 @@ data class MealEntity(
     val imageUrl: String? = null, // Firebase Storage download URL
     val analysisStatus: AnalysisStatus = AnalysisStatus.COMPLETED,
     val analysisProgress: Float = 100f,  // 0-100 progress percentage
-    val healthInsight: String? = null
+    val analysisStatusMessage: String = "",  // Current analysis phase message
+    val healthInsight: String? = null,
+    val confidenceScore: Float = 0f,  // Overall confidence 0-100%
+    val detectedItemsJson: String? = null  // JSON array of detected items with per-item confidence
 )
+

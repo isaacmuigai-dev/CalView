@@ -56,6 +56,9 @@ class OnboardingViewModel @Inject constructor(
             userPreferencesRepository.setAddCaloriesBack(state.addCaloriesBack)
             userPreferencesRepository.setRolloverExtraCalories(state.rolloverExtraCalories)
             
+            // Sync widget data so widget shows updated goals
+            userPreferencesRepository.syncWidgetData()
+            
             userPreferencesRepository.setOnboardingComplete(true)
             onComplete()
         }

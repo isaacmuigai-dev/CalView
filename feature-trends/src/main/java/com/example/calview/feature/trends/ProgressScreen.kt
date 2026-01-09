@@ -1105,7 +1105,7 @@ fun DayStreakCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "$streak days",
+                        text = if (streak == 1) "$streak day" else "$streak days",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -1142,7 +1142,7 @@ fun DayStreakCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "$bestStreak days",
+                        text = if (bestStreak == 1) "$bestStreak day" else "$bestStreak days",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = GradientPurple

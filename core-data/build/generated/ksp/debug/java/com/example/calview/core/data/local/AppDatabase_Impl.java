@@ -30,22 +30,26 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile DailyLogDao _dailyLogDao;
 
+  private volatile WeightHistoryDao _weightHistoryDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(5) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `meals` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `firestoreId` TEXT NOT NULL, `name` TEXT NOT NULL, `calories` INTEGER NOT NULL, `protein` INTEGER NOT NULL, `carbs` INTEGER NOT NULL, `fats` INTEGER NOT NULL, `fiber` INTEGER NOT NULL, `sugar` INTEGER NOT NULL, `sodium` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `imagePath` TEXT, `imageUrl` TEXT, `analysisStatus` TEXT NOT NULL, `analysisProgress` REAL NOT NULL, `healthInsight` TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `meals` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `firestoreId` TEXT NOT NULL, `name` TEXT NOT NULL, `calories` INTEGER NOT NULL, `protein` INTEGER NOT NULL, `carbs` INTEGER NOT NULL, `fats` INTEGER NOT NULL, `fiber` INTEGER NOT NULL, `sugar` INTEGER NOT NULL, `sodium` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `imagePath` TEXT, `imageUrl` TEXT, `analysisStatus` TEXT NOT NULL, `analysisProgress` REAL NOT NULL, `analysisStatusMessage` TEXT NOT NULL, `healthInsight` TEXT, `confidenceScore` REAL NOT NULL, `detectedItemsJson` TEXT)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `daily_logs` (`date` TEXT NOT NULL, `steps` INTEGER NOT NULL, `waterIntake` INTEGER NOT NULL, `weight` REAL NOT NULL, `caloriesConsumed` INTEGER NOT NULL, `proteinConsumed` INTEGER NOT NULL, `carbsConsumed` INTEGER NOT NULL, `fatsConsumed` INTEGER NOT NULL, `fiberConsumed` INTEGER NOT NULL, `sugarConsumed` INTEGER NOT NULL, `sodiumConsumed` INTEGER NOT NULL, `caloriesBurned` INTEGER NOT NULL, `exerciseMinutes` INTEGER NOT NULL, `firestoreId` TEXT NOT NULL, PRIMARY KEY(`date`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `weight_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `weight` REAL NOT NULL, `timestamp` INTEGER NOT NULL, `note` TEXT)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b2dfe816182380b3d246974a9f3306e2')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8b510665a84d7be0c4ba1ec9a5ce4d6f')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `meals`");
         db.execSQL("DROP TABLE IF EXISTS `daily_logs`");
+        db.execSQL("DROP TABLE IF EXISTS `weight_history`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -89,7 +93,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       @NonNull
       public RoomOpenHelper.ValidationResult onValidateSchema(
           @NonNull final SupportSQLiteDatabase db) {
-        final HashMap<String, TableInfo.Column> _columnsMeals = new HashMap<String, TableInfo.Column>(16);
+        final HashMap<String, TableInfo.Column> _columnsMeals = new HashMap<String, TableInfo.Column>(19);
         _columnsMeals.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMeals.put("firestoreId", new TableInfo.Column("firestoreId", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMeals.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -105,7 +109,10 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsMeals.put("imageUrl", new TableInfo.Column("imageUrl", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMeals.put("analysisStatus", new TableInfo.Column("analysisStatus", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMeals.put("analysisProgress", new TableInfo.Column("analysisProgress", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMeals.put("analysisStatusMessage", new TableInfo.Column("analysisStatusMessage", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMeals.put("healthInsight", new TableInfo.Column("healthInsight", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMeals.put("confidenceScore", new TableInfo.Column("confidenceScore", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMeals.put("detectedItemsJson", new TableInfo.Column("detectedItemsJson", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysMeals = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesMeals = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoMeals = new TableInfo("meals", _columnsMeals, _foreignKeysMeals, _indicesMeals);
@@ -139,9 +146,23 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoDailyLogs + "\n"
                   + " Found:\n" + _existingDailyLogs);
         }
+        final HashMap<String, TableInfo.Column> _columnsWeightHistory = new HashMap<String, TableInfo.Column>(4);
+        _columnsWeightHistory.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWeightHistory.put("weight", new TableInfo.Column("weight", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWeightHistory.put("timestamp", new TableInfo.Column("timestamp", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWeightHistory.put("note", new TableInfo.Column("note", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysWeightHistory = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesWeightHistory = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoWeightHistory = new TableInfo("weight_history", _columnsWeightHistory, _foreignKeysWeightHistory, _indicesWeightHistory);
+        final TableInfo _existingWeightHistory = TableInfo.read(db, "weight_history");
+        if (!_infoWeightHistory.equals(_existingWeightHistory)) {
+          return new RoomOpenHelper.ValidationResult(false, "weight_history(com.example.calview.core.data.local.WeightHistoryEntity).\n"
+                  + " Expected:\n" + _infoWeightHistory + "\n"
+                  + " Found:\n" + _existingWeightHistory);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "b2dfe816182380b3d246974a9f3306e2", "0969485336cf4f90bd599e4d13b86c1b");
+    }, "8b510665a84d7be0c4ba1ec9a5ce4d6f", "0ef70db1eb7ec05464a8156b4d22f8e1");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -152,7 +173,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "meals","daily_logs");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "meals","daily_logs","weight_history");
   }
 
   @Override
@@ -163,6 +184,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `meals`");
       _db.execSQL("DELETE FROM `daily_logs`");
+      _db.execSQL("DELETE FROM `weight_history`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -179,6 +201,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(MealDao.class, MealDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(DailyLogDao.class, DailyLogDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(WeightHistoryDao.class, WeightHistoryDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -221,6 +244,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _dailyLogDao = new DailyLogDao_Impl(this);
         }
         return _dailyLogDao;
+      }
+    }
+  }
+
+  @Override
+  public WeightHistoryDao weightHistoryDao() {
+    if (_weightHistoryDao != null) {
+      return _weightHistoryDao;
+    } else {
+      synchronized(this) {
+        if(_weightHistoryDao == null) {
+          _weightHistoryDao = new WeightHistoryDao_Impl(this);
+        }
+        return _weightHistoryDao;
       }
     }
   }

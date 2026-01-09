@@ -14,4 +14,10 @@ interface MealRepository {
     suspend fun deleteMeal(meal: MealEntity)
     suspend fun deleteMealById(id: Long)
     suspend fun restoreFromCloud(): Boolean
+    
+    /**
+     * Clear all meals from local database.
+     * Called during account deletion to remove all local data.
+     */
+    suspend fun clearAllMeals()
 }

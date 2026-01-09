@@ -1,6 +1,7 @@
 package com.example.calview.core.data.repository
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
@@ -14,9 +15,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.Month
+import java.time.Period
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
+import com.example.calview.core.data.local.WeightHistoryDao
+import com.example.calview.core.data.local.WeightHistoryEntity
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
@@ -24,7 +30,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class UserPreferencesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val authRepository: AuthRepository,
-    private val firestoreRepository: FirestoreRepository
+    private val firestoreRepository: FirestoreRepository,
+    private val weightHistoryDao: WeightHistoryDao
 ) : UserPreferencesRepository {
 
     private object PreferencesKeys {
@@ -112,21 +119,47 @@ class UserPreferencesRepositoryImpl @Inject constructor(
      */
     private fun syncToFirestore() {
         val userId = authRepository.getUserId()
-        Log.d("FirestoreSync", "syncToFirestore called. userId=$userId, isSignedIn=${authRepository.isSignedIn()}")
-        if (userId.isNotEmpty()) {
-            syncScope.launch {
-                try {
-                    val userData = getCurrentUserData()
-                    Log.d("FirestoreSync", "Saving user data: $userData")
-                    firestoreRepository.saveUserData(userId, userData)
-                    Log.d("FirestoreSync", "Successfully saved user data to Firestore")
-                } catch (e: Exception) {
-                    Log.e("FirestoreSync", "Error syncing to Firestore", e)
-                    e.printStackTrace()
-                }
+        val isSignedIn = authRepository.isSignedIn()
+        
+        // Log caller for debugging
+        val caller = Thread.currentThread().stackTrace.getOrNull(3)?.methodName ?: "unknown"
+        Log.d("FirestoreSync", "========================================")
+        Log.d("FirestoreSync", "syncToFirestore called from: $caller")
+        Log.d("FirestoreSync", "userId='$userId' (length=${userId.length})")
+        Log.d("FirestoreSync", "isSignedIn=$isSignedIn")
+        Log.d("FirestoreSync", "========================================")
+        
+        if (userId.isEmpty()) {
+            Log.w("FirestoreSync", "⚠️ SKIPPING SYNC - userId is empty!")
+            Log.w("FirestoreSync", "   This means user is likely not signed in.")
+            Log.w("FirestoreSync", "   Make sure Google Sign-In completes before data sync.")
+            return
+        }
+        
+        syncScope.launch {
+            try {
+                Log.d("FirestoreSync", "📤 Starting Firestore sync for user: $userId")
+                val startTime = System.currentTimeMillis()
+                
+                val userData = getCurrentUserData()
+                Log.d("FirestoreSync", "📦 User data to sync:")
+                Log.d("FirestoreSync", "   - userName: '${userData.userName}'")
+                Log.d("FirestoreSync", "   - userGoal: '${userData.userGoal}'")
+                Log.d("FirestoreSync", "   - gender: '${userData.gender}'")
+                Log.d("FirestoreSync", "   - age: ${userData.age}")
+                Log.d("FirestoreSync", "   - weight: ${userData.weight}")
+                Log.d("FirestoreSync", "   - height: ${userData.height}")
+                Log.d("FirestoreSync", "   - calories: ${userData.recommendedCalories}")
+                
+                firestoreRepository.saveUserData(userId, userData)
+                
+                val elapsed = System.currentTimeMillis() - startTime
+                Log.d("FirestoreSync", "✅ SUCCESS: Saved to Firestore in ${elapsed}ms")
+            } catch (e: Exception) {
+                Log.e("FirestoreSync", "❌ ERROR syncing to Firestore: ${e.message}")
+                Log.e("FirestoreSync", "   Exception type: ${e.javaClass.simpleName}")
+                e.printStackTrace()
             }
-        } else {
-            Log.w("FirestoreSync", "Skipping sync - user not signed in")
         }
     }
 
@@ -356,6 +389,17 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.BIRTH_MONTH] = month
             preferences[PreferencesKeys.BIRTH_DAY] = day
             preferences[PreferencesKeys.BIRTH_YEAR] = year
+            
+            // Calculate age from birth date
+            val birthMonth = try {
+                Month.valueOf(month.uppercase())
+            } catch (e: Exception) {
+                Month.JANUARY // Fallback
+            }
+            val birthDate = LocalDate.of(year, birthMonth, day.coerceIn(1, 28)) // Coerce day to valid range
+            val today = LocalDate.now()
+            val age = Period.between(birthDate, today).years
+            preferences[PreferencesKeys.AGE] = age.coerceAtLeast(0)
         }
         syncToFirestore()
     }
@@ -371,6 +415,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.WEIGHT] = weight
         }
+        
+        // Record weight in history table
+        weightHistoryDao.insertWeight(
+            WeightHistoryEntity(
+                weight = weight,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+        
         syncToFirestore()
     }
     
@@ -446,6 +499,84 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+    
+    /**
+     * Sync widget data to SharedPreferences for widget access
+     * Widget can't use DataStore (causes multiple instance conflict)
+     */
+    override suspend fun syncWidgetData() {
+        try {
+            val prefs = context.getSharedPreferences("widget_data", Context.MODE_PRIVATE)
+            val dataStorePrefs = context.dataStore.data.first()
+            
+            prefs.edit()
+                .putInt("recommended_calories", dataStorePrefs[PreferencesKeys.RECOMMENDED_CALORIES] ?: 2000)
+                .putInt("recommended_protein", dataStorePrefs[PreferencesKeys.RECOMMENDED_PROTEIN] ?: 117)
+                .putInt("recommended_carbs", dataStorePrefs[PreferencesKeys.RECOMMENDED_CARBS] ?: 203)
+                .putInt("recommended_fats", dataStorePrefs[PreferencesKeys.RECOMMENDED_FATS] ?: 47)
+                .putInt("daily_steps_goal", dataStorePrefs[PreferencesKeys.DAILY_STEPS_GOAL] ?: 10000)
+                .putInt("last_known_steps", dataStorePrefs[PreferencesKeys.LAST_KNOWN_STEPS] ?: 0)
+                .putInt("water_consumed", dataStorePrefs[PreferencesKeys.WATER_CONSUMED] ?: 0)
+                .putLong("water_date", dataStorePrefs[PreferencesKeys.WATER_DATE] ?: 0L)
+                .apply()
+            
+            // Trigger widget update
+            updateWidget()
+            Log.d("UserPreferences", "Synced widget data successfully")
+        } catch (e: Exception) {
+            Log.e("UserPreferences", "Error syncing widget data", e)
+        }
+    }
+    
+    /**
+     * Trigger widget update
+     */
+    private fun updateWidget() {
+        try {
+            val intent = Intent(context, Class.forName("com.example.calview.widget.CaloriesWidgetProvider"))
+            intent.action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            val widgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+            val ids = widgetManager.getAppWidgetIds(
+                android.content.ComponentName(context, Class.forName("com.example.calview.widget.CaloriesWidgetProvider"))
+            )
+            intent.putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            context.sendBroadcast(intent)
+        } catch (e: Exception) {
+            Log.e("UserPreferences", "Error updating widget", e)
+        }
+    }
+    
+    override suspend fun clearAllData() {
+        try {
+            context.dataStore.edit { preferences ->
+                preferences.clear()
+            }
+            Log.d("UserPreferences", "Cleared all local preferences")
+        } catch (e: Exception) {
+            Log.e("UserPreferences", "Error clearing preferences", e)
+        }
+    }
+    
+    /**
+     * Public method to sync all user data to Firestore.
+     * Called before logout to ensure data is persisted.
+     */
+    override suspend fun syncToCloud() {
+        val userId = authRepository.getUserId()
+        if (userId.isEmpty()) {
+            Log.w("FirestoreSync", "syncToCloud: Cannot sync - user not signed in")
+            return
+        }
+        
+        try {
+            Log.d("FirestoreSync", "🔄 syncToCloud: Starting full sync before logout for user: $userId")
+            val userData = getCurrentUserData()
+            firestoreRepository.saveUserData(userId, userData)
+            Log.d("FirestoreSync", "✅ syncToCloud: Successfully synced all data before logout")
+        } catch (e: Exception) {
+            Log.e("FirestoreSync", "❌ syncToCloud: Error syncing before logout", e)
         }
     }
     

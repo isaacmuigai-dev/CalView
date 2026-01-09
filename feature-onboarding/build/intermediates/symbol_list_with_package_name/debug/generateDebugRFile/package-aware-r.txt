@@ -1,2 +1,3 @@
 com.example.calview.feature.onboarding
 drawable app_logo
+drawable phone_mockup_icon

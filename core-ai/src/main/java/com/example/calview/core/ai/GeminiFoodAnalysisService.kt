@@ -22,6 +22,17 @@ class GeminiFoodAnalysisService @Inject constructor(
             
             val prompt = """
                 Analyze the provided food image and provide nutritional estimates.
+                
+                IMPORTANT NAMING RULES:
+                1. Include QUANTITY in item names (e.g., "4 limes", "2 slices of bread", "3 eggs")
+                2. Be DESCRIPTIVE with food names (e.g., "white rice" not just "rice", "grilled chicken breast" not just "chicken")
+                3. If multiple items of the same type, count them (e.g., "4 lime wedges" not "lime wedges")
+                
+                CONFIDENCE SCORING:
+                - Provide a confidence score (0.0 to 1.0) for EACH detected item
+                - If an item is partially hidden, has a shiny/reflective surface, or is hard to identify, use lower confidence (0.5-0.7)
+                - Add a detection_note for uncertain items explaining why (e.g., "partially hidden", "shiny surface", "similar to X")
+                
                 List all food items specifically.
                 Estimate volume in grams.
                 Calculate Calories, Protein (p), Carbohydrates (c), Fats (f), Fiber (fi), Sugar (s), and Sodium (na in mg).
@@ -32,10 +43,12 @@ class GeminiFoodAnalysisService @Inject constructor(
                 {
                   "detected_items": [
                     {
-                      "name": "string",
+                      "name": "string with quantity (e.g., '4 limes', '2 fried eggs')",
                       "estimated_weight_g": integer,
                       "calories": integer,
-                      "macros": { "p": integer, "c": integer, "f": integer, "fi": integer, "s": integer, "na": integer }
+                      "macros": { "p": integer, "c": integer, "f": integer, "fi": integer, "s": integer, "na": integer },
+                      "confidence": number (0.0 to 1.0),
+                      "detection_note": null or "string explaining uncertainty"
                     }
                   ],
                   "total": { "calories": integer, "protein": integer, "carbs": integer, "fats": integer, "fiber": integer, "sugar": integer, "sodium": integer },

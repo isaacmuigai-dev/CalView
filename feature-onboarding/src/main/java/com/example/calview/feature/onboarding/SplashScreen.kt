@@ -67,13 +67,19 @@ fun SplashScreen(
                 .scale(scaleAnim)
         ) {
             // App Logo
+            val logoRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
+                com.example.calview.core.ui.R.drawable.ic_logo_white
+            } else {
+                com.example.calview.core.ui.R.drawable.ic_logo_black
+            }
+            
             Image(
-                painter = painterResource(id = R.drawable.app_logo),
+                painter = painterResource(id = logoRes),
                 contentDescription = "CalViewAI Logo",
                 modifier = Modifier
                     .size(160.dp)
                     .clip(RoundedCornerShape(32.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
             
             Spacer(modifier = Modifier.height(24.dp))

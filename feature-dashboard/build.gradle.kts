@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -65,6 +66,9 @@ dependencies {
     
     // Image loading
     implementation(libs.coil.compose)
+    
+    // JSON serialization
+    implementation(libs.kotlinx.serialization.json)
     
     // Test dependencies
     testImplementation(libs.junit)

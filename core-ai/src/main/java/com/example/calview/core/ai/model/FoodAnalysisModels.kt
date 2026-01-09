@@ -15,7 +15,9 @@ data class FoodItem(
     val name: String,
     val estimated_weight_g: Int,
     val calories: Int,
-    val macros: Macros
+    val macros: Macros,
+    val confidence: Double = 0.9,  // Per-item confidence 0.0-1.0
+    val detection_note: String? = null  // e.g., "hidden/shiny surface", "partially visible"
 )
 
 @Serializable

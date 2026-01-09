@@ -326,6 +326,7 @@ private fun PermissionFeatureItem(
 /**
  * Camera Best Practices Screen - One-time tutorial for first-time users
  * Shows tips for positioning food for optimal AI scanning accuracy
+ * Premium gradient design matching CameraPermissionScreen
  */
 @Composable
 fun CameraBestPracticesScreen(
@@ -336,7 +337,11 @@ fun CameraBestPracticesScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(GradientStart, GradientEnd)
+                )
+            )
     ) {
         Column(
             modifier = Modifier
@@ -355,119 +360,116 @@ fun CameraBestPracticesScreen(
                     onClick = onDismiss,
                     modifier = Modifier
                         .size(44.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            CircleShape
-                        )
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
                 ) {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color.White
                     )
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Header illustration
+            // Header illustration with glassmorphism rings
             Box(
                 modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        CircleShape
-                    ),
+                    .size(140.dp)
+                    .background(Color.White.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Filled.CameraAlt,
-                    contentDescription = null,
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        contentDescription = null,
+                        modifier = Modifier.size(50.dp),
+                        tint = Color.White
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
             
             // Title
             Text(
                 text = "📸 Tips for Best Results",
-                fontSize = 28.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = Color.White,
                 textAlign = TextAlign.Center
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             
             // Subtitle
             Text(
                 text = "Follow these tips to get the most accurate nutrition analysis from our AI",
                 fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.85f),
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
             
-            // Tips cards
+            // Tips cards with glassmorphism
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                BestPracticeTipCard(
+                GlassTipCard(
                     icon = Icons.Filled.CenterFocusStrong,
                     title = "Center your food",
-                    description = "Place the main item in the center of the viewfinder for best recognition",
-                    iconTint = MaterialTheme.colorScheme.primary
+                    description = "Place the main item in the center of the viewfinder for best recognition"
                 )
                 
-                BestPracticeTipCard(
+                GlassTipCard(
                     icon = Icons.Filled.WbSunny,
                     title = "Good lighting",
-                    description = "Natural daylight works best. Avoid harsh shadows or dim environments",
-                    iconTint = Color(0xFFF59E0B) // Amber
+                    description = "Natural daylight works best. Avoid harsh shadows or dim environments"
                 )
                 
-                BestPracticeTipCard(
+                GlassTipCard(
                     icon = Icons.Filled.CropFree,
                     title = "Show the full plate",
-                    description = "Capture all food items to get accurate portion estimates",
-                    iconTint = Color(0xFF10B981) // Green
+                    description = "Capture all food items to get accurate portion estimates"
                 )
                 
-                BestPracticeTipCard(
+                GlassTipCard(
                     icon = Icons.Filled.ZoomIn,
                     title = "Fill the frame",
-                    description = "Get close enough so food takes up 70-80% of the screen",
-                    iconTint = Color(0xFF8B5CF6) // Purple
+                    description = "Get close enough so food takes up 70-80% of the screen"
                 )
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
-            // Pro tip
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+            // Pro tip with glassmorphism
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+                    .padding(16.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.Filled.Lightbulb,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
+                        tint = Color(0xFFFCD34D), // Warm yellow
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Pro tip: For mixed plates, try to spread items out so the AI can identify each component",
                         fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = Color.White.copy(alpha = 0.9f),
                         lineHeight = 18.sp
                     )
                 }
@@ -476,27 +478,27 @@ fun CameraBestPracticesScreen(
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Start scanning button
+            // Start scanning button - White with gradient text
             Button(
                 onClick = onDismiss,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(
                     Icons.Filled.CameraAlt,
                     contentDescription = null,
+                    tint = GradientStart,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Start Scanning",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = GradientStart
                 )
             }
             
@@ -507,11 +509,62 @@ fun CameraBestPracticesScreen(
                 Text(
                     text = "I'll figure it out",
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
             
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+/**
+ * Glassmorphism-styled tip card for gradient backgrounds
+ */
+@Composable
+private fun GlassTipCard(
+    icon: ImageVector,
+    title: String,
+    description: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    fontSize = 13.sp,
+                    color = Color.White.copy(alpha = 0.75f),
+                    lineHeight = 18.sp
+                )
+            }
         }
     }
 }
@@ -742,90 +795,90 @@ fun ScannerCameraContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Camera preview
-        AndroidView(
-            factory = { previewView },
-            modifier = Modifier.fillMaxSize()
-        )
+            // Camera preview
+            AndroidView(
+                factory = { previewView },
+                modifier = Modifier.fillMaxSize()
+            )
 
-        // Overlay with controls
-        ScannerOverlayWithModes(
-            uiState = uiState,
-            selectedMode = selectedMode,
-            flashEnabled = flashEnabled,
-            onModeSelected = { selectedMode = it },
-            onFlashToggle = { flashEnabled = !flashEnabled },
-            onClose = onClose,
-            onCapture = {
-                // Different capture behavior based on mode
-                when (selectedMode) {
-                    ScanMode.BARCODE -> {
-                        // Capture and scan barcode
-                        captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                            val image = InputImage.fromBitmap(bitmap, 0)
-                            val scanner = BarcodeScanning.getClient()
-                            scanner.process(image)
-                                .addOnSuccessListener { barcodes ->
-                                    val barcode = barcodes.firstOrNull()?.rawValue
-                                    if (barcode != null) {
-                                        viewModel.lookupBarcode(barcode)
-                                    } else {
-                                        viewModel.reset()
+            // Overlay with controls
+            ScannerOverlayWithModes(
+                uiState = uiState,
+                selectedMode = selectedMode,
+                flashEnabled = flashEnabled,
+                onModeSelected = { selectedMode = it },
+                onFlashToggle = { flashEnabled = !flashEnabled },
+                onClose = onClose,
+                onCapture = {
+                    // Different capture behavior based on mode
+                    when (selectedMode) {
+                        ScanMode.BARCODE -> {
+                            // Capture and scan barcode
+                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
+                                val image = InputImage.fromBitmap(bitmap, 0)
+                                val scanner = BarcodeScanning.getClient()
+                                scanner.process(image)
+                                    .addOnSuccessListener { barcodes ->
+                                        val barcode = barcodes.firstOrNull()?.rawValue
+                                        if (barcode != null) {
+                                            viewModel.lookupBarcode(barcode)
+                                        } else {
+                                            viewModel.reset()
+                                        }
                                     }
-                                }
-                                .addOnFailureListener {
-                                    Log.e("ScannerScreen", "Barcode scan failed", it)
-                                }
+                                    .addOnFailureListener {
+                                        Log.e("ScannerScreen", "Barcode scan failed", it)
+                                    }
+                            }
+                        }
+                        ScanMode.FOOD_LABEL -> {
+                            // Capture and OCR
+                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
+                                val image = InputImage.fromBitmap(bitmap, 0)
+                                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                                recognizer.process(image)
+                                    .addOnSuccessListener { visionText ->
+                                        viewModel.parseNutritionFromText(visionText.text)
+                                    }
+                                    .addOnFailureListener {
+                                        Log.e("ScannerScreen", "OCR failed", it)
+                                    }
+                            }
+                        }
+                        else -> {
+                            // Default: AI food analysis
+                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
+                                viewModel.analyzeImage(bitmap)
+                            }
                         }
                     }
-                    ScanMode.FOOD_LABEL -> {
-                        // Capture and OCR
-                        captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                            val image = InputImage.fromBitmap(bitmap, 0)
-                            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                            recognizer.process(image)
-                                .addOnSuccessListener { visionText ->
-                                    viewModel.parseNutritionFromText(visionText.text)
-                                }
-                                .addOnFailureListener {
-                                    Log.e("ScannerScreen", "OCR failed", it)
-                                }
-                        }
-                    }
-                    else -> {
-                        // Default: AI food analysis
-                        captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                            viewModel.analyzeImage(bitmap)
-                        }
-                    }
+                },
+                onLogMeal = { response ->
+                    viewModel.logMeal(response)
+                },
+                onLogBarcodeProduct = { product ->
+                    viewModel.logBarcodeProduct(product)
+                },
+                onLogOcrNutrition = { nutrition ->
+                    viewModel.logOcrNutrition(nutrition)
+                },
+                onReset = { viewModel.reset() }
+            )
+            
+            // Navigate to dashboard when analysis starts
+            if (uiState is ScannerUiState.NavigateToDashboard) {
+                LaunchedEffect(Unit) {
+                    onFoodCaptured()
                 }
-            },
-            onLogMeal = { response ->
-                viewModel.logMeal(response)
-            },
-            onLogBarcodeProduct = { product ->
-                viewModel.logBarcodeProduct(product)
-            },
-            onLogOcrNutrition = { nutrition ->
-                viewModel.logOcrNutrition(nutrition)
-            },
-            onReset = { viewModel.reset() }
-        )
-        
-        // Navigate to dashboard when analysis starts
-        if (uiState is ScannerUiState.NavigateToDashboard) {
-            LaunchedEffect(Unit) {
-                onFoodCaptured()
             }
-        }
-        
-        if (uiState is ScannerUiState.Logged) {
-            LaunchedEffect(Unit) {
-                onFoodCaptured()
+            
+            if (uiState is ScannerUiState.Logged) {
+                LaunchedEffect(Unit) {
+                    onFoodCaptured()
+                }
             }
         }
     }
-}
 
 
 @Composable
@@ -847,6 +900,7 @@ fun ScannerOverlayWithModes(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .statusBarsPadding() // Fixed: Avoid status bar overlap
                 .padding(16.dp)
                 .align(Alignment.TopStart),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -915,7 +969,8 @@ fun ScannerOverlayWithModes(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .navigationBarsPadding(), // Fixed: Avoid nav bar overlap
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Mode selector tabs
@@ -1099,12 +1154,12 @@ fun ModeTabsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         ScanModeTab(
             icon = Icons.Filled.CameraAlt,
-            label = "Scan Food",
+            label = "Scan",
             isSelected = selectedMode == ScanMode.SCAN_FOOD,
             onClick = { onModeSelected(ScanMode.SCAN_FOOD) },
             modifier = Modifier.weight(1f)
@@ -1117,8 +1172,8 @@ fun ModeTabsRow(
             modifier = Modifier.weight(1f)
         )
         ScanModeTab(
-            icon = Icons.Filled.Label,
-            label = "Food label",
+            icon = Icons.Filled.Description,
+            label = "Label",
             isSelected = selectedMode == ScanMode.FOOD_LABEL,
             onClick = { onModeSelected(ScanMode.FOOD_LABEL) },
             modifier = Modifier.weight(1f)
@@ -1210,7 +1265,9 @@ fun AnalysisResultBottomSheet(
     Surface(
         color = Color.White,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding() // Fixed: Avoid nav bar overlap
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
@@ -1287,6 +1344,7 @@ fun BarcodeResultBottomSheet(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .navigationBarsPadding() // Fixed: Avoid nav bar overlap
             .padding(16.dp),
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
@@ -1372,6 +1430,7 @@ fun OcrResultBottomSheet(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .navigationBarsPadding() // Fixed: Avoid nav bar overlap
             .padding(16.dp),
         shape = RoundedCornerShape(24.dp),
         color = Color.White,

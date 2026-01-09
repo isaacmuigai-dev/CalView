@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.health.HealthConnectManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -86,7 +87,8 @@ data class ProgressUiState(
 @HiltViewModel
 class ProgressViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val mealRepository: MealRepository
+    private val mealRepository: MealRepository,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ProgressUiState())
@@ -170,6 +172,25 @@ class ProgressViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
+            }
+        }
+
+        // Collect Health Connect data
+        viewModelScope.launch {
+            healthConnectManager.healthData.collect { healthData ->
+                _uiState.update { 
+                    it.copy(
+                        todaySteps = healthData.steps.toInt(),
+                        caloriesBurned = healthData.caloriesBurned.toInt()
+                    )
+                }
+            }
+        }
+        
+        // Refresh health data if available
+        viewModelScope.launch {
+            if (healthConnectManager.isAvailable()) {
+                healthConnectManager.readTodayData()
             }
         }
 
@@ -261,8 +282,8 @@ class ProgressViewModel @Inject constructor(
                 bestStreak = maxOf(bestStreak, tempStreak)
                 
                 _uiState.update { it.copy(
-                    dayStreak = streak.coerceAtLeast(1),
-                    bestStreak = bestStreak.coerceAtLeast(1),
+                    dayStreak = streak, // Don't force minimum 1 - show actual streak
+                    bestStreak = maxOf(bestStreak, streak),
                     completedDays = completedDays,
                     weeklyCalories = weeklyCalories,
                     weeklyAverageCalories = weeklyAvg
@@ -287,5 +308,11 @@ class ProgressViewModel @Inject constructor(
     fun refreshData() {
         _uiState.update { it.copy(isLoading = true) }
         loadProgressData()
+        // Refresh health data when manually refreshing
+        viewModelScope.launch {
+            if (healthConnectManager.isAvailable()) {
+                healthConnectManager.readTodayData()
+            }
+        }
     }
 }

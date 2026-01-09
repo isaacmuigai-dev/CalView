@@ -1,5 +1,7 @@
 package com.example.calview
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -50,6 +52,8 @@ import com.example.calview.feature.scanner.MyMealsScreen
 import com.example.calview.feature.scanner.ScannerScreen
 import com.example.calview.feature.scanner.ScannerViewModel
 import com.example.calview.feature.trends.ProgressScreen
+import com.example.calview.feature.subscription.PaywallScreen
+import com.example.calview.core.data.billing.BillingManager
 import com.example.calview.feature.dashboard.PersonalDetailsScreen
 import com.example.calview.feature.dashboard.PersonalDetailsViewModel
 import com.example.calview.feature.dashboard.EditStepsGoalScreen
@@ -60,8 +64,8 @@ import com.example.calview.feature.dashboard.EditGenderScreen
 import com.example.calview.feature.dashboard.EditNutritionGoalsScreen
 import com.example.calview.feature.dashboard.WeightHistoryScreen
 import com.example.calview.feature.dashboard.HowToAddWidgetScreen
-import com.example.calview.feature.dashboard.TermsAndConditionsScreen
-import com.example.calview.feature.dashboard.PrivacyPolicyScreen
+
+import com.example.calview.feature.dashboard.OpenSourceLicensesScreen
 import com.example.calview.feature.dashboard.FeatureRequestScreen
 import com.example.calview.feature.dashboard.LanguageSelectorScreen
 import com.example.calview.feature.dashboard.AutoGenerateGoalsNavHost
@@ -98,12 +102,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository
     
+    @Inject
+    lateinit var billingManager: BillingManager
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
         // Update widget when app opens to ensure it shows latest data
         com.example.calview.widget.CaloriesWidgetProvider.requestUpdate(this)
+        
+        // Set user email for billing manager (enables test account premium bypass)
+        billingManager.setUserEmail(authRepository.getUserEmail().takeIf { it.isNotEmpty() })
         
         setContent {
             // Calculate window size class for adaptive layouts
@@ -121,7 +131,8 @@ class MainActivity : ComponentActivity() {
                         authRepository = authRepository,
                         mealRepository = mealRepository,
                         dailyLogRepository = dailyLogRepository,
-                        firestoreRepository = firestoreRepository
+                        firestoreRepository = firestoreRepository,
+                        billingManager = billingManager
                     )
                 }
             }
@@ -137,7 +148,8 @@ fun AppNavigation(
     authRepository: AuthRepository? = null,
     mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
     dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository? = null,
-    firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository? = null
+    firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository? = null,
+    billingManager: BillingManager? = null
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -160,7 +172,7 @@ fun AppNavigation(
                 // Configure Google ID request
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId("81536221642-8c2roff66j6aqpmoo705ifvtssu80min.apps.googleusercontent.com")
+                    .setServerClientId(context.getString(R.string.default_web_client_id))
                     .setAutoSelectEnabled(false)
                     .build()
                 
@@ -219,11 +231,11 @@ fun AppNavigation(
             onGoogleSignIn = { signInWithGoogle() },
             onTermsClick = { 
                 showSignInSheet = false
-                navController.navigate("terms_and_conditions") 
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/terms_of_service.html")))
             },
             onPrivacyClick = { 
                 showSignInSheet = false
-                navController.navigate("privacy_policy") 
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/privacy_policy.html")))
             },
             isLoading = isSigningIn
         )
@@ -254,23 +266,32 @@ fun AppNavigation(
                     }
                 },
                 onSignIn = { showSignInSheet = true },
-                onTermsClick = { navController.navigate("terms_and_conditions") },
-                onPrivacyClick = { navController.navigate("privacy_policy") }
+                onTermsClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/terms_of_service.html"))) },
+                onPrivacyClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/privacy_policy.html"))) }
             )
         }
         
         composable(
-            route = "main?tab={tab}",
+            route = "main?tab={tab}&scrollToUploads={scrollToUploads}",
             arguments = listOf(
                 androidx.navigation.navArgument("tab") {
                     type = androidx.navigation.NavType.IntType
                     defaultValue = 0
+                },
+                androidx.navigation.navArgument("scrollToUploads") {
+                    type = androidx.navigation.NavType.BoolType
+                    defaultValue = false
                 }
             )
         ) { backStackEntry ->
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
+            val scrollToUploads = backStackEntry.arguments?.getBoolean("scrollToUploads") ?: false
+            val isPremium by (billingManager?.isPremium ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState()
             MainTabs(
                 initialTab = initialTab,
+                scrollToRecentUploads = scrollToUploads,
+                isPremium = isPremium,
+                onPaywallClick = { navController.navigate("paywall") },
                 onScanClick = { navController.navigate("scanner") },
                 onFoodDatabaseClick = { navController.navigate("logFood") },
                 onEditNameClick = { name -> navController.navigate("edit_name/$name") },
@@ -280,9 +301,10 @@ fun AppNavigation(
                 onWeightHistoryClick = { navController.navigate("weight_history") },
                 onLanguageClick = { navController.navigate("language_selector") },
                 onHowToAddWidgetClick = { navController.navigate("how_to_add_widget") },
-                onTermsClick = { navController.navigate("terms_and_conditions") },
-                onPrivacyClick = { navController.navigate("privacy_policy") },
+                onTermsClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/terms_of_service.html"))) },
+                onPrivacyClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/privacy_policy.html"))) },
                 onFeatureRequestClick = { navController.navigate("feature_request") },
+                onLicensesClick = { navController.navigate("open_source_licenses") },
                 onDeleteAccount = {
                     scope.launch {
                         // Get user ID before deletion (needed for Firestore cleanup)
@@ -300,14 +322,32 @@ fun AppNavigation(
                             android.util.Log.d("DeleteAccount", "Firestore data deleted successfully")
                         } catch (e: Exception) {
                             android.util.Log.e("DeleteAccount", "Failed to delete Firestore data", e)
-                            // Continue with auth deletion even if Firestore cleanup fails
+                            // Continue with local cleanup even if Firestore cleanup fails
+                        }
+                        
+                        // Clear local Room database (meals)
+                        try {
+                            android.util.Log.d("DeleteAccount", "Clearing local meals...")
+                            mealRepository?.clearAllMeals()
+                            android.util.Log.d("DeleteAccount", "Local meals cleared")
+                        } catch (e: Exception) {
+                            android.util.Log.e("DeleteAccount", "Failed to clear local meals", e)
+                        }
+                        
+                        // Clear local DataStore preferences
+                        try {
+                            android.util.Log.d("DeleteAccount", "Clearing local preferences...")
+                            userPreferencesRepository?.clearAllData()
+                            android.util.Log.d("DeleteAccount", "Local preferences cleared")
+                        } catch (e: Exception) {
+                            android.util.Log.e("DeleteAccount", "Failed to clear local preferences", e)
                         }
                         
                         // Then delete Firebase Auth account
                         authRepository?.deleteAccount()?.let { result ->
                             if (result.isSuccess) {
-                                // Navigate to onboarding screen after account deletion
-                                navController.navigate("onboarding") {
+                                // Navigate to splash screen after account deletion (splash -> welcome)
+                                navController.navigate("splash") {
                                     popUpTo(0) { inclusive = true }
                                 }
                             } else {
@@ -318,7 +358,7 @@ fun AppNavigation(
                                         val credentialManager = CredentialManager.create(context)
                                         val googleIdOption = GetGoogleIdOption.Builder()
                                             .setFilterByAuthorizedAccounts(true)
-                                            .setServerClientId("908765412338-qakrfmcnnkkgqbq89dqvcqq08rr97gqv.apps.googleusercontent.com")
+                                            .setServerClientId(context.getString(R.string.default_web_client_id))
                                             .build()
                                         
                                         val request = GetCredentialRequest.Builder()
@@ -339,7 +379,8 @@ fun AppNavigation(
                                                     // Retry delete after re-authentication
                                                     authRepository.deleteAccount().let { deleteResult ->
                                                         if (deleteResult.isSuccess) {
-                                                            navController.navigate("onboarding") {
+                                                            // Navigate to splash screen (splash -> welcome)
+                                                            navController.navigate("splash") {
                                                                 popUpTo(0) { inclusive = true }
                                                             }
                                                         }
@@ -358,6 +399,8 @@ fun AppNavigation(
                 },
                 onLogout = {
                     scope.launch {
+                        // Sync all user data to Firestore before signing out
+                        userPreferencesRepository?.syncToCloud()
                         authRepository?.signOut()
                         // Navigate to welcome/onboarding screen after logout
                         navController.navigate("onboarding") {
@@ -378,25 +421,7 @@ fun AppNavigation(
             )
         }
         
-        composable("terms_and_conditions") {
-            TermsAndConditionsScreen(
-                onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
-                }
-            )
-        }
-        
-        composable("privacy_policy") {
-            PrivacyPolicyScreen(
-                onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
-                }
-            )
-        }
+
         
         composable("feature_request") {
             val feedbackHubViewModel: com.example.calview.feature.dashboard.FeedbackHubViewModel = hiltViewModel()
@@ -410,6 +435,16 @@ fun AppNavigation(
             )
         }
         
+        composable("open_source_licenses") {
+            OpenSourceLicensesScreen(
+                onBack = { 
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main?tab=2") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         composable("scanner") {
             val scannerViewModel: ScannerViewModel = hiltViewModel()
             ScannerScreen(
@@ -417,11 +452,25 @@ fun AppNavigation(
                 onClose = { navController.popBackStack() },
                 onFoodCaptured = {
                     // Navigate to dashboard (Home tab) after food capture
-                    navController.navigate("main?tab=0") {
-                        popUpTo("main?tab=0") { inclusive = true }
+                    // scrollToUploads=true triggers auto-scroll to Recent Uploads section
+                    navController.navigate("main?tab=0&scrollToUploads=true") {
+                        popUpTo("main") { inclusive = true }
                     }
                 }
             )
+        }
+        
+        composable("paywall") {
+            billingManager?.let { manager ->
+                PaywallScreen(
+                    billingManager = manager,
+                    onClose = { navController.popBackStack() },
+                    onSubscriptionSuccess = {
+                        // Navigate back and proceed to camera menu
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
         
         composable("logFood") {
@@ -707,6 +756,9 @@ private fun handleSignInResult(
 @Composable
 fun MainTabs(
     initialTab: Int = 0,
+    scrollToRecentUploads: Boolean = false,
+    isPremium: Boolean = false,
+    onPaywallClick: () -> Unit = {},
     onScanClick: () -> Unit,
     onFoodDatabaseClick: () -> Unit,
     onEditNameClick: (String) -> Unit = {},
@@ -719,11 +771,21 @@ fun MainTabs(
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onFeatureRequestClick: () -> Unit = {},
+    onLicensesClick: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     var showCameraMenu by remember { mutableStateOf(false) }
+    
+    // Handler for FAB click - checks premium status first
+    val onFabClick: () -> Unit = {
+        if (isPremium) {
+            showCameraMenu = true
+        } else {
+            onPaywallClick()
+        }
+    }
     
     // Get window size class for adaptive layout
     val windowSizeClass = LocalWindowSizeClass.current
@@ -788,7 +850,7 @@ fun MainTabs(
                 
                 // FAB at the top of rail
                 FloatingActionButton(
-                    onClick = { showCameraMenu = true },
+                    onClick = onFabClick,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -819,6 +881,7 @@ fun MainTabs(
             Box(modifier = Modifier.fillMaxSize()) {
                 MainTabsContent(
                     selectedTab = selectedTab,
+                    scrollToRecentUploads = scrollToRecentUploads,
                     onEditNameClick = onEditNameClick,
                     onReferFriendClick = onReferFriendClick,
                     onPersonalDetailsClick = onPersonalDetailsClick,
@@ -829,6 +892,7 @@ fun MainTabs(
                     onTermsClick = onTermsClick,
                     onPrivacyClick = onPrivacyClick,
                     onFeatureRequestClick = onFeatureRequestClick,
+                    onLicensesClick = onLicensesClick,
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -877,7 +941,7 @@ fun MainTabs(
                         
                         // Camera FAB at the end
                         FloatingActionButton(
-                            onClick = { showCameraMenu = true },
+                            onClick = onFabClick,
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
                             shape = CircleShape,
@@ -896,6 +960,7 @@ fun MainTabs(
             Box(modifier = Modifier.padding(padding)) {
                 MainTabsContent(
                     selectedTab = selectedTab,
+                    scrollToRecentUploads = scrollToRecentUploads,
                     onEditNameClick = onEditNameClick,
                     onReferFriendClick = onReferFriendClick,
                     onPersonalDetailsClick = onPersonalDetailsClick,
@@ -906,6 +971,7 @@ fun MainTabs(
                     onTermsClick = onTermsClick,
                     onPrivacyClick = onPrivacyClick,
                     onFeatureRequestClick = onFeatureRequestClick,
+                    onLicensesClick = onLicensesClick,
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -920,6 +986,7 @@ fun MainTabs(
 @Composable
 private fun MainTabsContent(
     selectedTab: Int,
+    scrollToRecentUploads: Boolean = false,
     onEditNameClick: (String) -> Unit,
     onReferFriendClick: () -> Unit,
     onPersonalDetailsClick: () -> Unit,
@@ -930,6 +997,7 @@ private fun MainTabsContent(
     onTermsClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onFeatureRequestClick: () -> Unit,
+    onLicensesClick: () -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -941,7 +1009,11 @@ private fun MainTabsContent(
     when (selectedTab) {
         0 -> {
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
-            DashboardScreen(viewModel = dashboardViewModel, lazyListState = dashboardLazyListState)
+            DashboardScreen(
+                viewModel = dashboardViewModel, 
+                lazyListState = dashboardLazyListState,
+                scrollToRecentUploads = scrollToRecentUploads
+            )
         }
         1 -> ProgressScreen()
         2 -> {
@@ -958,6 +1030,7 @@ private fun MainTabsContent(
                 onNavigateToTerms = onTermsClick,
                 onNavigateToPrivacy = onPrivacyClick,
                 onNavigateToFeatureRequest = onFeatureRequestClick,
+                onNavigateToLicenses = onLicensesClick,
                 onDeleteAccount = onDeleteAccount,
                 onLogout = onLogout,
                 remainingCalories = dashboardState.remainingCalories,

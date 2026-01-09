@@ -242,6 +242,28 @@ fun EditNutritionGoalsScreen(
                 )
             }
             
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Save Changes button
+            Button(
+                onClick = { onSave(calories, protein, carbs, fats, fiber, sugar, sodium) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50)
+                )
+            ) {
+                Text(
+                    text = "Save Changes",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
+            }
+            
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

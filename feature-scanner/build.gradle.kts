@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -42,6 +43,7 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
     implementation(project(":core-ai"))
+    implementation(project(":core-ml"))
     
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -71,6 +73,9 @@ dependencies {
     
     // Image loading (Coil)
     implementation(libs.coil.compose)
+    
+    // JSON serialization
+    implementation(libs.kotlinx.serialization.json)
     
     // ML Kit for barcode scanning and text recognition (OCR)
     implementation(libs.mlkit.barcode)

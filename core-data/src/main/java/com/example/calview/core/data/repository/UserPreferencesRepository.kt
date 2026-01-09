@@ -92,5 +92,24 @@ interface UserPreferencesRepository {
      * Should be called on app start if user is signed in
      */
     suspend fun restoreFromCloud(): Boolean
+    
+    /**
+     * Sync widget data to SharedPreferences for widget access
+     * Widget cannot use DataStore (causes multiple instance conflict)
+     * Should be called when macros, steps, or water change
+     */
+    suspend fun syncWidgetData()
+    
+    /**
+     * Clear all local user data.
+     * Called during account deletion to remove all local preferences.
+     */
+    suspend fun clearAllData()
+    
+    /**
+     * Explicitly sync all user data to Firestore cloud.
+     * Should be called before logout to ensure data is persisted.
+     */
+    suspend fun syncToCloud()
 }
 

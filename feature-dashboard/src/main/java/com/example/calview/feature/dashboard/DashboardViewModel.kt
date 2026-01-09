@@ -348,19 +348,25 @@ class DashboardViewModel @Inject constructor(
     
     // Helper to trigger widget update without circular dependency
     private fun updateWidget() {
-        try {
-            val widgetManager = android.appwidget.AppWidgetManager.getInstance(context)
-            val widgetComponent = android.content.ComponentName(context.packageName, "com.example.calview.widget.CaloriesWidgetProvider")
-            val widgetIds = widgetManager.getAppWidgetIds(widgetComponent)
-            
-            if (widgetIds.isNotEmpty()) {
-                val updateIntent = android.content.Intent(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-                updateIntent.component = widgetComponent
-                updateIntent.putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
-                context.sendBroadcast(updateIntent)
+        viewModelScope.launch {
+            try {
+                // First sync data to SharedPreferences for widget access
+                userPreferencesRepository.syncWidgetData()
+                
+                // Then trigger widget refresh
+                val widgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+                val widgetComponent = android.content.ComponentName(context.packageName, "com.example.calview.widget.CaloriesWidgetProvider")
+                val widgetIds = widgetManager.getAppWidgetIds(widgetComponent)
+                
+                if (widgetIds.isNotEmpty()) {
+                    val updateIntent = android.content.Intent(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                    updateIntent.component = widgetComponent
+                    updateIntent.putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+                    context.sendBroadcast(updateIntent)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
     

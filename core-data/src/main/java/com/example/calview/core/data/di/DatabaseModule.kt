@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.calview.core.data.local.AppDatabase
 import com.example.calview.core.data.local.DailyLogDao
 import com.example.calview.core.data.local.MealDao
+import com.example.calview.core.data.local.WeightHistoryDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,5 +37,10 @@ object DatabaseModule {
     @Provides
     fun provideDailyLogDao(database: AppDatabase): DailyLogDao {
         return database.dailyLogDao()
+    }
+    
+    @Provides
+    fun provideWeightHistoryDao(database: AppDatabase): WeightHistoryDao {
+        return database.weightHistoryDao()
     }
 }

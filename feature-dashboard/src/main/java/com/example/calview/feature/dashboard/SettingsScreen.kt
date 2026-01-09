@@ -17,6 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +50,7 @@ fun SettingsScreen(
     onNavigateToTerms: () -> Unit = {},
     onNavigateToPrivacy: () -> Unit = {},
     onNavigateToFeatureRequest: () -> Unit = {},
+    onNavigateToLicenses: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {},
     // Widget data from dashboard
@@ -79,6 +84,7 @@ fun SettingsScreen(
         onTermsClick = onNavigateToTerms,
         onPrivacyClick = onNavigateToPrivacy,
         onFeatureRequestClick = onNavigateToFeatureRequest,
+        onLicensesClick = onNavigateToLicenses,
         onDeleteAccount = onDeleteAccount,
         onLogout = onLogout,
         remainingCalories = remainingCalories,
@@ -113,6 +119,7 @@ fun SettingsContent(
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onFeatureRequestClick: () -> Unit = {},
+    onLicensesClick: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {},
     // Widget data
@@ -228,6 +235,7 @@ fun SettingsContent(
             onPrivacyClick = onPrivacyClick,
             onSupportClick = onSupportEmailClick,
             onFeatureRequestClick = onFeatureRequestClick,
+            onLicensesClick = onLicensesClick,
             onDeleteAccountClick = { showDeleteAccountDialog = true }
         )
         
@@ -404,11 +412,15 @@ fun SettingsItem(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = title
+            }
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurface)
+        Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
     }
@@ -831,6 +843,7 @@ fun LegalSection(
     onPrivacyClick: () -> Unit = {},
     onSupportClick: () -> Unit = {},
     onFeatureRequestClick: () -> Unit = {},
+    onLicensesClick: () -> Unit = {},
     onDeleteAccountClick: () -> Unit = {}
 ) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
@@ -843,6 +856,8 @@ fun LegalSection(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
             SettingsItem(Icons.Default.Campaign, "Feature Request", onClick = onFeatureRequestClick)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+            SettingsItem(Icons.Default.Code, "Open Source Licenses", onClick = onLicensesClick)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
             SettingsItem(Icons.Default.PersonRemove, "Delete Account?", onClick = onDeleteAccountClick)
         }
     }
@@ -850,6 +865,29 @@ fun LegalSection(
 
 @Composable
 fun LogoutButton(onClick: () -> Unit = {}) {
+    val context = LocalContext.current
+    val versionName = remember {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            packageInfo.versionName ?: "1.0"
+        } catch (e: Exception) {
+            "1.0"
+        }
+    }
+    val versionCode = remember {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toLong()
+            }
+        } catch (e: Exception) {
+            1L
+        }
+    }
+    
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -865,7 +903,7 @@ fun LogoutButton(onClick: () -> Unit = {}) {
         }
     }
     Text(
-        "VERSION 1.0.184",
+        "VERSION $versionName ($versionCode)",
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp),

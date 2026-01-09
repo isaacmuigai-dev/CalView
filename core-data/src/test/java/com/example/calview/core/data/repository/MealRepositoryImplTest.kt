@@ -21,10 +21,21 @@ class MealRepositoryImplTest {
 
     private lateinit var repository: MealRepositoryImpl
     private val mealDao: MealDao = mockk(relaxed = true)
+    private val firestoreRepository: FirestoreRepository = mockk(relaxed = true)
+    private val authRepository: AuthRepository = mockk(relaxed = true)
+    private val storageRepository: StorageRepository = mockk(relaxed = true)
 
     @Before
     fun setup() {
-        repository = MealRepositoryImpl(mealDao)
+        // Return empty userId to prevent Firestore sync during tests
+        coEvery { authRepository.getUserId() } returns ""
+        
+        repository = MealRepositoryImpl(
+            mealDao = mealDao,
+            firestoreRepository = firestoreRepository,
+            authRepository = authRepository,
+            storageRepository = storageRepository
+        )
     }
 
     @Test

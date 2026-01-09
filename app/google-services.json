@@ -1,26 +1,19 @@
 {
   "project_info": {
     "project_number": "81536221642",
+    "firebase_url": "https://calviewai-default-rtdb.firebaseio.com",
     "project_id": "calviewai",
     "storage_bucket": "calviewai.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:81536221642:android:50caf5e94a2903da364f33",
+        "mobilesdk_app_id": "1:81536221642:android:96592f3712d0a0ab364f33",
         "android_client_info": {
-          "package_name": "com.example.calview"
+          "package_name": "com.calviewai.app"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "81536221642-132oqf45er0sa4h19at3veqacevgisgd.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.calview",
-            "certificate_hash": "93e348664eaf6c13bea8f7c25b0f92025f14782d"
-          }
-        },
         {
           "client_id": "81536221642-8c2roff66j6aqpmoo705ifvtssu80min.apps.googleusercontent.com",
           "client_type": 3

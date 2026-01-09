@@ -1,1 +1,2 @@
 int drawable app_logo 0x0
+int drawable phone_mockup_icon 0x0

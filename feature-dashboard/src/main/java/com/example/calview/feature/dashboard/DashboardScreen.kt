@@ -90,10 +90,22 @@ import java.util.Locale
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    lazyListState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
+    lazyListState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
+    scrollToRecentUploads: Boolean = false
 ) {
     val state by viewModel.dashboardState.collectAsState()
     val context = LocalContext.current
+    
+    // Auto-scroll to Recent Uploads when coming from scanner
+    // Item index 7 is approximately where "Recently uploaded" header starts
+    val recentUploadsIndex = 7
+    LaunchedEffect(scrollToRecentUploads) {
+        if (scrollToRecentUploads) {
+            // Small delay to ensure LazyColumn is rendered
+            kotlinx.coroutines.delay(300)
+            lazyListState.animateScrollToItem(recentUploadsIndex)
+        }
+    }
     
     // Snackbar for burned calories notification
     val snackbarHostState = remember { SnackbarHostState() }
@@ -647,13 +659,19 @@ fun HeaderSection(streakDays: Int = 0) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // App logo
+            val logoRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
+                com.example.calview.core.ui.R.drawable.ic_logo_white
+            } else {
+                com.example.calview.core.ui.R.drawable.ic_logo_black
+            }
+            
             Image(
-                painter = painterResource(id = R.drawable.app_logo),
+                painter = painterResource(id = logoRes),
                 contentDescription = "CalViewAI Logo",
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(14.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -2212,11 +2230,42 @@ fun RecentMealCard(
                             maxLines = 1,
                             modifier = Modifier.weight(1f)
                         )
-                        Text(
-                            formatMealTime(meal.timestamp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Confidence badge
+                            if (meal.confidenceScore > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            color = when {
+                                                meal.confidenceScore >= 80f -> Color(0xFF4CAF50).copy(alpha = 0.15f)
+                                                meal.confidenceScore >= 60f -> Color(0xFFFFC107).copy(alpha = 0.15f)
+                                                else -> Color(0xFFFF5722).copy(alpha = 0.15f)
+                                            },
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        "${meal.confidenceScore.toInt()}%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = when {
+                                            meal.confidenceScore >= 80f -> Color(0xFF4CAF50)
+                                            meal.confidenceScore >= 60f -> Color(0xFFFFC107)
+                                            else -> Color(0xFFFF5722)
+                                        },
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            Text(
+                                formatMealTime(meal.timestamp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -2261,11 +2310,12 @@ fun RecentMealCard(
  */
 private fun getAnalyzingStepText(progress: Float): String {
     return when {
-        progress < 25f -> "Scanning image..."
-        progress < 50f -> "Separating ingredients..."
-        progress < 75f -> "Calculating nutrition..."
-        progress < 100f -> "Almost done..."
-        else -> "Completing analysis..."
+        progress < 20f -> "Analysing..."
+        progress < 40f -> "Identifying food items..."
+        progress < 60f -> "Breaking down components..."
+        progress < 80f -> "Calculating nutrition..."
+        progress < 95f -> "Finalizing..."
+        else -> "Almost done!"
     }
 }
 

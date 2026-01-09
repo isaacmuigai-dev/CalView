@@ -67,6 +67,9 @@ dependencies {
     // Firebase Storage
     implementation(libs.firebase.storage)
     
+    // Google Play Billing
+    api(libs.billing.ktx)
+    
     // Test dependencies
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.mockk:mockk:1.13.9")

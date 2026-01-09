@@ -9,6 +9,7 @@ import androidx.room.EntityDeletionOrUpdateAdapter;
 import androidx.room.EntityInsertionAdapter;
 import androidx.room.RoomDatabase;
 import androidx.room.RoomSQLiteQuery;
+import androidx.room.SharedSQLiteStatement;
 import androidx.room.util.CursorUtil;
 import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
@@ -41,13 +42,15 @@ public final class MealDao_Impl implements MealDao {
 
   private final EntityDeletionOrUpdateAdapter<MealEntity> __updateAdapterOfMealEntity;
 
+  private final SharedSQLiteStatement __preparedStmtOfDeleteAllMeals;
+
   public MealDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
     this.__insertionAdapterOfMealEntity = new EntityInsertionAdapter<MealEntity>(__db) {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `meals` (`id`,`firestoreId`,`name`,`calories`,`protein`,`carbs`,`fats`,`fiber`,`sugar`,`sodium`,`timestamp`,`imagePath`,`imageUrl`,`analysisStatus`,`analysisProgress`,`healthInsight`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `meals` (`id`,`firestoreId`,`name`,`calories`,`protein`,`carbs`,`fats`,`fiber`,`sugar`,`sodium`,`timestamp`,`imagePath`,`imageUrl`,`analysisStatus`,`analysisProgress`,`analysisStatusMessage`,`healthInsight`,`confidenceScore`,`detectedItemsJson`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -77,10 +80,17 @@ public final class MealDao_Impl implements MealDao {
         final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
         statement.bindString(14, _tmp);
         statement.bindDouble(15, entity.getAnalysisProgress());
+        statement.bindString(16, entity.getAnalysisStatusMessage());
         if (entity.getHealthInsight() == null) {
-          statement.bindNull(16);
+          statement.bindNull(17);
         } else {
-          statement.bindString(16, entity.getHealthInsight());
+          statement.bindString(17, entity.getHealthInsight());
+        }
+        statement.bindDouble(18, entity.getConfidenceScore());
+        if (entity.getDetectedItemsJson() == null) {
+          statement.bindNull(19);
+        } else {
+          statement.bindString(19, entity.getDetectedItemsJson());
         }
       }
     };
@@ -101,7 +111,7 @@ public final class MealDao_Impl implements MealDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `meals` SET `id` = ?,`firestoreId` = ?,`name` = ?,`calories` = ?,`protein` = ?,`carbs` = ?,`fats` = ?,`fiber` = ?,`sugar` = ?,`sodium` = ?,`timestamp` = ?,`imagePath` = ?,`imageUrl` = ?,`analysisStatus` = ?,`analysisProgress` = ?,`healthInsight` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `meals` SET `id` = ?,`firestoreId` = ?,`name` = ?,`calories` = ?,`protein` = ?,`carbs` = ?,`fats` = ?,`fiber` = ?,`sugar` = ?,`sodium` = ?,`timestamp` = ?,`imagePath` = ?,`imageUrl` = ?,`analysisStatus` = ?,`analysisProgress` = ?,`analysisStatusMessage` = ?,`healthInsight` = ?,`confidenceScore` = ?,`detectedItemsJson` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -131,12 +141,27 @@ public final class MealDao_Impl implements MealDao {
         final String _tmp = __converters.fromAnalysisStatus(entity.getAnalysisStatus());
         statement.bindString(14, _tmp);
         statement.bindDouble(15, entity.getAnalysisProgress());
+        statement.bindString(16, entity.getAnalysisStatusMessage());
         if (entity.getHealthInsight() == null) {
-          statement.bindNull(16);
+          statement.bindNull(17);
         } else {
-          statement.bindString(16, entity.getHealthInsight());
+          statement.bindString(17, entity.getHealthInsight());
         }
-        statement.bindLong(17, entity.getId());
+        statement.bindDouble(18, entity.getConfidenceScore());
+        if (entity.getDetectedItemsJson() == null) {
+          statement.bindNull(19);
+        } else {
+          statement.bindString(19, entity.getDetectedItemsJson());
+        }
+        statement.bindLong(20, entity.getId());
+      }
+    };
+    this.__preparedStmtOfDeleteAllMeals = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM meals";
+        return _query;
       }
     };
   }
@@ -196,6 +221,29 @@ public final class MealDao_Impl implements MealDao {
   }
 
   @Override
+  public Object deleteAllMeals(final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfDeleteAllMeals.acquire();
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfDeleteAllMeals.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
   public Flow<List<MealEntity>> getAllMeals() {
     final String _sql = "SELECT * FROM meals ORDER BY timestamp DESC";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
@@ -220,7 +268,10 @@ public final class MealDao_Impl implements MealDao {
           final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
+          final int _cursorIndexOfAnalysisStatusMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatusMessage");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
+          final int _cursorIndexOfConfidenceScore = CursorUtil.getColumnIndexOrThrow(_cursor, "confidenceScore");
+          final int _cursorIndexOfDetectedItemsJson = CursorUtil.getColumnIndexOrThrow(_cursor, "detectedItemsJson");
           final List<MealEntity> _result = new ArrayList<MealEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final MealEntity _item;
@@ -264,13 +315,23 @@ public final class MealDao_Impl implements MealDao {
             _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
+            final String _tmpAnalysisStatusMessage;
+            _tmpAnalysisStatusMessage = _cursor.getString(_cursorIndexOfAnalysisStatusMessage);
             final String _tmpHealthInsight;
             if (_cursor.isNull(_cursorIndexOfHealthInsight)) {
               _tmpHealthInsight = null;
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            final float _tmpConfidenceScore;
+            _tmpConfidenceScore = _cursor.getFloat(_cursorIndexOfConfidenceScore);
+            final String _tmpDetectedItemsJson;
+            if (_cursor.isNull(_cursorIndexOfDetectedItemsJson)) {
+              _tmpDetectedItemsJson = null;
+            } else {
+              _tmpDetectedItemsJson = _cursor.getString(_cursorIndexOfDetectedItemsJson);
+            }
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpAnalysisStatusMessage,_tmpHealthInsight,_tmpConfidenceScore,_tmpDetectedItemsJson);
             _result.add(_item);
           }
           return _result;
@@ -315,7 +376,10 @@ public final class MealDao_Impl implements MealDao {
           final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
+          final int _cursorIndexOfAnalysisStatusMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatusMessage");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
+          final int _cursorIndexOfConfidenceScore = CursorUtil.getColumnIndexOrThrow(_cursor, "confidenceScore");
+          final int _cursorIndexOfDetectedItemsJson = CursorUtil.getColumnIndexOrThrow(_cursor, "detectedItemsJson");
           final List<MealEntity> _result = new ArrayList<MealEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final MealEntity _item;
@@ -359,13 +423,23 @@ public final class MealDao_Impl implements MealDao {
             _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
+            final String _tmpAnalysisStatusMessage;
+            _tmpAnalysisStatusMessage = _cursor.getString(_cursorIndexOfAnalysisStatusMessage);
             final String _tmpHealthInsight;
             if (_cursor.isNull(_cursorIndexOfHealthInsight)) {
               _tmpHealthInsight = null;
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            final float _tmpConfidenceScore;
+            _tmpConfidenceScore = _cursor.getFloat(_cursorIndexOfConfidenceScore);
+            final String _tmpDetectedItemsJson;
+            if (_cursor.isNull(_cursorIndexOfDetectedItemsJson)) {
+              _tmpDetectedItemsJson = null;
+            } else {
+              _tmpDetectedItemsJson = _cursor.getString(_cursorIndexOfDetectedItemsJson);
+            }
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpAnalysisStatusMessage,_tmpHealthInsight,_tmpConfidenceScore,_tmpDetectedItemsJson);
             _result.add(_item);
           }
           return _result;
@@ -408,7 +482,10 @@ public final class MealDao_Impl implements MealDao {
           final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
+          final int _cursorIndexOfAnalysisStatusMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatusMessage");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
+          final int _cursorIndexOfConfidenceScore = CursorUtil.getColumnIndexOrThrow(_cursor, "confidenceScore");
+          final int _cursorIndexOfDetectedItemsJson = CursorUtil.getColumnIndexOrThrow(_cursor, "detectedItemsJson");
           final List<MealEntity> _result = new ArrayList<MealEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final MealEntity _item;
@@ -452,13 +529,23 @@ public final class MealDao_Impl implements MealDao {
             _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
+            final String _tmpAnalysisStatusMessage;
+            _tmpAnalysisStatusMessage = _cursor.getString(_cursorIndexOfAnalysisStatusMessage);
             final String _tmpHealthInsight;
             if (_cursor.isNull(_cursorIndexOfHealthInsight)) {
               _tmpHealthInsight = null;
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            final float _tmpConfidenceScore;
+            _tmpConfidenceScore = _cursor.getFloat(_cursorIndexOfConfidenceScore);
+            final String _tmpDetectedItemsJson;
+            if (_cursor.isNull(_cursorIndexOfDetectedItemsJson)) {
+              _tmpDetectedItemsJson = null;
+            } else {
+              _tmpDetectedItemsJson = _cursor.getString(_cursorIndexOfDetectedItemsJson);
+            }
+            _item = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpAnalysisStatusMessage,_tmpHealthInsight,_tmpConfidenceScore,_tmpDetectedItemsJson);
             _result.add(_item);
           }
           return _result;
@@ -502,7 +589,10 @@ public final class MealDao_Impl implements MealDao {
           final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
           final int _cursorIndexOfAnalysisStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatus");
           final int _cursorIndexOfAnalysisProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisProgress");
+          final int _cursorIndexOfAnalysisStatusMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "analysisStatusMessage");
           final int _cursorIndexOfHealthInsight = CursorUtil.getColumnIndexOrThrow(_cursor, "healthInsight");
+          final int _cursorIndexOfConfidenceScore = CursorUtil.getColumnIndexOrThrow(_cursor, "confidenceScore");
+          final int _cursorIndexOfDetectedItemsJson = CursorUtil.getColumnIndexOrThrow(_cursor, "detectedItemsJson");
           final MealEntity _result;
           if (_cursor.moveToFirst()) {
             final long _tmpId;
@@ -545,13 +635,23 @@ public final class MealDao_Impl implements MealDao {
             _tmpAnalysisStatus = __converters.toAnalysisStatus(_tmp);
             final float _tmpAnalysisProgress;
             _tmpAnalysisProgress = _cursor.getFloat(_cursorIndexOfAnalysisProgress);
+            final String _tmpAnalysisStatusMessage;
+            _tmpAnalysisStatusMessage = _cursor.getString(_cursorIndexOfAnalysisStatusMessage);
             final String _tmpHealthInsight;
             if (_cursor.isNull(_cursorIndexOfHealthInsight)) {
               _tmpHealthInsight = null;
             } else {
               _tmpHealthInsight = _cursor.getString(_cursorIndexOfHealthInsight);
             }
-            _result = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpHealthInsight);
+            final float _tmpConfidenceScore;
+            _tmpConfidenceScore = _cursor.getFloat(_cursorIndexOfConfidenceScore);
+            final String _tmpDetectedItemsJson;
+            if (_cursor.isNull(_cursorIndexOfDetectedItemsJson)) {
+              _tmpDetectedItemsJson = null;
+            } else {
+              _tmpDetectedItemsJson = _cursor.getString(_cursorIndexOfDetectedItemsJson);
+            }
+            _result = new MealEntity(_tmpId,_tmpFirestoreId,_tmpName,_tmpCalories,_tmpProtein,_tmpCarbs,_tmpFats,_tmpFiber,_tmpSugar,_tmpSodium,_tmpTimestamp,_tmpImagePath,_tmpImageUrl,_tmpAnalysisStatus,_tmpAnalysisProgress,_tmpAnalysisStatusMessage,_tmpHealthInsight,_tmpConfidenceScore,_tmpDetectedItemsJson);
           } else {
             _result = null;
           }

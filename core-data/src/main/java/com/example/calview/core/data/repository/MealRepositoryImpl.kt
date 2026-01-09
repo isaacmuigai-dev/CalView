@@ -186,4 +186,13 @@ class MealRepositoryImpl @Inject constructor(
             false
         }
     }
+    
+    override suspend fun clearAllMeals() {
+        try {
+            mealDao.deleteAllMeals()
+            android.util.Log.d("MealRepository", "Cleared all local meals")
+        } catch (e: Exception) {
+            android.util.Log.e("MealRepository", "Error clearing meals", e)
+        }
+    }
 }
