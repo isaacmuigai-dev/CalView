@@ -876,6 +876,10 @@ fun MainTabs(
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     var showCameraMenu by remember { mutableStateOf(showScanMenuOnStart) }
     
+    // Hoist scroll states at MainTabs level to survive navigation
+    val settingsScrollState = androidx.compose.foundation.rememberScrollState()
+    val dashboardLazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    
     // Handler for FAB click - checks premium status first
     val onFabClick: () -> Unit = {
         if (isPremium) {
@@ -980,6 +984,8 @@ fun MainTabs(
                 MainTabsContent(
                     selectedTab = selectedTab,
                     scrollToRecentUploads = scrollToRecentUploads,
+                    settingsScrollState = settingsScrollState,
+                    dashboardLazyListState = dashboardLazyListState,
                     onEditNameClick = onEditNameClick,
                     onReferFriendClick = onReferFriendClick,
                     onPersonalDetailsClick = onPersonalDetailsClick,
@@ -1059,6 +1065,8 @@ fun MainTabs(
                 MainTabsContent(
                     selectedTab = selectedTab,
                     scrollToRecentUploads = scrollToRecentUploads,
+                    settingsScrollState = settingsScrollState,
+                    dashboardLazyListState = dashboardLazyListState,
                     onEditNameClick = onEditNameClick,
                     onReferFriendClick = onReferFriendClick,
                     onPersonalDetailsClick = onPersonalDetailsClick,
@@ -1085,6 +1093,8 @@ fun MainTabs(
 private fun MainTabsContent(
     selectedTab: Int,
     scrollToRecentUploads: Boolean = false,
+    settingsScrollState: androidx.compose.foundation.ScrollState,
+    dashboardLazyListState: androidx.compose.foundation.lazy.LazyListState,
     onEditNameClick: (String) -> Unit,
     onReferFriendClick: () -> Unit,
     onPersonalDetailsClick: () -> Unit,
@@ -1099,11 +1109,6 @@ private fun MainTabsContent(
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
-    // Hoist scroll state for settings to preserve position when navigating back
-    val settingsScrollState = androidx.compose.foundation.rememberScrollState()
-    // Hoist lazy list state for dashboard to preserve scroll position
-    val dashboardLazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    
     when (selectedTab) {
         0 -> {
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
