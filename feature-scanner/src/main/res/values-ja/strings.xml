@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">カメラへのアクセスが必要です</string>
+    <string name="camera_permission_desc">CalViewAIは、食事をスキャンして栄養情報を瞬時に提供するためにカメラへのアクセスが必要です。</string>
+    <string name="scan_any_food">どんな食事もスキャン</string>
+    <string name="scan_any_food_desc">食事の写真を撮って瞬時に分析</string>
+    <string name="barcode_scanning">バーコードスキャン</string>
+    <string name="barcode_scanning_desc">商品バーコードをスキャンして栄養情報を取得</string>
+    <string name="ai_powered">AI搭載</string>
+    <string name="ai_powered_desc">数秒で正確なカロリー推定を取得</string>
+    <string name="allow_camera_access">カメラへのアクセスを許可</string>
+    <string name="maybe_later">後で</string>
+    <string name="tips_for_best_results">📸 ベストショットのコツ</string>
+    <string name="tips_subtitle">AIによる最も正確な栄養分析を得るために、以下のヒントに従ってください</string>
+    <string name="tip_center_food">食事を中心に</string>
+    <string name="tip_center_food_desc">メインの食品を画面の中央に配置してください</string>
+    <string name="tip_good_lighting">明るい場所で</string>
+    <string name="tip_good_lighting_desc">自然光がベストです。強い影や暗い場所は避けましょう</string>
+    <string name="tip_full_plate">お皿全体を写す</string>
+    <string name="tip_full_plate_desc">正確な量を推定するため、すべての食品をフレームに入れてください</string>
+    <string name="tip_fill_frame">画面いっぱいに</string>
+    <string name="tip_fill_frame_desc">食事が画面の70-80%を占めるように近づいて撮影してください</string>
+    <string name="pro_tip_text">プロのヒント：ワンプレート料理は、AIが各要素を識別しやすいように具材を少し離すと精度が上がります</string>
+    <string name="start_scanning">スキャンを開始</string>
+    <string name="ill_figure_it_out">自分でやってみる</string>
+    <string name="camera_permission_denied">カメラ許可が拒否されました</string>
+    <string name="camera_permission_denied_desc">食事をスキャンして栄養情報を取得するには、デバイスの設定でカメラへのアクセスを許可してください。</string>
+    <string name="try_again">再試行</string>
+    <string name="go_back">戻る</string>
+    <string name="close_desc">閉じる</string>
+    <string name="info_desc">情報</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">バーコードスキャナー</string>
+    <string name="flash_desc">フラッシュ</string>
+    <string name="retry_action">再試行</string>
+    <string name="scan_mode_scan">スキャン</string>
+    <string name="scan_mode_barcode">バーコード</string>
+    <string name="scan_mode_label">ラベル</string>
+    <string name="scan_mode_gallery">ギャラリー</string>
+    <string name="capture_desc">撮影</string>
+    <string name="food_detected_default">食事を検出</string>
+    <string name="discard_action">破棄</string>
+    <string name="log_meal_action">食事を記録</string>
+    <string name="product_found_title">商品が見つかりました</string>
+    <string name="per_100g_serving">100gあたり (1食分: %1$s)</string>
+    <string name="log_this_product_action">この商品を記録</string>
+    <string name="nutrition_detected_title">栄養情報を検出</string>
+    <string name="log_this_food_action">この食事を記録</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">マイミール</string>
+    <string name="quick_actions_title">クイックアクション</string>
+    <string name="scan_food_title">食事スキャン</string>
+    <string name="scan_food_subtitle">写真を撮る</string>
+    <string name="create_meal_title">食事を作成</string>
+    <string name="create_meal_subtitle">手動で追加</string>
+    <string name="your_meals_title">あなたの食事</string>
+    <string name="meals_count_suffix"> 食事</string>
+    <string name="no_meals_yet">食事がまだありません</string>
+    <string name="no_meals_desc">食事をスキャンするか、カスタムミールを作成してください</string>
+    <string name="create_custom_meal_title">カスタムミールを作成</string>
+    <string name="meal_name_label">食事名 *</string>
+    <string name="calories_label">カロリー *</string>
+    <string name="protein_label">タンパク質</string>
+    <string name="carbs_label">炭水化物</string>
+    <string name="fats_label">脂質</string>
+    <string name="create_action">作成</string>
+    <string name="cancel_action">キャンセル</string>
+    <string name="delete_meal_title">食事を削除？</string>
+    <string name="delete_meal_confirm">"%1$s" を削除してもよろしいですか？この操作は元に戻せません。</string>
+    <string name="delete_action">削除</string>
+    <string name="delete_meal_content_desc">食事を削除</string>
+    <string name="analyzing_status">分析中...</string>
+    <string name="back_desc">戻る</string>
+</resources>

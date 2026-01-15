@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">Unlock Full Potential</string>
+    <string name="paywall_subtitle">Get unlimited AI scans, detailed macro analysis, and personalized insights.</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">Unlimited AI Food Scans</string>
+    <string name="feature_advanced_macros">Advanced Macronutrient Breakdown</string>
+    <string name="feature_trends_insights">Personalized Trends &amp; Insights</string>
+    <string name="feature_no_ads">No Ads</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">Loading plans...</string>
+    <string name="plan_yearly_best_value">Yearly (Best Value)</string>
+    <string name="plan_monthly">Monthly</string>
+    <string name="price_per_month">Just %s / month</string>
+    <string name="cancel_anytime">Cancel anytime</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">Start Premium Now</string>
+    <string name="restore_purchases">Restore Purchases</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">Close</string>
+    <string name="cd_feature_prefix">Feature: %s</string>
+    <string name="cd_loading_plans">Loading subscription plans</string>
+    <string name="cd_subscription_option_selected">%1$s subscription, %2$s. %3$s. Selected</string>
+    <string name="cd_subscription_option_not_selected">%1$s subscription, %2$s. %3$s. Not selected</string>
+</resources>

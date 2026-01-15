@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">التقدم</string>
+    <string name="track_health_journey">تتبع رحلة صحتك</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">الحالي</string>
+    <string name="streak_best">الأفضل</string>
+    <string name="day_singular">يوم</string>
+    <string name="days_plural">أيام</string>
+    <string name="milestones_unlocked">معالم تم فتحها</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">محارب الأسبوع</string>
+    <string name="milestone_two_week_champion">بطل الأسبوعين</string>
+    <string name="milestone_monthly_master">سيد الشهر</string>
+    <string name="milestone_stellar_streak">سلسلة نجمية</string>
+    <string name="milestone_ultimate_champion">البطل النهائي</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">تحفيز اليوم</string>
+    <string name="motivation_access_desc">نصيحة تحفيزية</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">اقتربت جداً! أنت قريب جداً من هدفك! 🎯</string>
+    <string name="msg_halfway_there">منتصف الطريق! استمر في الضغط! 💪</string>
+    <string name="msg_incredible_streak">سلسلة مذهلة! لا يمكن إيقافك! 🔥</string>
+    <string name="msg_great_consistency">التزام رائع! حافظ على الوتيرة! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 الخطوات الصغيرة تؤدي لتغييرات كبيرة</item>
+        <item>🌟 الاستمرارية تتغلب على الكمال في كل مرة</item>
+        <item>💪 جسدك يسمع كل ما يقوله عقلك</item>
+        <item>🎯 التقدم لا الكمال، هو ما يهم</item>
+        <item>🔥 كل خيار صحي هو انتصار</item>
+        <item>⭐ أنت أقوى مما تعتقد</item>
+        <item>🚀 التمرين السيء الوحيد هو الذي لم يحدث</item>
+        <item>🌈 ثق بالعملية، واستمتع بالرحلة</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">هدف الوزن</string>
+    <string name="percent_complete">اكتمل %d%%</string>
+    <string name="current_label">الحالي</string>
+    <string name="goal_label">الهدف</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">السعرات الأسبوعية</string>
+    <string name="goal_value_format">الهدف: %d</string>
+    <string name="legend_under">أقل</string>
+    <string name="legend_over">أكثر</string>
+    <string name="legend_goal">الهدف</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">مغذيات اليوم</string>
+    <string name="total_label">المجموع</string>
+    <string name="macro_protein">البروتين</string>
+    <string name="macro_carbs">الكربوهيدرات</string>
+    <string name="macro_fats">الدهون</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">المغذيات الدقيقة</string>
+    <string name="micro_fiber">الألياف</string>
+    <string name="micro_sugar">السكر</string>
+    <string name="micro_sodium">الصوديوم</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">الخطوات</string>
+    <string name="burned_label">محروق</string>
+    <string name="cal_unit">سعرة</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">الخطوات 7أيام</string>
+    <string name="weekly_burn_label">الحرق 7أيام</string>
+    <string name="record_label">رقم قياسي</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">مؤشر كتلة الجسم</string>
+    <string name="bmi_underweight">نقص وزن</string>
+    <string name="bmi_healthy">صحي</string>
+    <string name="bmi_overweight">زيادة وزن</string>
+    <string name="bmi_obese">سمنة</string>
+    <string name="bmi_content_desc">مؤشر كتلة الجسم: %1$.1f، %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">يوم مكتمل</string>
+    <string name="current_streak_desc">السلسلة الحالية</string>
+    <string name="best_streak_desc">أفضل سلسلة</string>
+</resources>

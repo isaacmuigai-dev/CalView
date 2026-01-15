@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">記録して健康に</string>
+    <string name="calories_burned_notification">🔥 %1$d kcal消費！1日の目標に追加されました。</string>
+    <string name="connect_google_health">Google Healthに接続</string>
+    <string name="sync_steps_calories">歩数とカロリーを同期</string>
+    <string name="connect">接続</string>
+    <string name="health_score">健康スコア</string>
+    <string name="health_score_desc">炭水化物と脂質は順調です。カロリーとタンパク質が不足しており、減量が遅れたり筋肉の維持に影響する可能性があります。</string>
+    <string name="recently_uploaded">最近アップロード</string>
+    <string name="empty_meals_message">＋をタップして今日の最初の食事を追加しましょう</string>
+    <string name="fiber_left">残り食物繊維</string>
+    <string name="sugar_left">残り糖質</string>
+    <string name="sodium_left">残り塩分</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">設定</string>
+    <string name="years_old_suffix">歳</string>
+    <string name="invite_friends">友達を招待</string>
+    <string name="invite_friends_desc">一緒なら\nもっと続く。</string>
+    <string name="refer_friend_action">友達紹介で$5ゲット</string>
+    <string name="personal_details">個人詳細</string>
+    <string name="adjust_macros">PFCバランス調整</string>
+    <string name="goal_current_weight">目標と現在の体重</string>
+    <string name="weight_history">体重履歴</string>
+    <string name="language">言語</string>
+    <string name="preferences">設定</string>
+    <string name="appearance">外観</string>
+    <string name="appearance_desc">ライト、ダーク、またはシステム設定</string>
+    <string name="appearance_light">ライト</string>
+    <string name="appearance_dark">ダーク</string>
+    <string name="appearance_automatic">自動</string>
+    <string name="add_burned_calories">消費カロリーを追加</string>
+    <string name="add_burned_calories_desc">消費カロリーを1日の目標に追加</string>
+    <string name="rollover_calories">カロリー繰越</string>
+    <string name="rollover_calories_desc">昨日残ったカロリー（最大200kcal）を今日の目標に追加</string>
+    <string name="widgets">ウィジェット</string>
+    <string name="how_to_add">追加方法は？</string>
+    <string name="calories_left">残りカロリー</string>
+    <string name="log_food_action">+ 食事を記録</string>
+    <string name="protein_left">残りタンパク質</string>
+    <string name="carbs_left">残り炭水化物</string>
+    <string name="fats_left">残り脂質</string>
+    <string name="scan_food">食事スキャン</string>
+    <string name="barcode">バーコード</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">食事の詳細</string>
+    <string name="options_menu">オプション</string>
+    <string name="report_food">問題を報告</string>
+    <string name="report_submitted">報告を送信しました</string>
+    <string name="save_image">画像を保存</string>
+    <string name="delete_food">食事を削除</string>
+    <string name="calories_label">カロリー</string>
+    <string name="protein_label">タンパク質</string>
+    <string name="carbs_label">炭水化物</string>
+    <string name="fats_label">脂質</string>
+    <string name="fiber_label">食物繊維</string>
+    <string name="sugar_label">糖質</string>
+    <string name="sodium_label">塩分</string>
+    <string name="what_detected">検出結果</string>
+    <string name="confident_suffix">確信</string>
+    <string name="i_see_prefix">認識: </string>
+    <string name="i_suspect_prefix">推測: </string>
+    <string name="ingredients_title">材料</string>
+    <string name="add_more_action">+ もっと追加</string>
+    <string name="share_action">シェア</string>
+    <string name="save_changes">変更を保存</string>
+    <string name="recalibrate">再調整</string>
+    <string name="saved_to_gallery">ギャラリーに保存しました</string>
+
+    <string name="error_saving_image">画像の保存エラー</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">目標体重</string>
+    <string name="change_goal_action">目標を変更</string>
+    <string name="current_weight_label">現在の体重</string>
+    <string name="height_label">身長</string>
+    <string name="not_set">未設定</string>
+    <string name="dob_label">生年月日</string>
+    <string name="gender_label">性別</string>
+    <string name="daily_step_goal_label">1日の目標歩数</string>
+    <string name="steps_unit">歩</string>
+    <string name="edit_content_desc">%1$sを編集</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">名前を編集</string>
+    <string name="save_action">保存</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">友達を紹介</string>
+    <string name="referral_share_message">CalViewAIを一緒に始めよう！私の紹介コード: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">コードをコピーしました！</string>
+    <string name="empower_friends">友達を応援しよう</string>
+    <string name="lose_weight_together">&amp; 一緒に痩せよう</string>
+    <string name="promo_code_label">あなたのプロモコード</string>
+    <string name="copy_code_desc">コードをコピー</string>
+    <string name="share_referral_chooser">紹介コードをシェア</string>
+    <string name="how_to_earn">獲得方法</string>
+    <string name="earn_step_1">プロモコードを友達にシェア</string>
+    <string name="earn_step_2">友達が年間アクセスを支払うと$5獲得</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">誕生日を設定</string>
+    <string name="save_changes_button">変更を保存</string>
+    <string name="set_gender_title">性別を設定</string>
+    <string name="gender_male">男性</string>
+    <string name="gender_female">女性</string>
+    <string name="gender_other">その他</string>
+    <string name="edit_weight_goal_title">体重目標を編集</string>
+    <string name="lose_weight_label">減量</string>
+    <string name="gain_weight_label">増量</string>
+    <string name="maintain_weight_label">体重維持</string>
+    <string name="done_action">完了</string>
+    <string name="set_height_weight_title">身長・体重を設定</string>
+    <string name="height_header">身長</string>
+    <string name="weight_header">体重</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">栄養目標を編集</string>
+    <string name="calorie_goal">カロリー目標</string>
+    <string name="protein_goal">タンパク質目標</string>
+    <string name="carb_goal">炭水化物目標</string>
+    <string name="fat_goal">脂質目標</string>
+    <string name="view_micronutrients">微量栄養素を表示</string>
+    <string name="fiber_goal">食物繊維目標</string>
+    <string name="sugar_goal">糖質目標</string>
+    <string name="sodium_goal">塩分目標</string>
+    <string name="auto_generate_goals">目標を自動生成</string>
+    <string name="edit_desc">編集</string>
+    <string name="check_desc">完了</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">歩数目標を編集</string>
+    <string name="previous_goal_steps">以前の目標 %1$d 歩</string>
+
+    <string name="revert_action">元に戻す</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">機能リクエスト</string>
+    <string name="shape_future_desc">CalViewの未来を作ろう</string>
+    <string name="tab_trending">🔥 トレンド</string>
+    <string name="tab_newest">✨ 新着</string>
+    <string name="tab_my_posts">👤 自分の投稿</string>
+    <string name="search_placeholder">リクエストを検索...</string>
+    <string name="clear_desc">クリア</string>
+    <string name="create_request_desc">リクエストを作成</string>
+    <string name="feedback_hub_title">フィードバック</string>
+    <string name="refresh_desc">更新</string>
+    <string name="dismiss_action">閉じる</string>
+    <string name="new_feature_request_title">新機能リクエスト</string>
+    <string name="share_idea_desc">コミュニティとアイデアを共有</string>
+    <string name="feature_title_label">機能のタイトル</string>
+    <string name="feature_title_placeholder">どんな機能が欲しいですか？</string>
+    <string name="description_label">説明</string>
+    <string name="description_placeholder">アイデアを詳しく説明してください...</string>
+    <string name="add_tags_label">タグを追加</string>
+    <string name="post_request_action">リクエストを投稿</string>
+    <string name="comments_title">コメント (%1$d)</string>
+    <string name="add_comment_placeholder">コメントを追加...</string>
+    <string name="send_desc">送信</string>
+    <string name="no_comments_yet">コメントはまだありません</string>
+    <string name="be_first_comment">最初のコメントを書こう！</string>
+    <string name="empty_state_title">リクエストはまだありません</string>
+    <string name="empty_state_desc">最初の機能を提案しよう！</string>
+    <string name="status_open">受付中</string>
+    <string name="status_in_progress">進行中</string>
+    <string name="status_completed">完了</string>
+    <string name="status_declined">却下</string>
+    <string name="just_now">たった今</string>
+    <string name="minutes_ago_suffix">分前</string>
+    <string name="hours_ago_suffix">時間前</string>
+    <string name="days_ago_suffix">日前</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">ウィジェットを追加</string>
+    <string name="add_calview_widgets_title">ホーム画面にCalViewウィジェットを追加</string>
+    <string name="add_widget_desc">アプリを開かずにカロリーとPFCを一目で確認</string>
+    <string name="step_1_title">ホーム画面を長押し</string>
+    <string name="step_1_desc">ホーム画面の空いている場所をメニューが表示されるまで長押しします</string>
+    <string name="step_2_title">「ウィジェット」をタップ</string>
+    <string name="step_2_desc">メニューまたは画面下部のウィジェットオプションを探します</string>
+    <string name="step_3_title">CalViewを探す</string>
+    <string name="step_3_desc">ウィジェットリストをスクロールまたは検索して「CalView」を見つけます</string>
+    <string name="step_4_title">ウィジェットを配置</string>
+    <string name="step_4_desc">好きなウィジェットを長押しして、ホーム画面にドラッグ＆ドロップします</string>
+    <string name="available_widgets_title">利用可能なウィジェット</string>
+    <string name="widget_calorie_ring_title">カロリーリング</string>
+    <string name="widget_calorie_ring_desc">残りカロリーを表示</string>
+    <string name="widget_macros_title">PFCバランス</string>
+    <string name="widget_macros_desc">タンパク質、炭水化物、脂質</string>
+    <string name="widget_quick_actions_title">クイックアクション</string>
+    <string name="widget_quick_actions_desc">食事スキャン、バーコード</string>
+    <string name="widget_streak_title">記録ストリーク</string>
+    <string name="widget_streak_desc">毎日の記録継続日数</string>
+    <string name="got_it_action">OK！</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">オープンソースライセンス</string>
+    <string name="open_source_intro">CalViewは以下のオープンソースライブラリを使用しています：</string>
+    <string name="apache_license_2_0">Apache License 2.0</string>
+    <string name="apache_license_text">Apache License, Version 2.0（以下「ライセンス」）に基づいてライセンスされています。ライセンスに準拠しない限り、このファイルを使用することはできません。ライセンスのコピーは以下で入手できます：\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n適用される法律で要求される場合、または書面で合意された場合を除き、ライセンスに基づいて配布されるソフトウェアは、「現状のまま」配布され、明示的または黙示的を問わず、いかなる種類の保証または条件もありません。ライセンスに基づく許可および制限を規定する特定の言語については、ライセンスを参照してください。</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">体重履歴</string>
+    <string name="no_weight_entries">体重記録はまだありません</string>
+    <string name="weight_changes_appear_here">体重の変化がここに表示されます</string>
+</resources>

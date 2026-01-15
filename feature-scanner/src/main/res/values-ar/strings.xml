@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">مطلوب الوصول للكاميرا</string>
+    <string name="camera_permission_desc">يحتاج CalViewAI للوصول للكاميرا لمسح الطعام وتقديم معلومات غذائية فورية.</string>
+    <string name="scan_any_food">امسح أي طعام</string>
+    <string name="scan_any_food_desc">التقط صورة لطعامك للتحليل الفوري</string>
+    <string name="barcode_scanning">مسح الباركود</string>
+    <string name="barcode_scanning_desc">امسح باركود المنتجات لمعلومات التغذية</string>
+    <string name="ai_powered">مدعوم بالذكاء الاصطناعي</string>
+    <string name="ai_powered_desc">احصل على تقديرات دقيقة للسعرات خلال ثوانٍ</string>
+    <string name="allow_camera_access">السماح بالوصول للكاميرا</string>
+    <string name="maybe_later">ربما لاحقاً</string>
+    <string name="tips_for_best_results">📸 نصائح لأفضل النتائج</string>
+    <string name="tips_subtitle">اتبع هذه النصائح للحصول على أدق تحليل غذائي من ذكائنا الاسطناعي</string>
+    <string name="tip_center_food">وسط الطعام</string>
+    <string name="tip_center_food_desc">ضع العنصر الرئيسي في وسط العدسة لتعرف أفضل</string>
+    <string name="tip_good_lighting">إضاءة جيدة</string>
+    <string name="tip_good_lighting_desc">الضوء الطبيعي هو الأفضل. تجنب الظلال القوية أو البيئات المظلمة</string>
+    <string name="tip_full_plate">أظهر الطبق كاملاً</string>
+    <string name="tip_full_plate_desc">التقط كل عناصر الطعام للحصول على تقديرات دقيقة للكمية</string>
+    <string name="tip_fill_frame">املأ الإطار</string>
+    <string name="tip_fill_frame_desc">اقترب بما يكفي ليملأ الطعام 70-80% من الشاشة</string>
+    <string name="pro_tip_text">نصيحة محترف: للأطباق المختلطة، حاول فصل العناصر ليتمكن الذكاء الاصطناعي من التعرف على كل مكون</string>
+    <string name="start_scanning">ابدأ المسح</string>
+    <string name="ill_figure_it_out">سأكتشف الأمر بنفسي</string>
+    <string name="camera_permission_denied">تم رفض الوصول للكاميرا</string>
+    <string name="camera_permission_denied_desc">لمسح الطعام والحصول على معلومات غذائية، يرجى السماح بالوصول للكاميرا في إعدادات جهازك.</string>
+    <string name="try_again">حاول مرة أخرى</string>
+    <string name="go_back">رجوع</string>
+    <string name="close_desc">إغلاق</string>
+    <string name="info_desc">معلومات</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">ماسح الباركود</string>
+    <string name="flash_desc">فلاش</string>
+    <string name="retry_action">إعادة المحاولة</string>
+    <string name="scan_mode_scan">مسح</string>
+    <string name="scan_mode_barcode">باركود</string>
+    <string name="scan_mode_label">ملصق</string>
+    <string name="scan_mode_gallery">المعرض</string>
+    <string name="capture_desc">التقاط</string>
+    <string name="food_detected_default">تم اكتشاف طعام</string>
+    <string name="discard_action">تجاهل</string>
+    <string name="log_meal_action">تسجيل الوجبة</string>
+    <string name="product_found_title">تم العثور على منتج</string>
+    <string name="per_100g_serving">لكل 100غ (الحصة: %1$s)</string>
+    <string name="log_this_product_action">سجل هذا المنتج</string>
+    <string name="nutrition_detected_title">تم اكتشاف التغذية</string>
+    <string name="log_this_food_action">سجل هذا الطعام</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">وجباتي</string>
+    <string name="quick_actions_title">إجراءات سريعة</string>
+    <string name="scan_food_title">مسح الطعام</string>
+    <string name="scan_food_subtitle">التقط صورة</string>
+    <string name="create_meal_title">إنشاء وجبة</string>
+    <string name="create_meal_subtitle">إضافة يدوية</string>
+    <string name="your_meals_title">وجباتك</string>
+    <string name="meals_count_suffix"> وجبات</string>
+    <string name="no_meals_yet">لا وجبات بعد</string>
+    <string name="no_meals_desc">امسح طعامك أو أنشئ وجبة مخصصة</string>
+    <string name="create_custom_meal_title">إنشاء وجبة مخصصة</string>
+    <string name="meal_name_label">اسم الوجبة *</string>
+    <string name="calories_label">السعرات *</string>
+    <string name="protein_label">البروتين</string>
+    <string name="carbs_label">الكربوهيدرات</string>
+    <string name="fats_label">الدهون</string>
+    <string name="create_action">إنشاء</string>
+    <string name="cancel_action">إلغاء</string>
+    <string name="delete_meal_title">حذف الوجبة؟</string>
+    <string name="delete_meal_confirm">هل أنت متأكد من حذف "%1$s"؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="delete_action">حذف</string>
+    <string name="delete_meal_content_desc">حذف الوجبة</string>
+    <string name="analyzing_status">جاري التحليل...</string>
+    <string name="back_desc">رجوع</string>
+</resources>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Отслеживание калорий\nстало проще</string>
+    <string name="welcome_subtitle">Сканируйте еду с ИИ и отслеживайте\nпитание без усилий</string>
+    <string name="get_started">Начать</string>
+    <string name="already_have_account">Уже есть аккаунт? </string>
+    <string name="sign_in">Войти</string>
+    <string name="sign_in_semantics">Войти в существующий аккаунт</string>
+    <string name="food_scanner_ui">Интерфейс сканера еды</string>
+    <string name="choose_language">Выберите язык</string>
+    <string name="select_language">Выбрать язык</string>
+    <string name="close">Закрыть</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">Настройте свой профиль</string>
+    <string name="profile_setup_subtitle">Расскажите о себе, чтобы персонализировать опыт</string>
+    <string name="gender_label">Пол</string>
+    <string name="gender_male">Мужской</string>
+    <string name="gender_female">Женский</string>
+    <string name="gender_other">Другой</string>
+    <string name="birthdate_label">Дата рождения</string>
+    <string name="month_label">Месяц</string>
+    <string name="day_label">День</string>
+    <string name="year_label">Год</string>
+    <string name="height_weight_label">Рост и Вес</string>
+    <string name="height_label">Рост</string>
+    <string name="weight_label">Вес</string>
+    <string name="activity_level_label">Уровень активности</string>
+    <string name="activity_level_question">Сколько тренировок в неделю?</string>
+    <string name="activity_0_2">0-2 тренировки</string>
+    <string name="activity_0_2_desc">Мало или нет упражнений</string>
+    <string name="activity_3_5">3-5 тренировок</string>
+    <string name="activity_3_5_desc">Умеренные упражнения</string>
+    <string name="activity_6_plus">6+ тренировок</string>
+    <string name="activity_6_plus_desc">Очень активный</string>
+    <string name="continue_button">Продолжить</string>
+    <string name="back_content_desc">Назад</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">Ваши цели</string>
+    <string name="goals_subtitle">Установите фитнес-цели и предпочтения</string>
+    <string name="goal_question">Какова ваша цель?</string>
+    <string name="goal_lose_weight">Похудеть</string>
+    <string name="goal_lose_weight_desc">Снизить вес тела</string>
+    <string name="goal_maintain">Поддерживать</string>
+    <string name="goal_maintain_desc">Сохранить текущий вес</string>
+    <string name="goal_gain_weight">Набрать вес</string>
+    <string name="goal_gain_weight_desc">Нарастить мышечную массу</string>
+    <string name="target_weight_label">Целевой вес</string>
+    <string name="goal_weight_label">Целевой вес</string>
+    <string name="to_gain">чтобы набрать</string>
+    <string name="to_lose">чтобы сбросить</string>
+    <string name="pace_question">Как быстро вы хотите достичь цели?</string>
+    <string name="pace_slow">Медленно и верно</string>
+    <string name="pace_moderate">Умеренный темп</string>
+    <string name="pace_recommended">Рекомендуемый</string>
+    <string name="pace_fast">Быстрый темп</string>
+    <string name="pace_warning">Вы можете чувствовать усталость, и кожа может обвиснуть</string>
+    <string name="diet_preference_label">Предпочтения в диете</string>
+    <string name="diet_preference_subtitle">Опционально - помогает нам настроить предложения еды</string>
+    <string name="diet_no_preference">Без предпочтений</string>
+    <string name="diet_keto">Кето</string>
+    <string name="diet_vegetarian">Вегетарианская</string>
+    <string name="diet_vegan">Веганская</string>
+    <string name="diet_paleo">Палео</string>
+    <string name="diet_mediterranean">Средиземноморская</string>
+    <string name="rollover_label">Перенос калорий</string>
+    <string name="enable_rollover">Включить перенос</string>
+    <string name="rollover_desc">Неиспользованные калории переносятся на следующий день</string>
+    <string name="add_burned_label">Добавить сожженные калории</string>
+    <string name="add_daily_goal">Добавить к дневной цели</string>
+    <string name="add_burned_desc">Калории, сожженные упражнениями, добавляются к вашему дневному бюджету</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">Достигайте целей с\nуведомлениями</string>
+    <string name="notifications_permission_text">CalViewAI хочет отправлять вам\nУведомления</string>
+    <string name="dont_allow">Не разрешать</string>
+    <string name="allow">Разрешить</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">Ползунок темпа изменения веса, от 0.1 до 1.5 кг в неделю</string>
+    <string name="cd_pace_per_week">Недельный темп: %s в неделю</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>Январь</item>
+        <item>Февраль</item>
+        <item>Март</item>
+        <item>Апрель</item>
+        <item>Май</item>
+        <item>Июнь</item>
+        <item>Июль</item>
+        <item>Август</item>
+        <item>Сентябрь</item>
+        <item>Октябрь</item>
+        <item>Ноябрь</item>
+        <item>Декабрь</item>
+    </string-array>
+</resources>

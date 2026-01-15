@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">Требуется доступ к камере</string>
+    <string name="camera_permission_desc">CalViewAI нужен доступ к камере для сканирования еды и мгновенного предоставления информации о питании.</string>
+    <string name="scan_any_food">Сканировать любую еду</string>
+    <string name="scan_any_food_desc">Сделайте фото вашего блюда для мгновенного анализа</string>
+    <string name="barcode_scanning">Сканирование штрихкода</string>
+    <string name="barcode_scanning_desc">Сканируйте штрихкоды продуктов для инфо о питании</string>
+    <string name="ai_powered">На базе ИИ</string>
+    <string name="ai_powered_desc">Получите точные оценки калорий за секунды</string>
+    <string name="allow_camera_access">Разрешить Доступ к Камере</string>
+    <string name="maybe_later">Может Позже</string>
+    <string name="tips_for_best_results">📸 Советы для Лучших Результатов</string>
+    <string name="tips_subtitle">Следуйте этим советам для получения наиболее точного анализа питания от нашего ИИ</string>
+    <string name="tip_center_food">Центрируйте еду</string>
+    <string name="tip_center_food_desc">Поместите главный предмет в центр видоискателя для лучшего распознавания</string>
+    <string name="tip_good_lighting">Хорошее освещение</string>
+    <string name="tip_good_lighting_desc">Естественный свет лучше всего. Избегайте резких теней или темных помещений</string>
+    <string name="tip_full_plate">Покажите полную тарелку</string>
+    <string name="tip_full_plate_desc">Захватите все продукты, чтобы получить точные оценки порций</string>
+    <string name="tip_fill_frame">Заполните кадр</string>
+    <string name="tip_fill_frame_desc">Подойдите достаточно близко, чтобы еда занимала 70-80% экрана</string>
+    <string name="pro_tip_text">Про-совет: Для смешанных тарелок попробуйте разделить предметы, чтобы ИИ мог идентифицировать каждый компонент</string>
+    <string name="start_scanning">Начать Сканирование</string>
+    <string name="ill_figure_it_out">Я сам разберусь</string>
+    <string name="camera_permission_denied">В Доступе к Камере Отказано</string>
+    <string name="camera_permission_denied_desc">Чтобы сканировать еду и получать информацию о питании, пожалуйста, разрешите доступ к камере в настройках вашего устройства.</string>
+    <string name="try_again">Попробовать Снова</string>
+    <string name="go_back">Назад</string>
+    <string name="close_desc">Закрыть</string>
+    <string name="info_desc">Инфо</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">Сканер Штрихкодов</string>
+    <string name="flash_desc">Вспышка</string>
+    <string name="retry_action">Повторить</string>
+    <string name="scan_mode_scan">Скан</string>
+    <string name="scan_mode_barcode">Штрихкод</string>
+    <string name="scan_mode_label">Этикетка</string>
+    <string name="scan_mode_gallery">Галерея</string>
+    <string name="capture_desc">Снять</string>
+    <string name="food_detected_default">Еда Обнаружена</string>
+    <string name="discard_action">Сбросить</string>
+    <string name="log_meal_action">Записать Блюдо</string>
+    <string name="product_found_title">Продукт Найден</string>
+    <string name="per_100g_serving">На 100г (порция: %1$s)</string>
+    <string name="log_this_product_action">Записать этот Продукт</string>
+    <string name="nutrition_detected_title">Питание Обнаружено</string>
+    <string name="log_this_food_action">Записать эту Еду</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">Мои Блюда</string>
+    <string name="quick_actions_title">Быстрые Действия</string>
+    <string name="scan_food_title">Сканировать Еду</string>
+    <string name="scan_food_subtitle">Сделать фото</string>
+    <string name="create_meal_title">Создать Блюдо</string>
+    <string name="create_meal_subtitle">Добавить вручную</string>
+    <string name="your_meals_title">Ваши Блюда</string>
+    <string name="meals_count_suffix"> блюд</string>
+    <string name="no_meals_yet">Пока нет блюд</string>
+    <string name="no_meals_desc">Сканируйте еду или создайте свое блюдо</string>
+    <string name="create_custom_meal_title">Создать Свое Блюдо</string>
+    <string name="meal_name_label">Название Блюда *</string>
+    <string name="calories_label">Калории *</string>
+    <string name="protein_label">Белок</string>
+    <string name="carbs_label">Углеводы</string>
+    <string name="fats_label">Жиры</string>
+    <string name="create_action">Создать</string>
+    <string name="cancel_action">Отмена</string>
+    <string name="delete_meal_title">Удалить Блюдо?</string>
+    <string name="delete_meal_confirm">Вы уверены, что хотите удалить \"%1$s\"? Это действие нельзя отменить.</string>
+    <string name="delete_action">Удалить</string>
+    <string name="delete_meal_content_desc">Удалить блюдо</string>
+    <string name="analyzing_status">Анализ...</string>
+    <string name="back_desc">Назад</string>
+</resources>

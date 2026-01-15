@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Rastreamento de calorias\nfacilitado</string>
+    <string name="welcome_subtitle">Escaneie sua comida com IA e rastreie\nsua nutrição sem esforço</string>
+    <string name="get_started">Começar</string>
+    <string name="already_have_account">Já tem uma conta? </string>
+    <string name="sign_in">Entrar</string>
+    <string name="sign_in_semantics">Entrar na conta existente</string>
+    <string name="food_scanner_ui">Interface do scanner de alimentos</string>
+    <string name="choose_language">Escolher idioma</string>
+    <string name="select_language">Selecionar idioma</string>
+    <string name="close">Fechar</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">Configure seu perfil</string>
+    <string name="profile_setup_subtitle">Conte-nos sobre você para personalizar sua experiência</string>
+    <string name="gender_label">Gênero</string>
+    <string name="gender_male">Masculino</string>
+    <string name="gender_female">Feminino</string>
+    <string name="gender_other">Outro</string>
+    <string name="birthdate_label">Data de nascimento</string>
+    <string name="month_label">Mês</string>
+    <string name="day_label">Dia</string>
+    <string name="year_label">Ano</string>
+    <string name="height_weight_label">Altura e Peso</string>
+    <string name="height_label">Altura</string>
+    <string name="weight_label">Peso</string>
+    <string name="activity_level_label">Nível de atividade</string>
+    <string name="activity_level_question">Quantos treinos você faz por semana?</string>
+    <string name="activity_0_2">0-2 treinos</string>
+    <string name="activity_0_2_desc">Pouco ou nenhum exercício</string>
+    <string name="activity_3_5">3-5 treinos</string>
+    <string name="activity_3_5_desc">Exercício moderado</string>
+    <string name="activity_6_plus">6+ treinos</string>
+    <string name="activity_6_plus_desc">Muito ativo</string>
+    <string name="continue_button">Continuar</string>
+    <string name="back_content_desc">Voltar</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">Seus objetivos</string>
+    <string name="goals_subtitle">Defina seus objetivos de fitness e preferências</string>
+    <string name="goal_question">Qual é o seu objetivo?</string>
+    <string name="goal_lose_weight">Perder peso</string>
+    <string name="goal_lose_weight_desc">Reduzir peso corporal</string>
+    <string name="goal_maintain">Manter</string>
+    <string name="goal_maintain_desc">Manter peso atual</string>
+    <string name="goal_gain_weight">Ganhar peso</string>
+    <string name="goal_gain_weight_desc">Construir massa muscular</string>
+    <string name="target_weight_label">Peso alvo</string>
+    <string name="goal_weight_label">Peso alvo</string>
+    <string name="to_gain">para ganhar</string>
+    <string name="to_lose">para perder</string>
+    <string name="pace_question">Quão rápido você quer alcançar seu objetivo?</string>
+    <string name="pace_slow">Lento e constante</string>
+    <string name="pace_moderate">Ritmo moderado</string>
+    <string name="pace_recommended">Recomendado</string>
+    <string name="pace_fast">Ritmo rápido</string>
+    <string name="pace_warning">Você pode se sentir muito cansado e desenvolver flacidez</string>
+    <string name="diet_preference_label">Preferência de dieta</string>
+    <string name="diet_preference_subtitle">Opcional - nos ajuda a personalizar sugestões de refeições</string>
+    <string name="diet_no_preference">Sem preferência</string>
+    <string name="diet_keto">Keto</string>
+    <string name="diet_vegetarian">Vegetariana</string>
+    <string name="diet_vegan">Vegana</string>
+    <string name="diet_paleo">Paleo</string>
+    <string name="diet_mediterranean">Mediterrânea</string>
+    <string name="rollover_label">Transferência de calorias</string>
+    <string name="enable_rollover">Habilitar transferência</string>
+    <string name="rollover_desc">Calorias não utilizadas são transferidas para o dia seguinte</string>
+    <string name="add_burned_label">Adicionar calorias queimadas</string>
+    <string name="add_daily_goal">Adicionar ao objetivo diário</string>
+    <string name="add_burned_desc">Calorias queimadas com exercícios são adicionadas ao seu orçamento diário</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">Alcance seus objetivos com\nnotificações</string>
+    <string name="notifications_permission_text">CalViewAI gostaria de enviar\nNotificações</string>
+    <string name="dont_allow">Não permitir</string>
+    <string name="allow">Permitir</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">Barra de ritmo de mudança de peso, de 0.1 a 1.5 kg por semana</string>
+    <string name="cd_pace_per_week">Ritmo semanal: %s por semana</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>Janeiro</item>
+        <item>Fevereiro</item>
+        <item>Março</item>
+        <item>Abril</item>
+        <item>Maio</item>
+        <item>Junho</item>
+        <item>Julho</item>
+        <item>Agosto</item>
+        <item>Setembro</item>
+        <item>Outubro</item>
+        <item>Novembro</item>
+        <item>Dezembro</item>
+    </string-array>
+</resources>

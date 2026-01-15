@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Прогресс</string>
+    <string name="track_health_journey">Отслеживайте путь к здоровью</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Текущий</string>
+    <string name="streak_best">Лучший</string>
+    <string name="day_singular">день</string>
+    <string name="days_plural">дней</string>
+    <string name="milestones_unlocked">Разблокированные этапы</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Воин Недели</string>
+    <string name="milestone_two_week_champion">Двухнедельный Чемпион</string>
+    <string name="milestone_monthly_master">Мастер Месяца</string>
+    <string name="milestone_stellar_streak">Звездная Серия</string>
+    <string name="milestone_ultimate_champion">Абсолютный Чемпион</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Мотивация Дня</string>
+    <string name="motivation_access_desc">Совет мотивации</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">Почти у цели! Вы так близки к своей цели! 🎯</string>
+    <string name="msg_halfway_there">Полпути пройдено! Продолжайте в том же духе! 💪</string>
+    <string name="msg_incredible_streak">Невероятная серия! Вас не остановить! 🔥</string>
+    <string name="msg_great_consistency">Отличная стабильность! Сохраняйте темп! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Маленькие шаги ведут к большим переменам</item>
+        <item>🌟 Стабильность побеждает совершенство каждый раз</item>
+        <item>💪 Ваше тело слышит все, что говорит ваш разум</item>
+        <item>🎯 Прогресс, а не совершенство — вот что важно</item>
+        <item>🔥 Каждый здоровый выбор — это победа</item>
+        <item>⭐ Вы сильнее, чем думаете</item>
+        <item>🚀 Единственная плохая тренировка — та, которой не было</item>
+        <item>🌈 Доверьтесь процессу, наслаждайтесь путем</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Цель Веса</string>
+    <string name="percent_complete">%d%% завершено</string>
+    <string name="current_label">Текущий</string>
+    <string name="goal_label">Цель</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Калории за Неделю</string>
+    <string name="goal_value_format">Цель: %d</string>
+    <string name="legend_under">Ниже</string>
+    <string name="legend_over">Выше</string>
+    <string name="legend_goal">Цель</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Макросы Сегодня</string>
+    <string name="total_label">Всего</string>
+    <string name="macro_protein">Белки</string>
+    <string name="macro_carbs">Углеводы</string>
+    <string name="macro_fats">Жиры</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Микронутриенты</string>
+    <string name="micro_fiber">Клетчатка</string>
+    <string name="micro_sugar">Сахар</string>
+    <string name="micro_sodium">Натрий</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Шаги</string>
+    <string name="burned_label">Сожжено</string>
+    <string name="cal_unit">кал</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">Шаги 7д</string>
+    <string name="weekly_burn_label">Сожжено 7д</string>
+    <string name="record_label">Рекорд</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">ИМТ</string>
+    <string name="bmi_underweight">Недовес</string>
+    <string name="bmi_healthy">Норма</string>
+    <string name="bmi_overweight">Лишний вес</string>
+    <string name="bmi_obese">Ожирение</string>
+    <string name="bmi_content_desc">ИМТ: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">День завершен</string>
+    <string name="current_streak_desc">Текущая серия</string>
+    <string name="best_streak_desc">Лучшая серия</string>
+</resources>

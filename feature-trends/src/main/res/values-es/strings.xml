@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Progreso</string>
+    <string name="track_health_journey">Sigue tu viaje de salud</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Actual</string>
+    <string name="streak_best">Mejor</string>
+    <string name="day_singular">día</string>
+    <string name="days_plural">días</string>
+    <string name="milestones_unlocked">Hitos Desbloqueados</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Guerrero Semanal</string>
+    <string name="milestone_two_week_champion">Campeón de Dos Semanas</string>
+    <string name="milestone_monthly_master">Maestro Mensual</string>
+    <string name="milestone_stellar_streak">Racha Estelar</string>
+    <string name="milestone_ultimate_champion">Campeón Supremo</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Motivación Diaria</string>
+    <string name="motivation_access_desc">Consejo de motivación</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">¡Casi estás ahí! ¡Estás tan cerca de tu objetivo! 🎯</string>
+    <string name="msg_halfway_there">¡A mitad de camino! ¡Sigue empujando! 💪</string>
+    <string name="msg_incredible_streak">¡Racha increíble! ¡Eres imparable! 🔥</string>
+    <string name="msg_great_consistency">¡Gran consistencia! ¡Mantén el impulso! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Pequeños pasos conducen a grandes cambios</item>
+        <item>🌟 La consistencia vence a la perfección cada vez</item>
+        <item>💪 Tu cuerpo escucha todo lo que tu mente dice</item>
+        <item>🎯 Progreso, no perfección, es lo que importa</item>
+        <item>🔥 Cada elección saludable es una victoria</item>
+        <item>⭐ Eres más fuerte de lo que piensas</item>
+        <item>🚀 El único mal entrenamiento es el que no sucedió</item>
+        <item>🌈 Confía en el proceso, abraza el viaje</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Objetivo de Peso</string>
+    <string name="percent_complete">%d%% completo</string>
+    <string name="current_label">Actual</string>
+    <string name="goal_label">Objetivo</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Calorías Semanales</string>
+    <string name="goal_value_format">Objetivo: %d</string>
+    <string name="legend_under">Bajo</string>
+    <string name="legend_over">Sobre</string>
+    <string name="legend_goal">Objetivo</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Macros de Hoy</string>
+    <string name="total_label">Total</string>
+    <string name="macro_protein">Proteína</string>
+    <string name="macro_carbs">Carbs</string>
+    <string name="macro_fats">Grasas</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Micronutrientes</string>
+    <string name="micro_fiber">Fibra</string>
+    <string name="micro_sugar">Azúcar</string>
+    <string name="micro_sodium">Sodio</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Pasos</string>
+    <string name="burned_label">Quemadas</string>
+    <string name="cal_unit">cal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">Pasos 7d</string>
+    <string name="weekly_burn_label">Quema 7d</string>
+    <string name="record_label">Récord</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">IMC</string>
+    <string name="bmi_underweight">Bajo Peso</string>
+    <string name="bmi_healthy">Saludable</string>
+    <string name="bmi_overweight">Sobrepeso</string>
+    <string name="bmi_obese">Obeso</string>
+    <string name="bmi_content_desc">IMC: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">Día completado</string>
+    <string name="current_streak_desc">Racha Actual</string>
+    <string name="best_streak_desc">Mejor Racha</string>
+</resources>

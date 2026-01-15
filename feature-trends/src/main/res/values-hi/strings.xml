@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">प्रगति</string>
+    <string name="track_health_journey">अपनी स्वास्थ्य यात्रा को ट्रैक करें</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">वर्तमान</string>
+    <string name="streak_best">सर्वश्रेष्ठ</string>
+    <string name="day_singular">दिन</string>
+    <string name="days_plural">दिन</string>
+    <string name="milestones_unlocked">मील के पत्थर अनलॉक</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">सप्ताह का योद्धा</string>
+    <string name="milestone_two_week_champion">दो सप्ताह का चैंपियन</string>
+    <string name="milestone_monthly_master">मासिक मास्टर</string>
+    <string name="milestone_stellar_streak">तारकीय स्ट्रीक</string>
+    <string name="milestone_ultimate_champion">अल्टिमेट चैंपियन</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">दैनिक प्रेरणा</string>
+    <string name="motivation_access_desc">प्रेरक टिप</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">लगभग वहाँ! आप अपने लक्ष्य के बहुत करीब हैं! 🎯</string>
+    <string name="msg_halfway_there">आधा रास्ता! जोर लगाते रहो! 💪</string>
+    <string name="msg_incredible_streak">अविश्वसनीय स्ट्रीक! आप अजेय हैं! 🔥</string>
+    <string name="msg_great_consistency">महान स्थिरता! इसे जारी रखें! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 छोटे कदम बड़े बदलावों की ओर ले जाते हैं</item>
+        <item>🌟 स्थिरता हर बार पूर्णता को मात देती है</item>
+        <item>💪 आपका शरीर वह सब सुनता है जो आपका मन कहता है</item>
+        <item>🎯 प्रगति, पूर्णता नहीं, यही मायने रखता है</item>
+        <item>🔥 हर स्वस्थ विकल्प एक जीत है</item>
+        <item>⭐ आप जितना सोचते हैं उससे कहीं ज्यादा मजबूत हैं</item>
+        <item>🚀 एकमात्र खराब कसरत वह है जो नहीं हुई</item>
+        <item>🌈 प्रक्रिया पर भरोसा करें, यात्रा का आनंद लें</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">वजन लक्ष्य</string>
+    <string name="percent_complete">%d%% पूर्ण</string>
+    <string name="current_label">वर्तमान</string>
+    <string name="goal_label">लक्ष्य</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">साप्ताहिक कैलोरी</string>
+    <string name="goal_value_format">लक्ष्य: %d</string>
+    <string name="legend_under">नीचे</string>
+    <string name="legend_over">ऊपर</string>
+    <string name="legend_goal">लक्ष्य</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">आज के मैक्रोज़</string>
+    <string name="total_label">कुल</string>
+    <string name="macro_protein">प्रोटीन</string>
+    <string name="macro_carbs">कार्ब्स</string>
+    <string name="macro_fats">वसा</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">माइक्रोन्यूट्रिएंट्स</string>
+    <string name="micro_fiber">फाइबर</string>
+    <string name="micro_sugar">चीनी</string>
+    <string name="micro_sodium">सोडियम</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">कदम</string>
+    <string name="burned_label">जला हुआ</string>
+    <string name="cal_unit">cal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">कदम 7d</string>
+    <string name="weekly_burn_label">जलना 7d</string>
+    <string name="record_label">रिकॉर्ड</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">कम वजन</string>
+    <string name="bmi_healthy">स्वस्थ</string>
+    <string name="bmi_overweight">अधिक वजन</string>
+    <string name="bmi_obese">मोटापा</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">दिन पूरा हुआ</string>
+    <string name="current_streak_desc">वर्तमान स्ट्रीक</string>
+    <string name="best_streak_desc">सर्वश्रेष्ठ स्ट्रीक</string>
+</resources>

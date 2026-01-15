@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">진행 상황</string>
+    <string name="track_health_journey">건강 여정 추적</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">현재</string>
+    <string name="streak_best">최고</string>
+    <string name="day_singular">일</string>
+    <string name="days_plural">일</string>
+    <string name="milestones_unlocked">마일스톤 잠금 해제됨</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">주간 전사</string>
+    <string name="milestone_two_week_champion">2주 챔피언</string>
+    <string name="milestone_monthly_master">월간 마스터</string>
+    <string name="milestone_stellar_streak">스텔라 스트릭</string>
+    <string name="milestone_ultimate_champion">궁극의 챔피언</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">오늘의 동기 부여</string>
+    <string name="motivation_access_desc">동기 부여 팁</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">거의 다 왔습니다! 목표에 매우 가깝습니다! 🎯</string>
+    <string name="msg_halfway_there">절반 왔습니다! 계속 힘내세요! 💪</string>
+    <string name="msg_incredible_streak">놀라운 연속 기록! 멈출 수 없군요! 🔥</string>
+    <string name="msg_great_consistency">훌륭한 꾸준함! 그 페이스를 유지하세요! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 작은 발걸음이 큰 변화로 이어집니다</item>
+        <item>🌟 꾸준함이 항상 완벽함을 이깁니다</item>
+        <item>💪 당신의 몸은 당신의 마음이 말하는 모든 것을 듣습니다</item>
+        <item>🎯 완벽함이 아닌 진전이 중요합니다</item>
+        <item>🔥 모든 건강한 선택은 승리입니다</item>
+        <item>⭐ 당신은 당신이 생각하는 것보다 강합니다</item>
+        <item>🚀 유일한 나쁜 운동은 하지 않은 운동입니다</item>
+        <item>🌈 과정을 믿고 여정을 즐기세요</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">체중 목표</string>
+    <string name="percent_complete">%d%% 완료</string>
+    <string name="current_label">현재</string>
+    <string name="goal_label">목표</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">주간 칼로리</string>
+    <string name="goal_value_format">목표: %d</string>
+    <string name="legend_under">미만</string>
+    <string name="legend_over">초과</string>
+    <string name="legend_goal">목표</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">오늘의 매크로</string>
+    <string name="total_label">합계</string>
+    <string name="macro_protein">단백질</string>
+    <string name="macro_carbs">탄수화물</string>
+    <string name="macro_fats">지방</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">미량 영양소</string>
+    <string name="micro_fiber">식이섬유</string>
+    <string name="micro_sugar">당류</string>
+    <string name="micro_sodium">나트륨</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">걸음</string>
+    <string name="burned_label">소모</string>
+    <string name="cal_unit">kcal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">걸음 7일</string>
+    <string name="weekly_burn_label">소모 7일</string>
+    <string name="record_label">기록</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">저체중</string>
+    <string name="bmi_healthy">정상</string>
+    <string name="bmi_overweight">과체중</string>
+    <string name="bmi_obese">비만</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">완료된 날짜</string>
+    <string name="current_streak_desc">현재 스트릭</string>
+    <string name="best_streak_desc">최고 스트릭</string>
+</resources>

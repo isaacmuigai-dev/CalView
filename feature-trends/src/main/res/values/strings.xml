@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Progress</string>
+    <string name="track_health_journey">Track your health journey</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Current</string>
+    <string name="streak_best">Best</string>
+    <string name="day_singular">day</string>
+    <string name="days_plural">days</string>
+    <string name="milestones_unlocked">Milestones Unlocked</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Week Warrior</string>
+    <string name="milestone_two_week_champion">Two Week Champion</string>
+    <string name="milestone_monthly_master">Monthly Master</string>
+    <string name="milestone_stellar_streak">Stellar Streak</string>
+    <string name="milestone_ultimate_champion">Ultimate Champion</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Daily Motivation</string>
+    <string name="motivation_access_desc">Motivation tip</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">Almost there! You\'re so close to your goal! 🎯</string>
+    <string name="msg_halfway_there">Halfway there! Keep pushing forward! 💪</string>
+    <string name="msg_incredible_streak">Incredible streak! You\'re unstoppable! 🔥</string>
+    <string name="msg_great_consistency">Great consistency! Keep the momentum! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Small steps lead to big changes</item>
+        <item>🌟 Consistency beats perfection every time</item>
+        <item>💪 Your body hears everything your mind says</item>
+        <item>🎯 Progress, not perfection, is what matters</item>
+        <item>🔥 Every healthy choice is a victory</item>
+        <item>⭐ You\'re stronger than you think</item>
+        <item>🚀 The only bad workout is the one that didn\'t happen</item>
+        <item>🌈 Trust the process, embrace the journey</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Weight Goal</string>
+    <string name="percent_complete">%d%% complete</string>
+    <string name="current_label">Current</string>
+    <string name="goal_label">Goal</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Weekly Calories</string>
+    <string name="goal_value_format">Goal: %d</string>
+    <string name="legend_under">Under</string>
+    <string name="legend_over">Over</string>
+    <string name="legend_goal">Goal</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Today\'s Macros</string>
+    <string name="total_label">Total</string>
+    <string name="macro_protein">Protein</string>
+    <string name="macro_carbs">Carbs</string>
+    <string name="macro_fats">Fats</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Micronutrients</string>
+    <string name="micro_fiber">Fiber</string>
+    <string name="micro_sugar">Sugar</string>
+    <string name="micro_sodium">Sodium</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Steps</string>
+    <string name="burned_label">Burned</string>
+    <string name="cal_unit">cal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">7d Steps</string>
+    <string name="weekly_burn_label">7d Burn</string>
+    <string name="record_label">Record</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">Under</string>
+    <string name="bmi_healthy">Healthy</string>
+    <string name="bmi_overweight">Over</string>
+    <string name="bmi_obese">Obese</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">Day completed</string>
+    <string name="current_streak_desc">Current Streak</string>
+    <string name="best_streak_desc">Best Streak</string>
+</resources>

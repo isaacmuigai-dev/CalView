@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Kufuatilia Kalori\nKumerahisishwa</string>
+    <string name="welcome_subtitle">Changanua chakula chako kwa AI na\nufuatilie lishe yako kwa urahisi</string>
+    <string name="get_started">Anza</string>
+    <string name="already_have_account">Tayari una akaunti? </string>
+    <string name="sign_in">Weka sahihi</string>
+    <string name="sign_in_semantics">Ingia kwenye akaunti iliyopo</string>
+    <string name="food_scanner_ui">Kichanganuzi cha Chakula UI</string>
+    <string name="choose_language">Chagua Lugha</string>
+    <string name="select_language">Chagua Lugha</string>
+    <string name="close">Funga</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">Weka Profaili Yako</string>
+    <string name="profile_setup_subtitle">Tuambie kukuhusu ili kubinafsisha uzoefu wako</string>
+    <string name="gender_label">Jinsia</string>
+    <string name="gender_male">Mwanaume</string>
+    <string name="gender_female">Mwanamke</string>
+    <string name="gender_other">Nyingine</string>
+    <string name="birthdate_label">Tarehe ya Kuzaliwa</string>
+    <string name="month_label">Mwezi</string>
+    <string name="day_label">Siku</string>
+    <string name="year_label">Mwaka</string>
+    <string name="height_weight_label">Urefu na Uzito</string>
+    <string name="height_label">Urefu</string>
+    <string name="weight_label">Uzito</string>
+    <string name="activity_level_label">Kiwango cha Shughuli</string>
+    <string name="activity_level_question">Unafanya mazoezi mara ngapi kwa wiki?</string>
+    <string name="activity_0_2">Mazoezi 0-2</string>
+    <string name="activity_0_2_desc">Harakati kidogo au hakuna</string>
+    <string name="activity_3_5">Mazoezi 3-5</string>
+    <string name="activity_3_5_desc">Mazoezi ya wastani</string>
+    <string name="activity_6_plus">Mazoezi 6+</string>
+    <string name="activity_6_plus_desc">Hai sana</string>
+    <string name="continue_button">Endelea</string>
+    <string name="back_content_desc">Rudi</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">Malengo Yako</string>
+    <string name="goals_subtitle">Weka malengo yako ya siha na mapendeleo</string>
+    <string name="goal_question">Lengo lako ni nini?</string>
+    <string name="goal_lose_weight">Punguza Uzito</string>
+    <string name="goal_lose_weight_desc">Punguza uzito wa mwili</string>
+    <string name="goal_maintain">Dumisha</string>
+    <string name="goal_maintain_desc">Weka uzito wa sasa</string>
+    <string name="goal_gain_weight">Ongeza Uzito</string>
+    <string name="goal_gain_weight_desc">Jenga misuli</string>
+    <string name="target_weight_label">Uzito wa Lengo</string>
+    <string name="goal_weight_label">Uzito wa Lengo</string>
+    <string name="to_gain">Kupata</string>
+    <string name="to_lose">Kupoteza</string>
+    <string name="pace_question">Je, unataka kufikia lengo lako haraka kiasi gani?</string>
+    <string name="pace_slow">Polepole na Imara</string>
+    <string name="pace_moderate">Kasi ya Wastani</string>
+    <string name="pace_recommended">Imependekezwa</string>
+    <string name="pace_fast">Kasi ya Haraka</string>
+    <string name="pace_warning">Unaweza kuhisi uchovu na kuwa na ngozi iliyolegea</string>
+    <string name="diet_preference_label">Mapendeleo ya Lishe</string>
+    <string name="diet_preference_subtitle">Hiari - Hutusaidia kubinafsisha mapendekezo ya chakula</string>
+    <string name="diet_no_preference">Hakuna Mapendeleo</string>
+    <string name="diet_keto">Keto</string>
+    <string name="diet_vegetarian">Mboga</string>
+    <string name="diet_vegan">Mboga tu (Vegan)</string>
+    <string name="diet_paleo">Paleo</string>
+    <string name="diet_mediterranean">Mediterranean</string>
+    <string name="rollover_label">Kuhamisha Kalori</string>
+    <string name="enable_rollover">Washa Uhamisho</string>
+    <string name="rollover_desc">Kalori ambazo hazijatumiwa huhamishiwa siku inayofuata</string>
+    <string name="add_burned_label">Ongeza Kalori Zilizochomwa</string>
+    <string name="add_daily_goal">Ongeza kwa lengo la kila siku</string>
+    <string name="add_burned_desc">Kalori zilizochomwa kutoka kwa mazoezi huongezwa kwa bajeti yako ya kila siku</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">Fikia malengo yako\nna arifa</string>
+    <string name="notifications_permission_text">CalViewAI inataka kukutumia\narifa</string>
+    <string name="dont_allow">Usiruhusu</string>
+    <string name="allow">Ruhusu</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">Kitelezi cha kasi ya kubadilisha uzito, kutoka kilo 0.1 hadi 1.5 kwa wiki</string>
+    <string name="cd_pace_per_week">Kasi kwa wiki: %s kwa wiki</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>Januari</item>
+        <item>Februari</item>
+        <item>Machi</item>
+        <item>Aprili</item>
+        <item>Mei</item>
+        <item>Juni</item>
+        <item>Julai</item>
+        <item>Agosti</item>
+        <item>Septemba</item>
+        <item>Oktoba</item>
+        <item>Novemba</item>
+        <item>Desemba</item>
+    </string-array>
+</resources>

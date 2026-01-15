@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">释放全部潜力</string>
+    <string name="paywall_subtitle">获得无限制的 AI 扫描、详细的宏量分析和个性化见解。</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">无限制的 AI 食物扫描</string>
+    <string name="feature_advanced_macros">高级宏量营养素细分</string>
+    <string name="feature_trends_insights">趋势和个性化见解</string>
+    <string name="feature_no_ads">无广告</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">正在加载计划...</string>
+    <string name="plan_yearly_best_value">年度 (超值)</string>
+    <string name="plan_monthly">月度</string>
+    <string name="price_per_month">仅 %s / 月</string>
+    <string name="cancel_anytime">随时取消</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">立即开始高级版</string>
+    <string name="restore_purchases">恢复购买</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">服务条款</string>
+    <string name="privacy_policy">隐私政策</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">关闭</string>
+    <string name="cd_feature_prefix">功能： %s</string>
+    <string name="cd_loading_plans">正在加载订阅计划</string>
+    <string name="cd_subscription_option_selected">订阅 %1$s, %2$s. %3$s. 已选择</string>
+    <string name="cd_subscription_option_not_selected">订阅 %1$s, %2$s. %3$s. 未选择</string>
+</resources>

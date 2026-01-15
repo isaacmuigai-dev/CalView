@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">追踪与成长</string>
+    <string name="calories_burned_notification">🔥 燃烧了 %1$d 卡路里！已添加到每日目标。</string>
+    <string name="connect_google_health">连接 Google Health</string>
+    <string name="sync_steps_calories">同步步数和卡路里</string>
+    <string name="connect">连接</string>
+    <string name="health_score">健康评分</string>
+    <string name="health_score_desc">碳水化合物和脂肪正常。您的卡路里和蛋白质摄入量较低，这可能会减缓减肥速度并影响肌肉保持。</string>
+    <string name="recently_uploaded">最近上传</string>
+    <string name="empty_meals_message">点击 + 添加您今天的第一顿饭</string>
+    <string name="fiber_left">剩余纤维</string>
+    <string name="sugar_left">剩余糖分</string>
+    <string name="sodium_left">剩余钠</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">设置</string>
+    <string name="years_old_suffix">岁</string>
+    <string name="invite_friends">邀请朋友</string>
+    <string name="invite_friends_desc">一起旅程\n更轻松。</string>
+    <string name="refer_friend_action">推荐朋友赚取 $5</string>
+    <string name="personal_details">个人详情</string>
+    <string name="adjust_macros">调整宏量营养素</string>
+    <string name="goal_current_weight">目标和当前体重</string>
+    <string name="weight_history">体重历史</string>
+    <string name="language">语言</string>
+    <string name="preferences">偏好</string>
+    <string name="appearance">外观</string>
+    <string name="appearance_desc">选择浅色、深色或系统</string>
+    <string name="appearance_light">浅色</string>
+    <string name="appearance_dark">深色</string>
+    <string name="appearance_automatic">自动</string>
+    <string name="add_burned_calories">添加燃烧的卡路里</string>
+    <string name="add_burned_calories_desc">将燃烧的卡路里添加到每日目标</string>
+    <string name="rollover_calories">卡路里结转</string>
+    <string name="rollover_calories_desc">将昨天剩余的最多 200 卡路里添加到今天的每日目标</string>
+    <string name="widgets">小部件</string>
+    <string name="how_to_add">如何添加？</string>
+    <string name="calories_left">剩余卡路里</string>
+    <string name="log_food_action">+ 记录食物</string>
+    <string name="protein_left">剩余蛋白质</string>
+    <string name="carbs_left">剩余碳水化合物</string>
+    <string name="fats_left">剩余脂肪</string>
+    <string name="scan_food">扫描食物</string>
+    <string name="barcode">条形码</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">食物详情</string>
+    <string name="options_menu">选项</string>
+    <string name="report_food">报告食物</string>
+    <string name="report_submitted">报告已提交</string>
+    <string name="save_image">保存图片</string>
+    <string name="delete_food">删除食物</string>
+    <string name="calories_label">卡路里</string>
+    <string name="protein_label">蛋白质</string>
+    <string name="carbs_label">碳水化合物</string>
+    <string name="fats_label">脂肪</string>
+    <string name="fiber_label">纤维</string>
+    <string name="sugar_label">糖分</string>
+    <string name="sodium_label">钠</string>
+    <string name="what_detected">我检测到了什么</string>
+    <string name="confident_suffix">确信</string>
+    <string name="i_see_prefix">我看到：</string>
+    <string name="i_suspect_prefix">我怀疑：</string>
+    <string name="ingredients_title">成分</string>
+    <string name="add_more_action">+ 添加更多</string>
+    <string name="share_action">分享</string>
+    <string name="save_changes">保存更改</string>
+    <string name="recalibrate">重新校准</string>
+    <string name="saved_to_gallery">已保存到相册</string>
+
+    <string name="error_saving_image">保存图片时出错</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">目标体重</string>
+    <string name="change_goal_action">更改目标</string>
+    <string name="current_weight_label">当前体重</string>
+    <string name="height_label">身高</string>
+    <string name="not_set">未设置</string>
+    <string name="dob_label">出生日期</string>
+    <string name="gender_label">性别</string>
+    <string name="daily_step_goal_label">每日步数目标</string>
+    <string name="steps_unit">步</string>
+    <string name="edit_content_desc">编辑 %1$s</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">编辑姓名</string>
+    <string name="save_action">保存</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">邀请朋友</string>
+    <string name="referral_share_message">加入 CalViewAI 和我一起！我的推荐代码是：%1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">代码已复制到剪贴板！</string>
+    <string name="empower_friends">赋能您的朋友</string>
+    <string name="lose_weight_together">&amp; 一起减肥</string>
+    <string name="promo_code_label">您的个人推荐码</string>
+    <string name="copy_code_desc">复制代码</string>
+    <string name="share_referral_chooser">分享推荐码</string>
+    <string name="how_to_earn">如何赚取</string>
+    <string name="earn_step_1">与朋友分享您的推荐码</string>
+    <string name="earn_step_2">朋友购买年度会员时您可获得 $5</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">设置生日</string>
+    <string name="save_changes_button">保存更改</string>
+    <string name="set_gender_title">设置性别</string>
+    <string name="gender_male">男</string>
+    <string name="gender_female">女</string>
+    <string name="gender_other">其他</string>
+    <string name="edit_weight_goal_title">编辑体重目标</string>
+    <string name="lose_weight_label">减肥</string>
+    <string name="gain_weight_label">增重</string>
+    <string name="maintain_weight_label">保持体重</string>
+    <string name="done_action">完成</string>
+    <string name="set_height_weight_title">设置身高和体重</string>
+    <string name="height_header">身高</string>
+    <string name="weight_header">体重</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">编辑营养目标</string>
+    <string name="calorie_goal">卡路里目标</string>
+    <string name="protein_goal">蛋白质目标</string>
+    <string name="carb_goal">碳水化合物目标</string>
+    <string name="fat_goal">脂肪目标</string>
+    <string name="view_micronutrients">查看微量营养素</string>
+    <string name="fiber_goal">纤维目标</string>
+    <string name="sugar_goal">糖分目标</string>
+    <string name="sodium_goal">钠目标</string>
+    <string name="auto_generate_goals">自动生成目标</string>
+    <string name="edit_desc">编辑</string>
+    <string name="check_desc">完成</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">编辑步数目标</string>
+    <string name="previous_goal_steps">这也是之前目标 %1$d 步</string>
+
+    <string name="revert_action">还原</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">功能请求</string>
+    <string name="shape_future_desc">塑造 CalView 的未来</string>
+    <string name="tab_trending">🔥 热门</string>
+    <string name="tab_newest">✨ 最新</string>
+    <string name="tab_my_posts">👤 我的帖子</string>
+    <string name="search_placeholder">搜索功能请求...</string>
+    <string name="clear_desc">清除</string>
+    <string name="create_request_desc">创建请求</string>
+    <string name="feedback_hub_title">反馈中心</string>
+    <string name="refresh_desc">刷新</string>
+    <string name="dismiss_action">取消</string>
+    <string name="new_feature_request_title">新功能请求</string>
+    <string name="share_idea_desc">与社区分享您的想法</string>
+    <string name="feature_title_label">功能标题</string>
+    <string name="feature_title_placeholder">您想要什么功能？</string>
+    <string name="description_label">描述</string>
+    <string name="description_placeholder">详细描述您的想法...</string>
+    <string name="add_tags_label">添加标签</string>
+    <string name="post_request_action">发布请求</string>
+    <string name="comments_title">评论 (%1$d)</string>
+    <string name="add_comment_placeholder">添加评论...</string>
+    <string name="send_desc">发送</string>
+    <string name="no_comments_yet">暂无评论</string>
+    <string name="be_first_comment">成为第一个分享想法的人！</string>
+    <string name="empty_state_title">暂无请求</string>
+    <string name="empty_state_desc">成为第一个建议功能的人！</string>
+    <string name="status_open">开启</string>
+    <string name="status_in_progress">进行中</string>
+    <string name="status_completed">已完成</string>
+    <string name="status_declined">已拒绝</string>
+    <string name="just_now">刚刚</string>
+    <string name="minutes_ago_suffix">分钟前</string>
+    <string name="hours_ago_suffix">小时前</string>
+    <string name="days_ago_suffix">天前</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">添加小部件</string>
+    <string name="add_calview_widgets_title">添加 CalView 小部件到主屏幕</string>
+    <string name="add_widget_desc">无需打开应用即可一目了然地追踪卡路里和宏量营养素</string>
+    <string name="step_1_title">长按主屏幕</string>
+    <string name="step_1_desc">长按主屏幕上的空白区域，直到出现菜单</string>
+    <string name="step_2_title">点击“小部件”</string>
+    <string name="step_2_desc">在菜单或屏幕底部查找小部件选项</string>
+    <string name="step_3_title">查找 CalView</string>
+    <string name="step_3_desc">滚动小部件列表或搜索“CalView”以找到我们的小部件</string>
+    <string name="step_4_title">拖动小部件到主屏幕</string>
+    <string name="step_4_desc">按住您想要的小部件，然后将其拖到主屏幕上</string>
+    <string name="available_widgets_title">可用小部件</string>
+    <string name="widget_calorie_ring_title">卡路里环</string>
+    <string name="widget_calorie_ring_desc">显示剩余卡路里</string>
+    <string name="widget_macros_title">宏量营养素</string>
+    <string name="widget_macros_desc">蛋白质、碳水化合物、脂肪</string>
+    <string name="widget_quick_actions_title">快速操作</string>
+    <string name="widget_quick_actions_desc">扫描食物、条形码</string>
+    <string name="widget_streak_title">连续记录</string>
+    <string name="widget_streak_desc">每日记录连续天数</string>
+    <string name="got_it_action">知道了！</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">开源许可证</string>
+    <string name="open_source_intro">CalView 使用以下开源库和模型：</string>
+    <string name="apache_license_2_0">Apache 许可证 2.0</string>
+    <string name="apache_license_text">根据 Apache 许可证 2.0 版（“许可证”）授权；除非遵守许可证，否则您不得使用此文件。您可以在以下网址获取许可证副本：\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n除非适用法律要求或书面同意，否则根据许可证分发的软件是按“原样”分发的，没有任何明示或暗示的保证或条件。请参阅许可证以了解管理许可和限制的特定语言。</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">体重历史</string>
+    <string name="no_weight_entries">暂无体重记录</string>
+    <string name="weight_changes_appear_here">您的体重变化将显示在这里</string>
+</resources>

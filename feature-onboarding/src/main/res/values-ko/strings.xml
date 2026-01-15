@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">칼로리 추적이\n쉬워졌습니다</string>
+    <string name="welcome_subtitle">AI로 음식을 스캔하고\n손쉽게 영양 섭취를 추적하세요</string>
+    <string name="get_started">시작하기</string>
+    <string name="already_have_account">이미 계정이 있으신가요? </string>
+    <string name="sign_in">로그인</string>
+    <string name="sign_in_semantics">기존 계정으로 로그인</string>
+    <string name="food_scanner_ui">음식 스캐너 UI</string>
+    <string name="choose_language">언어 선택</string>
+    <string name="select_language">언어 선택</string>
+    <string name="close">닫기</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">프로필 설정</string>
+    <string name="profile_setup_subtitle">경험을 개인화하기 위해 귀하에 대해 알려주세요</string>
+    <string name="gender_label">성별</string>
+    <string name="gender_male">남성</string>
+    <string name="gender_female">여성</string>
+    <string name="gender_other">기타</string>
+    <string name="birthdate_label">생년월일</string>
+    <string name="month_label">월</string>
+    <string name="day_label">일</string>
+    <string name="year_label">년</string>
+    <string name="height_weight_label">신장 및 체중</string>
+    <string name="height_label">신장</string>
+    <string name="weight_label">체중</string>
+    <string name="activity_level_label">활동 수준</string>
+    <string name="activity_level_question">일주일에 몇 번 운동하시나요?</string>
+    <string name="activity_0_2">0-2회 운동</string>
+    <string name="activity_0_2_desc">운동을 거의 하지 않음</string>
+    <string name="activity_3_5">3-5회 운동</string>
+    <string name="activity_3_5_desc">적당한 운동</string>
+    <string name="activity_6_plus">6회 이상 운동</string>
+    <string name="activity_6_plus_desc">매우 활동적</string>
+    <string name="continue_button">계속</string>
+    <string name="back_content_desc">뒤로</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">당신의 목표</string>
+    <string name="goals_subtitle">피트니스 목표 및 선호도 설정</string>
+    <string name="goal_question">당신의 목표는 무엇입니까?</string>
+    <string name="goal_lose_weight">체중 감량</string>
+    <string name="goal_lose_weight_desc">체중 줄이기</string>
+    <string name="goal_maintain">유지</string>
+    <string name="goal_maintain_desc">현재 체중 유지</string>
+    <string name="goal_gain_weight">체중 증량</string>
+    <string name="goal_gain_weight_desc">근육량 늘리기</string>
+    <string name="target_weight_label">목표 체중</string>
+    <string name="goal_weight_label">목표 체중</string>
+    <string name="to_gain">증량하기</string>
+    <string name="to_lose">감량하기</string>
+    <string name="pace_question">얼마나 빨리 목표를 달성하고 싶으신가요?</string>
+    <string name="pace_slow">느리지만 꾸준히</string>
+    <string name="pace_moderate">중간 속도</string>
+    <string name="pace_recommended">권장</string>
+    <string name="pace_fast">빠른 속도</string>
+    <string name="pace_warning">피로감을 느끼거나 피부가 처질 수 있습니다</string>
+    <string name="diet_preference_label">식단 선호도</string>
+    <string name="diet_preference_subtitle">선택 사항 - 음식 제안을 개인화하는 데 도움이 됩니다</string>
+    <string name="diet_no_preference">선호 없음</string>
+    <string name="diet_keto">키토</string>
+    <string name="diet_vegetarian">채식주의</string>
+    <string name="diet_vegan">비건</string>
+    <string name="diet_paleo">팔레오</string>
+    <string name="diet_mediterranean">지중해식</string>
+    <string name="rollover_label">칼로리 이월</string>
+    <string name="enable_rollover">이월 활성화</string>
+    <string name="rollover_desc">사용하지 않은 칼로리는 다음 날로 이월됩니다</string>
+    <string name="add_burned_label">소모된 칼로리 추가</string>
+    <string name="add_daily_goal">일일 목표에 추가</string>
+    <string name="add_burned_desc">운동으로 소모된 칼로리가 일일 예산에 추가됩니다</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">알림으로\n목표 달성</string>
+    <string name="notifications_permission_text">CalViewAI가 알림을\n보내려고 합니다</string>
+    <string name="dont_allow">허용 안 함</string>
+    <string name="allow">허용</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">체중 변화 속도 슬라이더, 주당 0.1 ~ 1.5kg</string>
+    <string name="cd_pace_per_week">주당 속도: 주당 %s</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>1월</item>
+        <item>2월</item>
+        <item>3월</item>
+        <item>4월</item>
+        <item>5월</item>
+        <item>6월</item>
+        <item>7월</item>
+        <item>8월</item>
+        <item>9월</item>
+        <item>10월</item>
+        <item>11월</item>
+        <item>12월</item>
+    </string-array>
+</resources>

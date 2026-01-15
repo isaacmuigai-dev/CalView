@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">卡路里追踪\n变得简单</string>
+    <string name="welcome_subtitle">通过 AI 扫描食物并\n轻松追踪您的营养摄入</string>
+    <string name="get_started">开始</string>
+    <string name="already_have_account">已经有账号了吗？ </string>
+    <string name="sign_in">登录</string>
+    <string name="sign_in_semantics">登录到现有账号</string>
+    <string name="food_scanner_ui">食物扫描仪界面</string>
+    <string name="choose_language">选择语言</string>
+    <string name="select_language">选择语言</string>
+    <string name="close">关闭</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">设置您的个人资料</string>
+    <string name="profile_setup_subtitle">告诉我们关于您的信息，以便个性化您的体验</string>
+    <string name="gender_label">性别</string>
+    <string name="gender_male">男</string>
+    <string name="gender_female">女</string>
+    <string name="gender_other">其他</string>
+    <string name="birthdate_label">出生日期</string>
+    <string name="month_label">月</string>
+    <string name="day_label">日</string>
+    <string name="year_label">年</string>
+    <string name="height_weight_label">身高和体重</string>
+    <string name="height_label">身高</string>
+    <string name="weight_label">体重</string>
+    <string name="activity_level_label">活动水平</string>
+    <string name="activity_level_question">您每周锻炼多少次？</string>
+    <string name="activity_0_2">0-2 次锻炼</string>
+    <string name="activity_0_2_desc">很少或没有运动</string>
+    <string name="activity_3_5">3-5 次锻炼</string>
+    <string name="activity_3_5_desc">适度运动</string>
+    <string name="activity_6_plus">6+ 次锻炼</string>
+    <string name="activity_6_plus_desc">非常活跃</string>
+    <string name="continue_button">继续</string>
+    <string name="back_content_desc">返回</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">您的目标</string>
+    <string name="goals_subtitle">设定您的健身目标和偏好</string>
+    <string name="goal_question">您的目标是什么？</string>
+    <string name="goal_lose_weight">减肥</string>
+    <string name="goal_lose_weight_desc">减少体重</string>
+    <string name="goal_maintain">保持</string>
+    <string name="goal_maintain_desc">保持当前体重</string>
+    <string name="goal_gain_weight">增重</string>
+    <string name="goal_gain_weight_desc">增加肌肉</string>
+    <string name="target_weight_label">目标体重</string>
+    <string name="goal_weight_label">目标体重</string>
+    <string name="to_gain">增加</string>
+    <string name="to_lose">减少</string>
+    <string name="pace_question">您想多快达到目标？</string>
+    <string name="pace_slow">缓慢而稳定</string>
+    <string name="pace_moderate">适中速度</string>
+    <string name="pace_recommended">推荐</string>
+    <string name="pace_fast">快速</string>
+    <string name="pace_warning">您可能会感到疲劳并出现皮肤松弛</string>
+    <string name="diet_preference_label">饮食偏好</string>
+    <string name="diet_preference_subtitle">可选 - 帮助我们个性化食物建议</string>
+    <string name="diet_no_preference">无偏好</string>
+    <string name="diet_keto">生酮</string>
+    <string name="diet_vegetarian">素食</string>
+    <string name="diet_vegan">纯素</string>
+    <string name="diet_paleo">原始人饮食</string>
+    <string name="diet_mediterranean">地中海饮食</string>
+    <string name="rollover_label">卡路里结转</string>
+    <string name="enable_rollover">启用结转</string>
+    <string name="rollover_desc">未使用的卡路里结转到第二天</string>
+    <string name="add_burned_label">添加燃烧的卡路里</string>
+    <string name="add_daily_goal">添加到每日目标</string>
+    <string name="add_burned_desc">运动燃烧的卡路里添加到您的每日预算中</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">通过通知\n实现您的目标</string>
+    <string name="notifications_permission_text">CalViewAI 想要向您\n发送通知</string>
+    <string name="dont_allow">不允许</string>
+    <string name="allow">允许</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">体重变化速度滑块，每周 0.1 到 1.5 公斤</string>
+    <string name="cd_pace_per_week">每周速度：每周 %s</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>一月</item>
+        <item>二月</item>
+        <item>三月</item>
+        <item>四月</item>
+        <item>五月</item>
+        <item>六月</item>
+        <item>七月</item>
+        <item>八月</item>
+        <item>九月</item>
+        <item>十月</item>
+        <item>十一月</item>
+        <item>十二月</item>
+    </string-array>
+</resources>

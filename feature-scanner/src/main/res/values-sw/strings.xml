@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">Ufikiaji wa Kamera Unahitajika</string>
+    <string name="camera_permission_desc">CalViewAI inahitaji kufikia kamera ili kuchanganua chakula na kutoa maelezo ya lishe ya papo hapo.</string>
+    <string name="scan_any_food">Changanua Chakula Chochote</string>
+    <string name="scan_any_food_desc">Piga picha ya chakula chako kwa uchambuzi wa papo hapo</string>
+    <string name="barcode_scanning">Uchanganuzi wa Msimbo Pau</string>
+    <string name="barcode_scanning_desc">Changanua misimbo pau ya bidhaa kwa maelezo ya lishe</string>
+    <string name="ai_powered">Inaendeshwa na AI</string>
+    <string name="ai_powered_desc">Pata makadirio sahihi ya kalori kwa sekunde</string>
+    <string name="allow_camera_access">Ruhusu Ufikiaji wa Kamera</string>
+    <string name="maybe_later">Labda Baadaye</string>
+    <string name="tips_for_best_results">📸 Vidokezo kwa Matokeo Bora</string>
+    <string name="tips_subtitle">Fuata vidokezo hivi ili kupata uchambuzi sahihi zaidi wa lishe kutoka kwa AI yetu</string>
+    <string name="tip_center_food">Weka Chakula Katikati</string>
+    <string name="tip_center_food_desc">Weka bidhaa kuu katikati ya kiweka picha kwa utambuzi bora</string>
+    <string name="tip_good_lighting">Mwangaza Mzuri</string>
+    <string name="tip_good_lighting_desc">Nuru ya asili ni bora. Epuka vivuli vikali au mazingira ya giza</string>
+    <string name="tip_full_plate">Onyesha Sahani Kamili</string>
+    <string name="tip_full_plate_desc">Nasa bidhaa zote za chakula kwa makadirio sahihi ya kiasi</string>
+    <string name="tip_fill_frame">Jaza Fremu</string>
+    <string name="tip_fill_frame_desc">Sogea karibu vya kutosha ili chakula kijaze 70-80% ya skrini</string>
+    <string name="pro_tip_text">Kidokezo: Kwa vyakula mchanganyiko, jaribu kutenganisha vitu ili AI iweze kutambua kila kiungo</string>
+    <string name="start_scanning">Anza Kuchanganua</string>
+    <string name="ill_figure_it_out">Nitajua mwenyewe</string>
+    <string name="camera_permission_denied">Ufikiaji wa Kamera Umekataliwa</string>
+    <string name="camera_permission_denied_desc">Ili kuchanganua chakula na kupata maelezo ya lishe, tafadhali ruhusu ufikiaji wa kamera kwenye mipangilio ya kifaa chako.</string>
+    <string name="try_again">Jaribu Tena</string>
+    <string name="go_back">Rudi Nyuma</string>
+    <string name="close_desc">Funga</string>
+    <string name="info_desc">Habari</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">Kichanganuzi cha Msimbo Pau</string>
+    <string name="flash_desc">Mweko</string>
+    <string name="retry_action">Jaribu tena</string>
+    <string name="scan_mode_scan">Changanua</string>
+    <string name="scan_mode_barcode">Msimbo pau</string>
+    <string name="scan_mode_label">Lebo</string>
+    <string name="scan_mode_gallery">Matunzio</string>
+    <string name="capture_desc">Nasa</string>
+    <string name="food_detected_default">Chakula Kimegunduliwa</string>
+    <string name="discard_action">Tupa</string>
+    <string name="log_meal_action">Rekodi Mlo</string>
+    <string name="product_found_title">Bidhaa Imepatikana</string>
+    <string name="per_100g_serving">Kwa 100g (Kuhudumia: %1$s)</string>
+    <string name="log_this_product_action">Rekodi Bidhaa Hii</string>
+    <string name="nutrition_detected_title">Lishe imegunduliwa</string>
+    <string name="log_this_food_action">Rekodi Chakula Hiki</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">Milo Yangu</string>
+    <string name="quick_actions_title">Hatua za Haraka</string>
+    <string name="scan_food_title">Changanua Chakula</string>
+    <string name="scan_food_subtitle">Piga picha</string>
+    <string name="create_meal_title">Unda Mlo</string>
+    <string name="create_meal_subtitle">Ongeza mwenyewe</string>
+    <string name="your_meals_title">Milo Yako</string>
+    <string name="meals_count_suffix"> Milo</string>
+    <string name="no_meals_yet">Hakuna milo bado</string>
+    <string name="no_meals_desc">Changanua chakula chako au uunde mlo maalum</string>
+    <string name="create_custom_meal_title">Unda Mlo Maalum</string>
+    <string name="meal_name_label">Jina la Mlo *</string>
+    <string name="calories_label">Kalori *</string>
+    <string name="protein_label">Protini</string>
+    <string name="carbs_label">Wanga</string>
+    <string name="fats_label">Mafuta</string>
+    <string name="create_action">Unda</string>
+    <string name="cancel_action">Ghairi</string>
+    <string name="delete_meal_title">Futa mlo?</string>
+    <string name="delete_meal_confirm">Una uhakika unataka kufuta "%1$s"? Kitendo hiki hakiwezi kubatilishwa.</string>
+    <string name="delete_action">Futa</string>
+    <string name="delete_meal_content_desc">Futa Mlo</string>
+    <string name="analyzing_status">Inachambua...</string>
+    <string name="back_desc">Rudi</string>
+</resources>

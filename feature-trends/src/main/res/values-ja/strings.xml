@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">進捗</string>
+    <string name="track_health_journey">健康の旅路を追跡</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">現在</string>
+    <string name="streak_best">ベスト</string>
+    <string name="day_singular">日</string>
+    <string name="days_plural">日</string>
+    <string name="milestones_unlocked">マイルストーン達成</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">週間ウォリアー</string>
+    <string name="milestone_two_week_champion">2週間チャンピオン</string>
+    <string name="milestone_monthly_master">月間マスター</string>
+    <string name="milestone_stellar_streak">ステリストリーク</string>
+    <string name="milestone_ultimate_champion">究極のチャンピオン</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">今日のモチベーション</string>
+    <string name="motivation_access_desc">モチベーションのヒント</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">あと少し！目標までもう少しです！🎯</string>
+    <string name="msg_halfway_there">折り返し地点！この調子で頑張ろう！💪</string>
+    <string name="msg_incredible_streak">すごい継続力！あなたは無敵です！🔥</string>
+    <string name="msg_great_consistency">素晴らしい一貫性！ペースを維持しましょう！⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 小さな一歩が大きな変化を生む</item>
+        <item>🌟 継続は常に完璧に勝る</item>
+        <item>💪 体は心が命じることをすべて聞いている</item>
+        <item>🎯 完璧ではなく、進歩こそが重要だ</item>
+        <item>🔥 健康的な選択のひとつひとつが勝利だ</item>
+        <item>⭐ あなたは自分が思うよりずっと強い</item>
+        <item>🚀 唯一の悪いワークアウトは、やらなかったワークアウトだ</item>
+        <item>🌈 プロセスを信じ、旅を楽しもう</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">体重目標</string>
+    <string name="percent_complete">%d%% 完了</string>
+    <string name="current_label">現在</string>
+    <string name="goal_label">目標</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">週間カロリー</string>
+    <string name="goal_value_format">目標: %d</string>
+    <string name="legend_under">以下</string>
+    <string name="legend_over">超過</string>
+    <string name="legend_goal">目標</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">今日のPFC</string>
+    <string name="total_label">合計</string>
+    <string name="macro_protein">タンパク質</string>
+    <string name="macro_carbs">炭水化物</string>
+    <string name="macro_fats">脂質</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">微量栄養素</string>
+    <string name="micro_fiber">食物繊維</string>
+    <string name="micro_sugar">糖質</string>
+    <string name="micro_sodium">塩分</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">歩数</string>
+    <string name="burned_label">燃焼</string>
+    <string name="cal_unit">kcal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">歩数 (7日間)</string>
+    <string name="weekly_burn_label">燃焼 (7日間)</string>
+    <string name="record_label">記録</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">低体重</string>
+    <string name="bmi_healthy">普通</string>
+    <string name="bmi_overweight">肥満(1度)</string>
+    <string name="bmi_obese">肥満(2度以上)</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">完了した日</string>
+    <string name="current_streak_desc">現在のストリーク</string>
+    <string name="best_streak_desc">ベストストリーク</string>
+</resources>

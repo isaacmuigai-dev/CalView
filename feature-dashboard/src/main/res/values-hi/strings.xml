@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">ट्रैक करें और फलें-फूलें</string>
+    <string name="calories_burned_notification">🔥 %1$d कैलोरी जलाई गई! आपके दैनिक लक्ष्य में जोड़ी गई।</string>
+    <string name="connect_google_health">गूगल हेल्थ कनेक्ट करें</string>
+    <string name="sync_steps_calories">कदम और कैलोरी सिंक करें</string>
+    <string name="connect">कनेक्ट करें</string>
+    <string name="health_score">स्वास्थ्य स्कोर</string>
+    <string name="health_score_desc">कार्ब्स और वसा सही रास्ते पर हैं। आप कैलोरी और प्रोटीन में कम हैं, जो वजन घटाने को धीमा कर सकता है और मांसपेशियों के रखरखाव को प्रभावित कर सकता है।</string>
+    <string name="recently_uploaded">हाल ही में अपलोड किया गया</string>
+    <string name="empty_meals_message">दिन का अपना पहला भोजन जोड़ने के लिए + टैप करें</string>
+    <string name="fiber_left">फाइबर शेष</string>
+    <string name="sugar_left">चीनी शेष</string>
+    <string name="sodium_left">सोडियम शेष</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="years_old_suffix">वर्ष</string>
+    <string name="invite_friends">दोस्तों को आमंत्रित करें</string>
+    <string name="invite_friends_desc">यात्रा एक साथ\nआसान है।</string>
+    <string name="refer_friend_action">5$ कमाने के लिए एक दोस्त को रेफर करें</string>
+    <string name="personal_details">व्यक्तिगत विवरण</string>
+    <string name="adjust_macros">मैक्रोन्यूट्रिएंट्स समायोजित करें</string>
+    <string name="goal_current_weight">लक्ष्य और वर्तमान वजन</string>
+    <string name="weight_history">वजन का इतिहास</string>
+    <string name="language">भाषा</string>
+    <string name="preferences">प्राथमिकताएं</string>
+    <string name="appearance">उपस्थिति</string>
+    <string name="appearance_desc">हल्का, गहरा या सिस्टम चुनें</string>
+    <string name="appearance_light">हल्का</string>
+    <string name="appearance_dark">गहरा</string>
+    <string name="appearance_automatic">स्वचालित</string>
+    <string name="add_burned_calories">जलाई गई कैलोरी जोड़ें</string>
+    <string name="add_burned_calories_desc">दैनिक लक्ष्य में जलाई गई कैलोरी जोड़ें</string>
+    <string name="rollover_calories">कैलोरी रोलओवर करें</string>
+    <string name="rollover_calories_desc">कल से बची हुई 200 कैलोरी तक आज के दैनिक लक्ष्य में जोड़ें</string>
+    <string name="widgets">विजेट</string>
+    <string name="how_to_add">कैसे जोड़ें?</string>
+    <string name="calories_left">कैलोरी शेष</string>
+    <string name="log_food_action">+ भोजन लॉग करें</string>
+    <string name="protein_left">प्रोटीन शेष</string>
+    <string name="carbs_left">कार्ब्स शेष</string>
+    <string name="fats_left">वसा शेष</string>
+    <string name="scan_food">भोजन स्कैन करें</string>
+    <string name="barcode">बारकोड</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">भोजन विवरण</string>
+    <string name="options_menu">विकल्प</string>
+    <string name="report_food">भोजन की रिपोर्ट करें</string>
+    <string name="report_submitted">रिपोर्ट सबमिट की गई</string>
+    <string name="save_image">छवि सहेजें</string>
+    <string name="delete_food">भोजन हटाएं</string>
+    <string name="calories_label">कैलोरी</string>
+    <string name="protein_label">प्रोटीन</string>
+    <string name="carbs_label">कार्ब्स</string>
+    <string name="fats_label">वसा</string>
+    <string name="fiber_label">फाइबर</string>
+    <string name="sugar_label">चीनी</string>
+    <string name="sodium_label">सोडियम</string>
+    <string name="what_detected">मैंने क्या पता लगाया</string>
+    <string name="confident_suffix">आत्मविश्वास</string>
+    <string name="i_see_prefix">मैं देखता हूँ: </string>
+    <string name="i_suspect_prefix">मुझे संदेह है: </string>
+    <string name="ingredients_title">सामग्री</string>
+    <string name="add_more_action">+ और जोड़ें</string>
+    <string name="share_action">साझा करें</string>
+    <string name="save_changes">परिवर्तन सहेजें</string>
+    <string name="recalibrate">पुन: कैलिब्रेट करें</string>
+    <string name="saved_to_gallery">गैलरी में सहेजा गया</string>
+
+    <string name="error_saving_image">छवि सहेजने में त्रुटि</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">लक्षित वजन</string>
+    <string name="change_goal_action">लक्ष्य बदलें</string>
+    <string name="current_weight_label">वर्तमान वजन</string>
+    <string name="height_label">ऊंचाई</string>
+    <string name="not_set">सेट नहीं</string>
+    <string name="dob_label">जन्म तिथि</string>
+    <string name="gender_label">लिंग</string>
+    <string name="daily_step_goal_label">दैनिक कदम लक्ष्य</string>
+    <string name="steps_unit">कदम</string>
+    <string name="edit_content_desc">संपादित करें %1$s</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">नाम संपादित करें</string>
+    <string name="save_action">सहेजें</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">मित्र को रेफर करें</string>
+    <string name="referral_share_message">CalViewAI पर मेरे साथ जुड़ें! मेरा रेफरल कोड है: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">कोड क्लिपबोर्ड पर कॉपी किया गया!</string>
+    <string name="empower_friends">अपने दोस्तों को सशक्त बनाएं</string>
+    <string name="lose_weight_together">&amp; एक साथ वजन कम करें</string>
+    <string name="promo_code_label">आपका व्यक्तिगत प्रोमो कोड</string>
+    <string name="copy_code_desc">कोड कॉपी करें</string>
+    <string name="share_referral_chooser">रेफरल कोड साझा करें</string>
+    <string name="how_to_earn">कैसे कमाएं</string>
+    <string name="earn_step_1">अपने दोस्तों के साथ अपना प्रोमो कोड साझा करें</string>
+    <string name="earn_step_2">जब आपका दोस्त वार्षिक एक्सेस के लिए भुगतान करता है तो 5$ कमाएं</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">जन्मदिन सेट करें</string>
+    <string name="save_changes_button">परिवर्तन सहेजें</string>
+    <string name="set_gender_title">लिंग सेट करें</string>
+    <string name="gender_male">पुरुष</string>
+    <string name="gender_female">महिला</string>
+    <string name="gender_other">अन्य</string>
+    <string name="edit_weight_goal_title">वजन लक्ष्य संपादित करें</string>
+    <string name="lose_weight_label">वजन कम करें</string>
+    <string name="gain_weight_label">वजन बढ़ाएं</string>
+    <string name="maintain_weight_label">वजन बनाए रखें</string>
+    <string name="done_action">हो गया</string>
+    <string name="set_height_weight_title">ऊंचाई और वजन सेट करें</string>
+    <string name="height_header">ऊंचाई</string>
+    <string name="weight_header">वजन</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">पोषण लक्ष्य संपादित करें</string>
+    <string name="calorie_goal">कैलोरी लक्ष्य</string>
+    <string name="protein_goal">प्रोटीन लक्ष्य</string>
+    <string name="carb_goal">कार्ब लक्ष्य</string>
+    <string name="fat_goal">वसा लक्ष्य</string>
+    <string name="view_micronutrients">माइक्रोन्यूट्रिएंट्स देखें</string>
+    <string name="fiber_goal">फाइबर लक्ष्य</string>
+    <string name="sugar_goal">चीनी लक्ष्य</string>
+    <string name="sodium_goal">सोडियम लक्ष्य</string>
+    <string name="auto_generate_goals">स्वचालित रूप से लक्ष्य उत्पन्न करें</string>
+    <string name="edit_desc">संपादित करें</string>
+    <string name="check_desc">हो गया</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">कदम लक्ष्य संपादित करें</string>
+    <string name="previous_goal_steps">पिछला लक्ष्य %1$d कदम</string>
+
+    <string name="revert_action">वापस लाएं</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">सुविधा अनुरोध</string>
+    <string name="shape_future_desc">CalView के भविष्य को आकार दें</string>
+    <string name="tab_trending">🔥 ट्रेंडिंग</string>
+    <string name="tab_newest">✨ नवीनतम</string>
+    <string name="tab_my_posts">👤 मेरे पोस्ट</string>
+    <string name="search_placeholder">सुविधा अनुरोध खोजें...</string>
+    <string name="clear_desc">साफ़ करें</string>
+    <string name="create_request_desc">अनुरोध बनाएं</string>
+    <string name="feedback_hub_title">फीडबैक हब</string>
+    <string name="refresh_desc">ताज़ा करें</string>
+    <string name="dismiss_action">खारिज करें</string>
+    <string name="new_feature_request_title">नया सुविधा अनुरोध</string>
+    <string name="share_idea_desc">समुदाय के साथ अपना विचार साझा करें</string>
+    <string name="feature_title_label">सुविधा शीर्षक</string>
+    <string name="feature_title_placeholder">आप कौन सी सुविधा चाहेंगे?</string>
+    <string name="description_label">विवरण</string>
+    <string name="description_placeholder">अपने विचार का विस्तार से वर्णन करें...</string>
+    <string name="add_tags_label">टैग जोड़ें</string>
+    <string name="post_request_action">अनुरोध पोस्ट करें</string>
+    <string name="comments_title">टिप्पणियाँ (%1$d)</string>
+    <string name="add_comment_placeholder">टिप्पणी जोड़ें...</string>
+    <string name="send_desc">भेजें</string>
+    <string name="no_comments_yet">अभी तक कोई टिप्पणी नहीं</string>
+    <string name="be_first_comment">अपने विचार साझा करने वाले पहले व्यक्ति बनें!</string>
+    <string name="empty_state_title">अभी तक कोई अनुरोध नहीं</string>
+    <string name="empty_state_desc">सुविधा का सुझाव देने वाले पहले व्यक्ति बनें!</string>
+    <string name="status_open">खुला</string>
+    <string name="status_in_progress">प्रगति पर है</string>
+    <string name="status_completed">पूरा हुआ</string>
+    <string name="status_declined">अस्वीकृत</string>
+    <string name="just_now">अभी-अभी</string>
+    <string name="minutes_ago_suffix">मिनट</string>
+    <string name="hours_ago_suffix">घंटे</string>
+    <string name="days_ago_suffix">दिन</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">विजेट जोड़ें</string>
+    <string name="add_calview_widgets_title">अपने होम स्क्रीन पर CalView विजेट जोड़ें</string>
+    <string name="add_widget_desc">ऐप खोले बिना अपनी कैलोरी और मैक्रोज़ को एक नज़र में ट्रैक करें</string>
+    <string name="step_1_title">अपनी होम स्क्रीन पर लंबे समय तक दबाएं</string>
+    <string name="step_1_desc">अपनी होम स्क्रीन पर एक खाली क्षेत्र को तब तक स्पर्श करके रखें जब तक कि एक मेनू दिखाई न दे</string>
+    <string name="step_2_title">\"विजेट\" टैप करें</string>
+    <string name="step_2_desc">मेनू या स्क्रीन के नीचे विजेट विकल्प देखें</string>
+    <string name="step_3_title">CalView खोजें</string>
+    <string name="step_3_desc">विजेट्स की सूची में स्क्रॉल करें या हमारे विजेट्स खोजने के लिए \"CalView\" खोजें</string>
+    <string name="step_4_title">विजेट को होम स्क्रीन पर खींचें</string>
+    <string name="step_4_desc">जिस विजेट को आप चाहते हैं उसे स्पर्श करके रखें, फिर उसे अपनी होम स्क्रीन पर खींचें</string>
+    <string name="available_widgets_title">उपलब्ध विजेट</string>
+    <string name="widget_calorie_ring_title">कैलोरी रिंग</string>
+    <string name="widget_calorie_ring_desc">शेष कैलोरी दिखाता है</string>
+    <string name="widget_macros_title">मैक्रोज़</string>
+    <string name="widget_macros_desc">प्रोटीन, कार्ब्स, वसा</string>
+    <string name="widget_quick_actions_title">त्वरित क्रियाएं</string>
+    <string name="widget_quick_actions_desc">भोजन स्कैन, बारकोड</string>
+    <string name="widget_streak_title">स्ट्रीक</string>
+    <string name="widget_streak_desc">दैनिक लॉगिंग स्ट्रीक</string>
+    <string name="got_it_action">समझ गया!</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">ओपन सोर्स लाइसेंस</string>
+    <string name="open_source_intro">CalView निम्नलिखित ओपन सोर्स लाइब्रेरी और मॉडल का उपयोग करता है:</string>
+    <string name="apache_license_2_0">अपाचे लाइसेंस 2.0</string>
+    <string name="apache_license_text">अपाचे लाइसेंस, संस्करण 2.0 (\"लाइसेंस\") के तहत लाइसेंस प्राप्त; आप इस फ़ाइल का उपयोग लाइसेंस के अनुपालन के अलावा नहीं कर सकते हैं। आप लाइसेंस की एक प्रति यहाँ प्राप्त कर सकते हैं:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nजब तक लागू कानून द्वारा आवश्यक न हो या लिखित रूप में सहमत न हो, लाइसेंस के तहत वितरित सॉफ़्टवेयर \"जैसा है\" आधार पर वितरित किया जाता है, बिना किसी वारंटी या किसी भी प्रकार की शर्तों के, व्यक्त या निहित। लाइसेंस के तहत अनुमतियों और सीमाओं को नियंत्रित करने वाली विशिष्ट भाषा के लिए लाइसेंस देखें।</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">वजन का इतिहास</string>
+    <string name="no_weight_entries">अभी तक कोई वजन प्रविष्टि नहीं</string>
+    <string name="weight_changes_appear_here">आपके वजन परिवर्तन यहां दिखाई देंगे</string>
+</resources>

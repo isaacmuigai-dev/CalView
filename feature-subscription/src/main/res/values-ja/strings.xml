@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">可能性を最大限に引き出す</string>
+    <string name="paywall_subtitle">無制限のAIスキャン、詳細なマクロ分析、パーソナライズされたインサイトを入手。</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">無制限のAI食事スキャン</string>
+    <string name="feature_advanced_macros">高度な栄養素内訳</string>
+    <string name="feature_trends_insights">トレンドとパーソナライズされた分析</string>
+    <string name="feature_no_ads">広告なし</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">プランを読み込み中...</string>
+    <string name="plan_yearly_best_value">年間 (ベストバリュー)</string>
+    <string name="plan_monthly">月額</string>
+    <string name="price_per_month">月額わずか %s</string>
+    <string name="cancel_anytime">いつでもキャンセル可能</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">今すぐプレミアムを無料で試す</string>
+    <string name="restore_purchases">購入を復元</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">利用規約</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">閉じる</string>
+    <string name="cd_feature_prefix">機能: %s</string>
+    <string name="cd_loading_plans">サブスクリプションプランを読み込み中</string>
+    <string name="cd_subscription_option_selected">サブスクリプション %1$s, %2$s. %3$s. 選択済み</string>
+    <string name="cd_subscription_option_not_selected">サブスクリプション %1$s, %2$s. %3$s. 未選択</string>
+</resources>

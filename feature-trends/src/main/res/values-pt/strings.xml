@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Progresso</string>
+    <string name="track_health_journey">Acompanhe sua jornada de saúde</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Atual</string>
+    <string name="streak_best">Melhor</string>
+    <string name="day_singular">dia</string>
+    <string name="days_plural">dias</string>
+    <string name="milestones_unlocked">Marcos Desbloqueados</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Guerreiro da Semana</string>
+    <string name="milestone_two_week_champion">Campeão de Duas Semanas</string>
+    <string name="milestone_monthly_master">Mestre Mensal</string>
+    <string name="milestone_stellar_streak">Sequência Estelar</string>
+    <string name="milestone_ultimate_champion">Campeão Supremo</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Motivação Diária</string>
+    <string name="motivation_access_desc">Dica motivacional</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">Quase lá! Você está tão perto do seu objetivo! 🎯</string>
+    <string name="msg_halfway_there">Meio caminho andado! Continue firme! 💪</string>
+    <string name="msg_incredible_streak">Sequência incrível! Você é imparável! 🔥</string>
+    <string name="msg_great_consistency">Ótima consistência! Mantenha o ritmo! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Pequenos passos levam a grandes mudanças</item>
+        <item>🌟 A consistência vence a perfeição todas as vezes</item>
+        <item>💪 Seu corpo ouve tudo o que sua mente diz</item>
+        <item>🎯 Progresso, não perfeição, é o que importa</item>
+        <item>🔥 Cada escolha saudável é uma vitória</item>
+        <item>⭐ Você é mais forte do que pensa</item>
+        <item>🚀 O único treino ruim é aquele que não aconteceu</item>
+        <item>🌈 Confie no processo, aproveite a jornada</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Meta de Peso</string>
+    <string name="percent_complete">%d%% completo</string>
+    <string name="current_label">Atual</string>
+    <string name="goal_label">Meta</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Calorias Semanais</string>
+    <string name="goal_value_format">Meta: %d</string>
+    <string name="legend_under">Abaixo</string>
+    <string name="legend_over">Acima</string>
+    <string name="legend_goal">Meta</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Macros de Hoje</string>
+    <string name="total_label">Total</string>
+    <string name="macro_protein">Proteína</string>
+    <string name="macro_carbs">Carboidratos</string>
+    <string name="macro_fats">Gorduras</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Micronutrientes</string>
+    <string name="micro_fiber">Fibras</string>
+    <string name="micro_sugar">Açúcar</string>
+    <string name="micro_sodium">Sódio</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Passos</string>
+    <string name="burned_label">Queimadas</string>
+    <string name="cal_unit">cal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">Passos 7d</string>
+    <string name="weekly_burn_label">Queima 7d</string>
+    <string name="record_label">Recorde</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">IMC</string>
+    <string name="bmi_underweight">Abaixo do Peso</string>
+    <string name="bmi_healthy">Saudável</string>
+    <string name="bmi_overweight">Sobrepeso</string>
+    <string name="bmi_obese">Obeso</string>
+    <string name="bmi_content_desc">IMC: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">Dia completado</string>
+    <string name="current_streak_desc">Sequência Atual</string>
+    <string name="best_streak_desc">Melhor Sequência</string>
+</resources>

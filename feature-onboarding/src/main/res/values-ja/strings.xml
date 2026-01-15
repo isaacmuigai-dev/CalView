@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">カロリー記録を\n簡単に</string>
+    <string name="welcome_subtitle">AIで食事をスキャンして\n栄養摂取を手間なく追跡</string>
+    <string name="get_started">はじめる</string>
+    <string name="already_have_account">すでにアカウントをお持ちですか？ </string>
+    <string name="sign_in">サインイン</string>
+    <string name="sign_in_semantics">既存のアカウントにサインイン</string>
+    <string name="food_scanner_ui">食事スキャナーUI</string>
+    <string name="choose_language">言語を選択</string>
+    <string name="select_language">言語を選ぶ</string>
+    <string name="close">閉じる</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">プロフィール設定</string>
+    <string name="profile_setup_subtitle">あなたに合わせた体験を提供するために、詳細を教えてください</string>
+    <string name="gender_label">性別</string>
+    <string name="gender_male">男性</string>
+    <string name="gender_female">女性</string>
+    <string name="gender_other">その他</string>
+    <string name="birthdate_label">生年月日</string>
+    <string name="month_label">月</string>
+    <string name="day_label">日</string>
+    <string name="year_label">年</string>
+    <string name="height_weight_label">身長と体重</string>
+    <string name="height_label">身長</string>
+    <string name="weight_label">体重</string>
+    <string name="activity_level_label">活動レベル</string>
+    <string name="activity_level_question">週に何回運動しますか？</string>
+    <string name="activity_0_2">0-2回</string>
+    <string name="activity_0_2_desc">ほとんど運動しない</string>
+    <string name="activity_3_5">3-5回</string>
+    <string name="activity_3_5_desc">適度な運動</string>
+    <string name="activity_6_plus">6回以上</string>
+    <string name="activity_6_plus_desc">非常に活動的</string>
+    <string name="continue_button">次へ</string>
+    <string name="back_content_desc">戻る</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">目標設定</string>
+    <string name="goals_subtitle">フィットネスの目標と好みを設定してください</string>
+    <string name="goal_question">目標は何ですか？</string>
+    <string name="goal_lose_weight">減量</string>
+    <string name="goal_lose_weight_desc">体重を減らす</string>
+    <string name="goal_maintain">維持</string>
+    <string name="goal_maintain_desc">現在の体重を維持する</string>
+    <string name="goal_gain_weight">増量</string>
+    <string name="goal_gain_weight_desc">筋肉をつける</string>
+    <string name="target_weight_label">目標体重</string>
+    <string name="goal_weight_label">目標体重</string>
+    <string name="to_gain">増量目標</string>
+    <string name="to_lose">減量目標</string>
+    <string name="pace_question">どのくらいの速さで目標を達成したいですか？</string>
+    <string name="pace_slow">ゆっくり確実に</string>
+    <string name="pace_moderate">標準ペース</string>
+    <string name="pace_recommended">おすすめ</string>
+    <string name="pace_fast">ハイペース</string>
+    <string name="pace_warning">疲れやすくなったり、皮膚がたるむ可能性があります</string>
+    <string name="diet_preference_label">食事の好み</string>
+    <string name="diet_preference_subtitle">任意 - 食事提案のパーソナライズに役立ちます</string>
+    <string name="diet_no_preference">特に制限なし</string>
+    <string name="diet_keto">ケトジェニック</string>
+    <string name="diet_vegetarian">ベジタリアン</string>
+    <string name="diet_vegan">ヴィーガン</string>
+    <string name="diet_paleo">パレオ</string>
+    <string name="diet_mediterranean">地中海式</string>
+    <string name="rollover_label">カロリー繰越</string>
+    <string name="enable_rollover">繰越を有効にする</string>
+    <string name="rollover_desc">未使用のカロリーを翌日に持ち越します</string>
+    <string name="add_burned_label">消費カロリーを追加</string>
+    <string name="add_daily_goal">1日の目標に追加</string>
+    <string name="add_burned_desc">運動で消費したカロリーを1日の予算に加算します</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">通知を活用して\n目標を達成しよう</string>
+    <string name="notifications_permission_text">CalViewAIから通知を送信しても\nよろしいですか？</string>
+    <string name="dont_allow">許可しない</string>
+    <string name="allow">許可する</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">体重変化ペースのスライダー、週0.1kgから1.5kg</string>
+    <string name="cd_pace_per_week">週のペース: 週%s</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>1月</item>
+        <item>2月</item>
+        <item>3月</item>
+        <item>4月</item>
+        <item>5月</item>
+        <item>6月</item>
+        <item>7月</item>
+        <item>8月</item>
+        <item>9月</item>
+        <item>10月</item>
+        <item>11月</item>
+        <item>12月</item>
+    </string-array>
+</resources>

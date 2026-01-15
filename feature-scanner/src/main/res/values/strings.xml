@@ -1,0 +1,76 @@
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">Camera Access Required</string>
+    <string name="camera_permission_desc">CalViewAI needs camera access to scan your food and provide instant nutrition information.</string>
+    <string name="scan_any_food">Scan any food</string>
+    <string name="scan_any_food_desc">Take a photo of your meal for instant analysis</string>
+    <string name="barcode_scanning">Barcode scanning</string>
+    <string name="barcode_scanning_desc">Scan product barcodes for nutrition info</string>
+    <string name="ai_powered">AI-powered</string>
+    <string name="ai_powered_desc">Get accurate calorie estimates in seconds</string>
+    <string name="allow_camera_access">Allow Camera Access</string>
+    <string name="maybe_later">Maybe Later</string>
+    <string name="tips_for_best_results">📸 Tips for Best Results</string>
+    <string name="tips_subtitle">Follow these tips to get the most accurate nutrition analysis from our AI</string>
+    <string name="tip_center_food">Center your food</string>
+    <string name="tip_center_food_desc">Place the main item in the center of the viewfinder for best recognition</string>
+    <string name="tip_good_lighting">Good lighting</string>
+    <string name="tip_good_lighting_desc">Natural daylight works best. Avoid harsh shadows or dim environments</string>
+    <string name="tip_full_plate">Show the full plate</string>
+    <string name="tip_full_plate_desc">Capture all food items to get accurate portion estimates</string>
+    <string name="tip_fill_frame">Fill the frame</string>
+    <string name="tip_fill_frame_desc">Get close enough so food takes up 70-80% of the screen</string>
+    <string name="pro_tip_text">Pro tip: For mixed plates, try to spread items out so the AI can identify each component</string>
+    <string name="start_scanning">Start Scanning</string>
+    <string name="ill_figure_it_out">I\'ll figure it out</string>
+    <string name="camera_permission_denied">Camera Permission Denied</string>
+    <string name="camera_permission_denied_desc">To scan food and get nutrition information, please allow camera access in your device settings.</string>
+    <string name="try_again">Try Again</string>
+    <string name="go_back">Go Back</string>
+    <string name="close_desc">Close</string>
+    <string name="info_desc">Info</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">Barcode Scanner</string>
+    <string name="flash_desc">Flash</string>
+    <string name="retry_action">Retry</string>
+    <string name="scan_mode_scan">Scan</string>
+    <string name="scan_mode_barcode">Barcode</string>
+    <string name="scan_mode_label">Label</string>
+    <string name="scan_mode_gallery">Gallery</string>
+    <string name="capture_desc">Capture</string>
+    <string name="food_detected_default">Food Detected</string>
+    <string name="discard_action">Discard</string>
+    <string name="log_meal_action">Log Meal</string>
+    <string name="product_found_title">Product Found</string>
+    <string name="per_100g_serving">Per 100g (serving: %1$s)</string>
+    <string name="log_this_product_action">Log This Product</string>
+    <string name="nutrition_detected_title">Nutrition Detected</string>
+    <string name="log_this_food_action">Log This Food</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">My Meals</string>
+    <string name="quick_actions_title">Quick Actions</string>
+    <string name="scan_food_title">Scan Food</string>
+    <string name="scan_food_subtitle">Take a photo</string>
+    <string name="create_meal_title">Create Meal</string>
+    <string name="create_meal_subtitle">Add manually</string>
+    <string name="your_meals_title">Your Meals</string>
+    <string name="meals_count_suffix"> meals</string>
+    <string name="no_meals_yet">No meals yet</string>
+    <string name="no_meals_desc">Scan your food or create a custom meal</string>
+    <string name="create_custom_meal_title">Create Custom Meal</string>
+    <string name="meal_name_label">Meal Name *</string>
+    <string name="calories_label">Calories *</string>
+    <string name="protein_label">Protein</string>
+    <string name="carbs_label">Carbs</string>
+    <string name="fats_label">Fats</string>
+    <string name="create_action">Create</string>
+    <string name="cancel_action">Cancel</string>
+    <string name="delete_meal_title">Delete Meal?</string>
+    <string name="delete_meal_confirm">Are you sure you want to delete \"%1$s\"? This action cannot be undone.</string>
+    <string name="delete_action">Delete</string>
+    <string name="delete_meal_content_desc">Delete meal</string>
+    <string name="analyzing_status">Analyzing...</string>
+    <string name="back_desc">Back</string>
+</resources>

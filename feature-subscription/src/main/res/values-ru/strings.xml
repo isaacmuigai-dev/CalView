@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">Раскрой Полный Потенциал</string>
+    <string name="paywall_subtitle">Получи безлимитные ИИ-сканирования, детальный анализ макросов и персональные инсайты.</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">Безлимитные ИИ-сканирования Еды</string>
+    <string name="feature_advanced_macros">Продвинутая Разбивка Макросов</string>
+    <string name="feature_trends_insights">Персональные Тренды и Инсайты</string>
+    <string name="feature_no_ads">Без Рекламы</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">Загрузка планов...</string>
+    <string name="plan_yearly_best_value">Годовой (Выгодно)</string>
+    <string name="plan_monthly">Ежемесячный</string>
+    <string name="price_per_month">Всего %s / месяц</string>
+    <string name="cancel_anytime">Отмена в любое время</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">Начать Premium Сейчас</string>
+    <string name="restore_purchases">Восстановить Покупки</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">Условия Обслуживания</string>
+    <string name="privacy_policy">Политика Конфиденциальности</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">Закрыть</string>
+    <string name="cd_feature_prefix">Функция: %s</string>
+    <string name="cd_loading_plans">Загрузка планов подписки</string>
+    <string name="cd_subscription_option_selected">Подписка %1$s, %2$s. %3$s. Выбрано</string>
+    <string name="cd_subscription_option_not_selected">Подписка %1$s, %2$s. %3$s. Не выбрано</string>
+</resources>

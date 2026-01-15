@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">需要相机权限</string>
+    <string name="camera_permission_desc">CalViewAI 需要访问相机来扫描食物并提供即时营养信息。</string>
+    <string name="scan_any_food">扫描任何食物</string>
+    <string name="scan_any_food_desc">拍一张食物照片进行即时分析</string>
+    <string name="barcode_scanning">条形码扫描</string>
+    <string name="barcode_scanning_desc">扫描产品条形码以获取营养信息</string>
+    <string name="ai_powered">AI 驱动</string>
+    <string name="ai_powered_desc">在几秒钟内获得准确的卡路里估算</string>
+    <string name="allow_camera_access">允许相机访问</string>
+    <string name="maybe_later">以后再说</string>
+    <string name="tips_for_best_results">📸 最佳效果提示</string>
+    <string name="tips_subtitle">遵循这些提示以从我们的 AI 获得最准确的营养分析</string>
+    <string name="tip_center_food">居中食物</string>
+    <string name="tip_center_food_desc">将主要物品放在视口中心以便更好地识别</string>
+    <string name="tip_good_lighting">良好光线</string>
+    <string name="tip_good_lighting_desc">自然光最好。避免强烈的阴影或黑暗环境</string>
+    <string name="tip_full_plate">显示整个盘子</string>
+    <string name="tip_full_plate_desc">捕获所有食物以获得准确的份量估算</string>
+    <string name="tip_fill_frame">填满画面</string>
+    <string name="tip_fill_frame_desc">靠得足够近，使食物占据屏幕的 70-80%</string>
+    <string name="pro_tip_text">专业提示：对于混合菜肴，尝试分离物品以便 AI 识别每个成分</string>
+    <string name="start_scanning">开始扫描</string>
+    <string name="ill_figure_it_out">这种时候就该我自己来</string>
+    <string name="camera_permission_denied">相机权限被拒绝</string>
+    <string name="camera_permission_denied_desc">为了扫描食物并获取营养信息，请在您的设备设置中允许相机访问。</string>
+    <string name="try_again">重试</string>
+    <string name="go_back">返回</string>
+    <string name="close_desc">关闭</string>
+    <string name="info_desc">信息</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">条形码扫描仪</string>
+    <string name="flash_desc">闪光灯</string>
+    <string name="retry_action">重试</string>
+    <string name="scan_mode_scan">扫描</string>
+    <string name="scan_mode_barcode">条形码</string>
+    <string name="scan_mode_label">标签</string>
+    <string name="scan_mode_gallery">相册</string>
+    <string name="capture_desc">拍照</string>
+    <string name="food_detected_default">检测到食物</string>
+    <string name="discard_action">丢弃</string>
+    <string name="log_meal_action">记录餐食</string>
+    <string name="product_found_title">找到产品</string>
+    <string name="per_100g_serving">每 100克 (份量: %1$s)</string>
+    <string name="log_this_product_action">记录此产品</string>
+    <string name="nutrition_detected_title">检测到营养信息</string>
+    <string name="log_this_food_action">记录此食物</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">我的餐食</string>
+    <string name="quick_actions_title">快速操作</string>
+    <string name="scan_food_title">扫描食物</string>
+    <string name="scan_food_subtitle">拍张照片</string>
+    <string name="create_meal_title">创建餐食</string>
+    <string name="create_meal_subtitle">手动添加</string>
+    <string name="your_meals_title">您的餐食</string>
+    <string name="meals_count_suffix"> 餐</string>
+    <string name="no_meals_yet">暂无餐食</string>
+    <string name="no_meals_desc">扫描您的食物或创建自定义餐食</string>
+    <string name="create_custom_meal_title">创建自定义餐食</string>
+    <string name="meal_name_label">餐食名称 *</string>
+    <string name="calories_label">卡路里 *</string>
+    <string name="protein_label">蛋白质</string>
+    <string name="carbs_label">碳水化合物</string>
+    <string name="fats_label">脂肪</string>
+    <string name="create_action">创建</string>
+    <string name="cancel_action">取消</string>
+    <string name="delete_meal_title">删除餐食？</string>
+    <string name="delete_meal_confirm">您确定要删除“%1$s”吗？此操作无法撤销。</string>
+    <string name="delete_action">删除</string>
+    <string name="delete_meal_content_desc">删除餐食</string>
+    <string name="analyzing_status">分析中...</string>
+    <string name="back_desc">返回</string>
+</resources>

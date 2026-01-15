@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">Acesso à câmera necessário</string>
+    <string name="camera_permission_desc">CalViewAI precisa de acesso à câmera para escanear sua comida e fornecer informações nutricionais instantâneas.</string>
+    <string name="scan_any_food">Escanear qualquer comida</string>
+    <string name="scan_any_food_desc">Tire uma foto da sua refeição para análise instantânea</string>
+    <string name="barcode_scanning">Leitura de código de barras</string>
+    <string name="barcode_scanning_desc">Escaneie códigos de barras de produtos para info nutricional</string>
+    <string name="ai_powered">Alimentado por IA</string>
+    <string name="ai_powered_desc">Obtenha estimativas precisas de calorias em segundos</string>
+    <string name="allow_camera_access">Permitir Acesso à Câmera</string>
+    <string name="maybe_later">Talvez Mais Tarde</string>
+    <string name="tips_for_best_results">📸 Dicas para Melhores Resultados</string>
+    <string name="tips_subtitle">Siga estas dicas para obter a análise nutricional mais precisa da nossa IA</string>
+    <string name="tip_center_food">Centralize sua comida</string>
+    <string name="tip_center_food_desc">Coloque o item principal no centro do visor para melhor reconhecimento</string>
+    <string name="tip_good_lighting">Boa iluminação</string>
+    <string name="tip_good_lighting_desc">Luz natural é a melhor. Evite sombras fortes ou ambientes escuros</string>
+    <string name="tip_full_plate">Mostre o prato completo</string>
+    <string name="tip_full_plate_desc">Capture todos os itens alimentares para obter estimativas precisas das porções</string>
+    <string name="tip_fill_frame">Preencha o quadro</string>
+    <string name="tip_fill_frame_desc">Chegue perto o suficiente para que a comida ocupe 70-80% da tela</string>
+    <string name="pro_tip_text">Dica Pro: Para pratos mistos, tente separar os itens para que a IA possa identificar cada componente</string>
+    <string name="start_scanning">Começar a Escanear</string>
+    <string name="ill_figure_it_out">Eu me viro</string>
+    <string name="camera_permission_denied">Permissão da Câmera Negada</string>
+    <string name="camera_permission_denied_desc">Para escanear comida e obter informações nutricionais, permita o acesso à câmera nas configurações do seu dispositivo.</string>
+    <string name="try_again">Tentar Novamente</string>
+    <string name="go_back">Voltar</string>
+    <string name="close_desc">Fechar</string>
+    <string name="info_desc">Info</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">Scanner de Código de Barras</string>
+    <string name="flash_desc">Flash</string>
+    <string name="retry_action">Tentar novamente</string>
+    <string name="scan_mode_scan">Escanear</string>
+    <string name="scan_mode_barcode">Barras</string>
+    <string name="scan_mode_label">Rótulo</string>
+    <string name="scan_mode_gallery">Galeria</string>
+    <string name="capture_desc">Capturar</string>
+    <string name="food_detected_default">Comida Detectada</string>
+    <string name="discard_action">Descartar</string>
+    <string name="log_meal_action">Registrar Refeição</string>
+    <string name="product_found_title">Produto Encontrado</string>
+    <string name="per_100g_serving">Por 100g (porção: %1$s)</string>
+    <string name="log_this_product_action">Registrar este Produto</string>
+    <string name="nutrition_detected_title">Nutrição Detectada</string>
+    <string name="log_this_food_action">Registrar esta Comida</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">Minhas Refeições</string>
+    <string name="quick_actions_title">Ações Rápidas</string>
+    <string name="scan_food_title">Escanear Comida</string>
+    <string name="scan_food_subtitle">Tirar uma foto</string>
+    <string name="create_meal_title">Criar Refeição</string>
+    <string name="create_meal_subtitle">Adicionar manualmente</string>
+    <string name="your_meals_title">Suas Refeições</string>
+    <string name="meals_count_suffix"> refeições</string>
+    <string name="no_meals_yet">Nenhuma refeição ainda</string>
+    <string name="no_meals_desc">Escaneie sua comida ou crie uma refeição personalizada</string>
+    <string name="create_custom_meal_title">Criar Refeição Personalizada</string>
+    <string name="meal_name_label">Nome da Refeição *</string>
+    <string name="calories_label">Calorias *</string>
+    <string name="protein_label">Proteína</string>
+    <string name="carbs_label">Carboidratos</string>
+    <string name="fats_label">Gorduras</string>
+    <string name="create_action">Criar</string>
+    <string name="cancel_action">Cancelar</string>
+    <string name="delete_meal_title">Excluir Refeição?</string>
+    <string name="delete_meal_confirm">Tem certeza de que deseja excluir \"%1$s\"? Esta ação não pode ser desfeita.</string>
+    <string name="delete_action">Excluir</string>
+    <string name="delete_meal_content_desc">Excluir refeição</string>
+    <string name="analyzing_status">Analisando...</string>
+    <string name="back_desc">Voltar</string>
+</resources>

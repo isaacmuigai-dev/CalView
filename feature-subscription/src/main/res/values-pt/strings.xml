@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">Desbloqueie Todo o Potencial</string>
+    <string name="paywall_subtitle">Obtenha escaneamentos de IA ilimitados, análise detalhada de macros e insights personalizados.</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">Escaneamentos de Alimentos com IA Ilimitados</string>
+    <string name="feature_advanced_macros">Detalhamento Avançado de Macronutrientes</string>
+    <string name="feature_trends_insights">Tendências e Insights Personalizados</string>
+    <string name="feature_no_ads">Sem Anúncios</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">Carregando planos...</string>
+    <string name="plan_yearly_best_value">Anual (Melhor Valor)</string>
+    <string name="plan_monthly">Mensal</string>
+    <string name="price_per_month">Apenas %s / mês</string>
+    <string name="cancel_anytime">Cancele a qualquer momento</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">Começar Premium Agora</string>
+    <string name="restore_purchases">Restaurar Compras</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">Termos de Serviço</string>
+    <string name="privacy_policy">Política de Privacidade</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">Fechar</string>
+    <string name="cd_feature_prefix">Funcionalidade: %s</string>
+    <string name="cd_loading_plans">Carregando planos de assinatura</string>
+    <string name="cd_subscription_option_selected">Assinatura %1$s, %2$s. %3$s. Selecionada</string>
+    <string name="cd_subscription_option_not_selected">Assinatura %1$s, %2$s. %3$s. Não selecionada</string>
+</resources>

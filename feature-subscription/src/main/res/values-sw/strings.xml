@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">Fungua Uwezo Kamili</string>
+    <string name="paywall_subtitle">Pata uchanganuzi wa chakula wa AI bila kikomo, uchanganuzi wa kina wa makro, na maarifa ya kibinafsi.</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">Uchanganuzi wa Chakula wa AI Bila Kizibo</string>
+    <string name="feature_advanced_macros">Uchanganuzi wa Kina wa Macronutrient</string>
+    <string name="feature_trends_insights">Mitindo na Maarifa ya Kubinafsisha</string>
+    <string name="feature_no_ads">Hakuna Matangazo</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">Inapakia mipango...</string>
+    <string name="plan_yearly_best_value">Kila Mwaka (Thamani Bora)</string>
+    <string name="plan_monthly">Kila Mwezi</string>
+    <string name="price_per_month">Tu %s / mwezi</string>
+    <string name="cancel_anytime">Ghairi wakati wowote</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">Anza Premium Sasa</string>
+    <string name="restore_purchases">Rejesha Ununuzi</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">Masharti ya Huduma</string>
+    <string name="privacy_policy">Sera ya Faragha</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">Funga</string>
+    <string name="cd_feature_prefix">Kipengele: %s</string>
+    <string name="cd_loading_plans">Inapakia mipango ya usajili</string>
+    <string name="cd_subscription_option_selected">Usajili %1$s, %2$s. %3$s. Imechaguliwa</string>
+    <string name="cd_subscription_option_not_selected">Usajili %1$s, %2$s. %3$s. Haijachaguliwa</string>
+</resources>

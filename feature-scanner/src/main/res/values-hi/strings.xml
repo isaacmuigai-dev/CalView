@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">कैमरा एक्सेस आवश्यक</string>
+    <string name="camera_permission_desc">CalViewAI को आपके भोजन को स्कैन करने और तत्काल पोषण संबंधी जानकारी प्रदान करने के लिए कैमरा एक्सेस की आवश्यकता है।</string>
+    <string name="scan_any_food">किसी भी भोजन को स्कैन करें</string>
+    <string name="scan_any_food_desc">तत्काल विश्लेषण के लिए अपने भोजन की एक फोटो लें</string>
+    <string name="barcode_scanning">बारकोड स्कैनिंग</string>
+    <string name="barcode_scanning_desc">पोषण संबंधी जानकारी के लिए उत्पाद बारकोड स्कैन करें</string>
+    <string name="ai_powered">AI द्वारा संचालित</string>
+    <string name="ai_powered_desc">सेकंडों में सटीक कैलोरी अनुमान प्राप्त करें</string>
+    <string name="allow_camera_access">कैमरा एक्सेस की अनुमति दें</string>
+    <string name="maybe_later">शायद बाद में</string>
+    <string name="tips_for_best_results">📸 सर्वोत्तम परिणामों के लिए सुझाव</string>
+    <string name="tips_subtitle">हमारे AI से सबसे सटीक पोषण विश्लेषण प्राप्त करने के लिए इन सुझावों का पालन करें</string>
+    <string name="tip_center_food">अपना भोजन केंद्रित करें</string>
+    <string name="tip_center_food_desc">बेहतर पहचान के लिए मुख्य आइटम को व्यूपोर्ट के केंद्र में रखें</string>
+    <string name="tip_good_lighting">अच्छी रोशनी</string>
+    <string name="tip_good_lighting_desc">प्राकृतिक प्रकाश सबसे अच्छा है। कठोर छाया या अंधेरे वातावरण से बचें</string>
+    <string name="tip_full_plate">पूरी प्लेट दिखाएं</string>
+    <string name="tip_full_plate_desc">सटीक भाग अनुमान प्राप्त करने के लिए सभी खाद्य वस्तुओं को कैप्चर करें</string>
+    <string name="tip_fill_frame">फ्रेम भरें</string>
+    <string name="tip_fill_frame_desc">काफी करीब पहुंचें ताकि भोजन स्क्रीन का 70-80% हिस्सा ले ले</string>
+    <string name="pro_tip_text">प्रो टिप: मिश्रित प्लेटों के लिए, वस्तुओं को अलग करने का प्रयास करें ताकि AI प्रत्येक घटक की पहचान कर सके</string>
+    <string name="start_scanning">स्कैन करना शुरू करें</string>
+    <string name="ill_figure_it_out">मैं इसका पता लगा लूंगा</string>
+    <string name="camera_permission_denied">कैमरा अनुमति अस्वीकृत</string>
+    <string name="camera_permission_denied_desc">भोजन स्कैन करने और पोषण संबंधी जानकारी प्राप्त करने के लिए, कृपया अपनी डिवाइस सेटिंग्स में कैमरा एक्सेस की अनुमति दें।</string>
+    <string name="try_again">पुनः प्रयास करें</string>
+    <string name="go_back">वापस जाएं</string>
+    <string name="close_desc">बंद करें</string>
+    <string name="info_desc">जानकारी</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">बारकोड स्कैनर</string>
+    <string name="flash_desc">फ्लैश</string>
+    <string name="retry_action">पुनः प्रयास करें</string>
+    <string name="scan_mode_scan">स्कैन</string>
+    <string name="scan_mode_barcode">बारकोड</string>
+    <string name="scan_mode_label">लेबल</string>
+    <string name="scan_mode_gallery">गैलरी</string>
+    <string name="capture_desc">कैप्चर करें</string>
+    <string name="food_detected_default">भोजन का पता चला</string>
+    <string name="discard_action">त्यागें</string>
+    <string name="log_meal_action">भोजन लॉग करें</string>
+    <string name="product_found_title">उत्पाद मिला</string>
+    <string name="per_100g_serving">प्रति 100g (परोसने: %1$s)</string>
+    <string name="log_this_product_action">इस उत्पाद को लॉग करें</string>
+    <string name="nutrition_detected_title">पोषण का पता चला</string>
+    <string name="log_this_food_action">इस भोजन को लॉग करें</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">मेरे भोजन</string>
+    <string name="quick_actions_title">त्वरित क्रियाएं</string>
+    <string name="scan_food_title">भोजन स्कैन करें</string>
+    <string name="scan_food_subtitle">एक फोटो लें</string>
+    <string name="create_meal_title">भोजन बनाएं</string>
+    <string name="create_meal_subtitle">मैन्युअल रूप से जोड़ें</string>
+    <string name="your_meals_title">आपके भोजन</string>
+    <string name="meals_count_suffix"> भोजन</string>
+    <string name="no_meals_yet">अभी तक कोई भोजन नहीं</string>
+    <string name="no_meals_desc">अपने भोजन को स्कैन करें या एक कस्टम भोजन बनाएं</string>
+    <string name="create_custom_meal_title">कस्टम भोजन बनाएं</string>
+    <string name="meal_name_label">भोजन का नाम *</string>
+    <string name="calories_label">कैलोरी *</string>
+    <string name="protein_label">प्रोटीन</string>
+    <string name="carbs_label">कार्ब्स</string>
+    <string name="fats_label">वसा</string>
+    <string name="create_action">बनाएं</string>
+    <string name="cancel_action">रद्द करें</string>
+    <string name="delete_meal_title">भोजन हटाएं?</string>
+    <string name="delete_meal_confirm">क्या आप वाकई \"%1$s\" हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।</string>
+    <string name="delete_action">हटाएं</string>
+    <string name="delete_meal_content_desc">भोजन हटाएं</string>
+    <string name="analyzing_status">विश्लेषण कर रहा है...</string>
+    <string name="back_desc">वापस</string>
+</resources>

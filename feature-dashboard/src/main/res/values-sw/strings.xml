@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">Fuatilia &amp; Sitawi</string>
+    <string name="calories_burned_notification">🔥 Kalori %1$d zimechomwa! Zimeongezwa kwa lengo la siku.</string>
+    <string name="connect_google_health">Unganisha Google Health</string>
+    <string name="sync_steps_calories">Sawazisha hatua na kalori</string>
+    <string name="connect">Unganisha</string>
+    <string name="health_score">Alama ya Afya</string>
+    <string name="health_score_desc">Wanga na mafuta ziko sawa. Uko chini katika kalori na protini, ambayo inaweza kupunguza kupunguza uzito na kuathiri matengenezo ya misuli.</string>
+    <string name="recently_uploaded">Imepakiwa Hivi Karibuni</string>
+    <string name="empty_meals_message">Gusa + kuongeza mlo wako wa kwanza wa leo</string>
+    <string name="fiber_left">Nyuzi zilizobaki</string>
+    <string name="sugar_left">Sukari iliyobaki</string>
+    <string name="sodium_left">Sodiamu iliyobaki</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Mipangilio</string>
+    <string name="years_old_suffix">miaka</string>
+    <string name="invite_friends">Alika Marafiki</string>
+    <string name="invite_friends_desc">Safari ni rahisi\npamoja.</string>
+    <string name="refer_friend_action">Mpe rafiki rufaa upate $5</string>
+    <string name="personal_details">Maelezo Binafsi</string>
+    <string name="adjust_macros">Rekebisha Makro</string>
+    <string name="goal_current_weight">Lengo na Uzito wa Sasa</string>
+    <string name="weight_history">Historia ya Uzito</string>
+    <string name="language">Lugha</string>
+    <string name="preferences">Mapendeleo</string>
+    <string name="appearance">Muonekano</string>
+    <string name="appearance_desc">Chagua Nuru, Giza au Mfumo</string>
+    <string name="appearance_light">Nuru</string>
+    <string name="appearance_dark">Giza</string>
+    <string name="appearance_automatic">Otomatiki</string>
+    <string name="add_burned_calories">Ongeza kalori zilizochomwa</string>
+    <string name="add_burned_calories_desc">Ongeza kalori zilizochomwa kwa lengo la siku</string>
+    <string name="rollover_calories">Kuhamisha kalori</string>
+    <string name="rollover_calories_desc">Ongeza hadi kalori 200 zilizobaki kutoka jana kwa lengo la leo</string>
+    <string name="widgets">Wijeti</string>
+    <string name="how_to_add">Jinsi ya kuongeza?</string>
+    <string name="calories_left">Kalori zilizobaki</string>
+    <string name="log_food_action">+ Rekodi Chakula</string>
+    <string name="protein_left">Protini iliyobaki</string>
+    <string name="carbs_left">Wanga iliyobaki</string>
+    <string name="fats_left">Mafuta yaliyobaki</string>
+    <string name="scan_food">Changanua Chakula</string>
+    <string name="barcode">Msimbo pau</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">Maelezo ya Chakula</string>
+    <string name="options_menu">Chaguzi</string>
+    <string name="report_food">Ripoti Chakula</string>
+    <string name="report_submitted">Ripoti Imewasilishwa</string>
+    <string name="save_image">Hifadhi Picha</string>
+    <string name="delete_food">Futa Chakula</string>
+    <string name="calories_label">Kalori</string>
+    <string name="protein_label">Protini</string>
+    <string name="carbs_label">Wanga</string>
+    <string name="fats_label">Mafuta</string>
+    <string name="fiber_label">Nyuzi</string>
+    <string name="sugar_label">Sukari</string>
+    <string name="sodium_label">Sodiamu</string>
+    <string name="what_detected">Nilichogundua</string>
+    <string name="confident_suffix">na uhakika</string>
+    <string name="i_see_prefix">Naona: </string>
+    <string name="i_suspect_prefix">Ninashuku: </string>
+    <string name="ingredients_title">Viungo</string>
+    <string name="add_more_action">+ Ongeza zaidi</string>
+    <string name="share_action">Shiriki</string>
+    <string name="save_changes">Hifadhi Mabadiliko</string>
+    <string name="recalibrate">Rekebisha upya</string>
+    <string name="saved_to_gallery">Imehifadhiwa kwenye Matunzio</string>
+
+    <string name="error_saving_image">Hitilafu kuhifadhi picha</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">Uzito wa Lengo</string>
+    <string name="change_goal_action">Badilisha Lengo</string>
+    <string name="current_weight_label">Uzito wa Sasa</string>
+    <string name="height_label">Urefu</string>
+    <string name="not_set">Haijawekwa</string>
+    <string name="dob_label">Tarehe ya Kuzaliwa</string>
+    <string name="gender_label">Jinsia</string>
+    <string name="daily_step_goal_label">Lengo la Hatua za Kila Siku</string>
+    <string name="steps_unit">hatua</string>
+    <string name="edit_content_desc">Hariri %1$s</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">Hariri Jina</string>
+    <string name="save_action">Hifadhi</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">Mpe Rafiki Rufaa</string>
+    <string name="referral_share_message">Jiunge nami kwenye CalViewAI! Nambari yangu ya rufaa ni: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">Nambari imenakiliwa kwenye ubao wa kunakili!</string>
+    <string name="empower_friends">Wezesha marafiki zako</string>
+    <string name="lose_weight_together">&amp; punguza uzito pamoja</string>
+    <string name="promo_code_label">Msimbo wako wa Matangazo wa Kibinafsi</string>
+    <string name="copy_code_desc">Nakili msimbo</string>
+    <string name="share_referral_chooser">Shiriki msimbo wa rufaa</string>
+    <string name="how_to_earn">Jinsi ya kupata</string>
+    <string name="earn_step_1">Shiriki msimbo wa matangazo na marafiki zako</string>
+    <string name="earn_step_2">Pata $5 rafiki yako anapolipia upatikanaji wa mwaka</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">Weka Siku ya Kuzaliwa</string>
+    <string name="save_changes_button">Hifadhi Mabadiliko</string>
+    <string name="set_gender_title">Weka Jinsia</string>
+    <string name="gender_male">Mwanaume</string>
+    <string name="gender_female">Mwanamke</string>
+    <string name="gender_other">Nyingine</string>
+    <string name="edit_weight_goal_title">Hariri Lengo la Uzito</string>
+    <string name="lose_weight_label">Punguza Uzito</string>
+    <string name="gain_weight_label">Ongeza Uzito</string>
+    <string name="maintain_weight_label">Dumisha Uzito</string>
+    <string name="done_action">Imekamilika</string>
+    <string name="set_height_weight_title">Weka Urefu na Uzito</string>
+    <string name="height_header">Urefu</string>
+    <string name="weight_header">Uzito</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">Hariri Malengo ya Lishe</string>
+    <string name="calorie_goal">Lengo la Kalori</string>
+    <string name="protein_goal">Lengo la Protini</string>
+    <string name="carb_goal">Lengo la Wanga</string>
+    <string name="fat_goal">Lengo la Mafuta</string>
+    <string name="view_micronutrients">Angalia Virutubisho Vidogo</string>
+    <string name="fiber_goal">Lengo la Nyuzi</string>
+    <string name="sugar_goal">Lengo la Sukari</string>
+    <string name="sodium_goal">Lengo la Sodiamu</string>
+    <string name="auto_generate_goals">Tengeneza Malengo Kiotomatiki</string>
+    <string name="edit_desc">Hariri</string>
+    <string name="check_desc">Imekamilika</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">Hariri Lengo la Hatua</string>
+    <string name="previous_goal_steps">Pia ni lengo la awali la hatua %1$d</string>
+
+    <string name="revert_action">Rejesha</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">Maombi ya Vipengele</string>
+    <string name="shape_future_desc">Tengeneza mustakabali wa CalView</string>
+    <string name="tab_trending">🔥 Zinazovuma</string>
+    <string name="tab_newest">✨ Mpya zaidi</string>
+    <string name="tab_my_posts">👤 Machapisho Yangu</string>
+    <string name="search_placeholder">Tafuta maombi ya vipengele...</string>
+    <string name="clear_desc">Futa</string>
+    <string name="create_request_desc">Unda Ombi</string>
+    <string name="feedback_hub_title">Kituo cha Maoni</string>
+    <string name="refresh_desc">Onyesha upya</string>
+    <string name="dismiss_action">Ondoa</string>
+    <string name="new_feature_request_title">Ombi la Kipengele Kipya</string>
+    <string name="share_idea_desc">Shiriki wazo lako na jamii</string>
+    <string name="feature_title_label">Kichwa cha Kipengele</string>
+    <string name="feature_title_placeholder">Unataka kipengele gani?</string>
+    <string name="description_label">Maelezo</string>
+    <string name="description_placeholder">Elezea wazo lako kwa undani...</string>
+    <string name="add_tags_label">Ongeza Lebo</string>
+    <string name="post_request_action">Chapisha Ombi</string>
+    <string name="comments_title">Maoni (%1$d)</string>
+    <string name="add_comment_placeholder">Ongeza maoni...</string>
+    <string name="send_desc">Tuma</string>
+    <string name="no_comments_yet">Hakuna maoni bado</string>
+    <string name="be_first_comment">Kuwa wa kwanza kushiriki mawazo!</string>
+    <string name="empty_state_title">Hakuna maombi bado</string>
+    <string name="empty_state_desc">Kuwa wa kwanza kupendekeza kipengele!</string>
+    <string name="status_open">Imefunguliwa</string>
+    <string name="status_in_progress">Inaendelea</string>
+    <string name="status_completed">Imekamilika</string>
+    <string name="status_declined">Imekataliwa</string>
+    <string name="just_now">sasa hivi</string>
+    <string name="minutes_ago_suffix">dakika zilizopita</string>
+    <string name="hours_ago_suffix">masaa yaliyopita</string>
+    <string name="days_ago_suffix">siku zilizopita</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">Ongeza Wijeti</string>
+    <string name="add_calview_widgets_title">Ongeza Wijeti za CalView kwenye Skrini ya Nyumbani</string>
+    <string name="add_widget_desc">Fuatilia kalori na makro zako kwa haraka bila kufungua programu</string>
+    <string name="step_1_title">Bonyeza kwa muda mrefu Skrini ya Nyumbani</string>
+    <string name="step_1_desc">Gusa na ushikilie eneo tupu kwenye skrini yako hadi menyu ionekane</string>
+    <string name="step_2_title">Gusa \"Wijeti\"</string>
+    <string name="step_2_desc">Pata chaguo la wijeti kwenye menyu au chini ya skrini</string>
+    <string name="step_3_title">Pata CalView</string>
+    <string name="step_3_desc">Sogeza orodha ya wijeti au utafute \"CalView\" ili kupata wijeti zetu</string>
+    <string name="step_4_title">Buruta Wijeti Nyumbani</string>
+    <string name="step_4_desc">Bonyeza na ushikilie wijeti unayotaka, kisha iburute kwenye skrini yako ya nyumbani</string>
+    <string name="available_widgets_title">Wijeti Zinazopatikana</string>
+    <string name="widget_calorie_ring_title">Pete ya Kalori</string>
+    <string name="widget_calorie_ring_desc">Huonyesha kalori zilizobaki</string>
+    <string name="widget_macros_title">Makro</string>
+    <string name="widget_macros_desc">Protini, Wanga, Mafuta</string>
+    <string name="widget_quick_actions_title">Hatua za Haraka</string>
+    <string name="widget_quick_actions_desc">Changanua chakula, msimbo pau</string>
+    <string name="widget_streak_title">Mfululizo</string>
+    <string name="widget_streak_desc">Siku za mfululizo za kuweka kumbukumbu</string>
+    <string name="got_it_action">Nimeipata!</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">Leseni za Open Source</string>
+    <string name="open_source_intro">CalView hutumia maktaba na mifano ifuatayo ya open source:</string>
+    <string name="apache_license_2_0">Leseni ya Apache 2.0</string>
+    <string name="apache_license_text">Imepewa leseni chini ya Leseni ya Apache, Toleo la 2.0 (\"Leseni\"); huenda usitumie faili hii isipokuwa kwa kufuata Leseni. Unaweza kupata nakala ya Leseni katika:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nIsipokuwa kama inavyotakiwa na sheria inayotumika au kukubaliwa kwa maandishi, programu inayosambazwa chini ya Leseni inasambazwa kwa msingi wa \"HIVI HIVYO\", BILA DHAMANA AU MASHARTI YA AINA YOYOTE, iwe ya wazi au ya kudokezwa. Angalia Leseni kwa lugha maalum inayosimamia ruhusa na vikwazo chini ya Leseni.</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">Historia ya Uzito</string>
+    <string name="no_weight_entries">Hakuna maingizo ya uzito bado</string>
+    <string name="weight_changes_appear_here">Mabadiliko yako ya uzito yataonekana hapa</string>
+</resources>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">추적하고 성장하세요</string>
+    <string name="calories_burned_notification">🔥 %1$d 칼로리 소모! 일일 목표에 추가되었습니다.</string>
+    <string name="connect_google_health">Google Health 연결</string>
+    <string name="sync_steps_calories">걸음 수 및 칼로리 동기화</string>
+    <string name="connect">연결</string>
+    <string name="health_score">건강 점수</string>
+    <string name="health_score_desc">탄수화물과 지방은 적절합니다. 칼로리와 단백질 섭취가 적어 체중 감량이 느려지고 근육 유지에 영향을 줄 수 있습니다.</string>
+    <string name="recently_uploaded">최근 업로드됨</string>
+    <string name="empty_meals_message">+ 버튼을 눌러 오늘의 첫 식사를 추가하세요</string>
+    <string name="fiber_left">남은 식이섬유</string>
+    <string name="sugar_left">남은 당류</string>
+    <string name="sodium_left">남은 나트륨</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">설정</string>
+    <string name="years_old_suffix">세</string>
+    <string name="invite_friends">친구 초대</string>
+    <string name="invite_friends_desc">함께하면 여정이\n더 쉬워집니다.</string>
+    <string name="refer_friend_action">친구 추천하고 $5 받기</string>
+    <string name="personal_details">개인 정보</string>
+    <string name="adjust_macros">매크로 영양소 조정</string>
+    <string name="goal_current_weight">목표 및 현재 체중</string>
+    <string name="weight_history">체중 기록</string>
+    <string name="language">언어</string>
+    <string name="preferences">환경 설정</string>
+    <string name="appearance">외관</string>
+    <string name="appearance_desc">라이트, 다크 또는 시스템 선택</string>
+    <string name="appearance_light">라이트</string>
+    <string name="appearance_dark">다크</string>
+    <string name="appearance_automatic">자동</string>
+    <string name="add_burned_calories">소모된 칼로리 추가</string>
+    <string name="add_burned_calories_desc">소모된 칼로리를 일일 목표에 추가</string>
+    <string name="rollover_calories">칼로리 이월</string>
+    <string name="rollover_calories_desc">어제 남은 칼로리를 최대 200까지 오늘 목표에 추가</string>
+    <string name="widgets">위젯</string>
+    <string name="how_to_add">추가 방법?</string>
+    <string name="calories_left">남은 칼로리</string>
+    <string name="log_food_action">+ 음식 기록</string>
+    <string name="protein_left">남은 단백질</string>
+    <string name="carbs_left">남은 탄수화물</string>
+    <string name="fats_left">남은 지방</string>
+    <string name="scan_food">음식 스캔</string>
+    <string name="barcode">바코드</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">음식 상세</string>
+    <string name="options_menu">옵션</string>
+    <string name="report_food">음식 신고</string>
+    <string name="report_submitted">신고가 접수되었습니다</string>
+    <string name="save_image">이미지 저장</string>
+    <string name="delete_food">음식 삭제</string>
+    <string name="calories_label">칼로리</string>
+    <string name="protein_label">단백질</string>
+    <string name="carbs_label">탄수화물</string>
+    <string name="fats_label">지방</string>
+    <string name="fiber_label">식이섬유</string>
+    <string name="sugar_label">당류</string>
+    <string name="sodium_label">나트륨</string>
+    <string name="what_detected">감지된 내용</string>
+    <string name="confident_suffix">확신함</string>
+    <string name="i_see_prefix">보이는 것: </string>
+    <string name="i_suspect_prefix">의심되는 것: </string>
+    <string name="ingredients_title">재료</string>
+    <string name="add_more_action">+ 더 추가하기</string>
+    <string name="share_action">공유</string>
+    <string name="save_changes">변경 사항 저장</string>
+    <string name="recalibrate">재보정</string>
+    <string name="saved_to_gallery">갤러리에 저장됨</string>
+
+    <string name="error_saving_image">이미지 저장 오류</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">목표 체중</string>
+    <string name="change_goal_action">목표 변경</string>
+    <string name="current_weight_label">현재 체중</string>
+    <string name="height_label">신장</string>
+    <string name="not_set">설정되지 않음</string>
+    <string name="dob_label">생년월일</string>
+    <string name="gender_label">성별</string>
+    <string name="daily_step_goal_label">일일 걸음 목표</string>
+    <string name="steps_unit">걸음</string>
+    <string name="edit_content_desc">%1$s 편집</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">이름 편집</string>
+    <string name="save_action">저장</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">친구 추천</string>
+    <string name="referral_share_message">CalViewAI에 함께해요! 제 추천 코드: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">코드가 클립보드에 복사되었습니다!</string>
+    <string name="empower_friends">친구들에게 힘을 실어주세요</string>
+    <string name="lose_weight_together">&amp; 함께 체중 감량</string>
+    <string name="promo_code_label">나만의 프로모션 코드</string>
+    <string name="copy_code_desc">코드 복사</string>
+    <string name="share_referral_chooser">추천 코드 공유</string>
+    <string name="how_to_earn">적립 방법</string>
+    <string name="earn_step_1">친구들과 프로모션 코드 공유</string>
+    <string name="earn_step_2">친구가 연간 이용권을 결제하면 $5 적립</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">생일 설정</string>
+    <string name="save_changes_button">변경 사항 저장</string>
+    <string name="set_gender_title">성별 설정</string>
+    <string name="gender_male">남성</string>
+    <string name="gender_female">여성</string>
+    <string name="gender_other">기타</string>
+    <string name="edit_weight_goal_title">체중 목표 편집</string>
+    <string name="lose_weight_label">체중 감량</string>
+    <string name="gain_weight_label">체중 증량</string>
+    <string name="maintain_weight_label">체중 유지</string>
+    <string name="done_action">완료</string>
+    <string name="set_height_weight_title">신장 및 체중 설정</string>
+    <string name="height_header">신장</string>
+    <string name="weight_header">체중</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">영양 목표 편집</string>
+    <string name="calorie_goal">칼로리 목표</string>
+    <string name="protein_goal">단백질 목표</string>
+    <string name="carb_goal">탄수화물 목표</string>
+    <string name="fat_goal">지방 목표</string>
+    <string name="view_micronutrients">미량 영양소 보기</string>
+    <string name="fiber_goal">식이섬유 목표</string>
+    <string name="sugar_goal">당류 목표</string>
+    <string name="sodium_goal">나트륨 목표</string>
+    <string name="auto_generate_goals">목표 자동 생서</string>
+    <string name="edit_desc">편집</string>
+    <string name="check_desc">완료</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">걸음 목표 편집</string>
+    <string name="previous_goal_steps">이전 목표 %1$d 걸음</string>
+
+    <string name="revert_action">되돌리기</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">기능 요청</string>
+    <string name="shape_future_desc">CalView의 미래를 만들어가세요</string>
+    <string name="tab_trending">🔥 트렌딩</string>
+    <string name="tab_newest">✨ 최신</string>
+    <string name="tab_my_posts">👤 내 게시물</string>
+    <string name="search_placeholder">기능 요청 검색...</string>
+    <string name="clear_desc">지우기</string>
+    <string name="create_request_desc">요청 생성</string>
+    <string name="feedback_hub_title">피드백 허브</string>
+    <string name="refresh_desc">새로고침</string>
+    <string name="dismiss_action">닫기</string>
+    <string name="new_feature_request_title">새 기능 요청</string>
+    <string name="share_idea_desc">커뮤니티와 아이디어 공유</string>
+    <string name="feature_title_label">기능 제목</string>
+    <string name="feature_title_placeholder">어떤 기능을 원하시나요?</string>
+    <string name="description_label">설명</string>
+    <string name="description_placeholder">아이디어를 자세히 설명해주세요...</string>
+    <string name="add_tags_label">태그 추가</string>
+    <string name="post_request_action">요청 게시</string>
+    <string name="comments_title">댓글 (%1$d)</string>
+    <string name="add_comment_placeholder">댓글 추가...</string>
+    <string name="send_desc">전송</string>
+    <string name="no_comments_yet">아직 댓글이 없습니다</string>
+    <string name="be_first_comment">가장 먼저 의견을 공유하세요!</string>
+    <string name="empty_state_title">아직 요청이 없습니다</string>
+    <string name="empty_state_desc">가장 먼저 기능을 제안하세요!</string>
+    <string name="status_open">열림</string>
+    <string name="status_in_progress">진행 중</string>
+    <string name="status_completed">완료됨</string>
+    <string name="status_declined">거절됨</string>
+    <string name="just_now">방금</string>
+    <string name="minutes_ago_suffix">분 전</string>
+    <string name="hours_ago_suffix">시간 전</string>
+    <string name="days_ago_suffix">일 전</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">위젯 추가</string>
+    <string name="add_calview_widgets_title">홈 화면에 CalView 위젯 추가</string>
+    <string name="add_widget_desc">앱을 열지 않고도 칼로리와 매크로를 한눈에 추적하세요</string>
+    <string name="step_1_title">홈 화면 길게 누르기</string>
+    <string name="step_1_desc">메뉴가 나타날 때까지 홈 화면의 빈 공간을 길게 누르세요</string>
+    <string name="step_2_title">\"위젯\" 탭하기</string>
+    <string name="step_2_desc">메뉴나 화면 하단에서 위젯 옵션을 찾으세요</string>
+    <string name="step_3_title">CalView 찾기</string>
+    <string name="step_3_desc">위젯 목록을 스크롤하거나 \"CalView\"를 검색하여 위젯을 찾으세요</string>
+    <string name="step_4_title">위젯을 홈 화면으로 드래그</string>
+    <string name="step_4_desc">원하는 위젯을 길게 누른 다음 홈 화면으로 드래그하세요</string>
+    <string name="available_widgets_title">사용 가능한 위젯</string>
+    <string name="widget_calorie_ring_title">칼로리 링</string>
+    <string name="widget_calorie_ring_desc">남은 칼로리 표시</string>
+    <string name="widget_macros_title">매크로</string>
+    <string name="widget_macros_desc">단백질, 탄수화물, 지방</string>
+    <string name="widget_quick_actions_title">빠른 실행</string>
+    <string name="widget_quick_actions_desc">음식 스캔, 바코드</string>
+    <string name="widget_streak_title">스트릭</string>
+    <string name="widget_streak_desc">일일 기록 연속 일수</string>
+    <string name="got_it_action">알겠습니다!</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">오픈 소스 라이선스</string>
+    <string name="open_source_intro">CalView는 다음 오픈 소스 라이브러리 및 모델을 사용합니다:</string>
+    <string name="apache_license_2_0">Apache 라이선스 2.0</string>
+    <string name="apache_license_text">Apache 라이선스, 버전 2.0(\"라이선스\")에 따라 라이선스가 부여됩니다. 라이선스를 준수하지 않는 한 이 파일을 사용할 수 없습니다. 라이선스 사본은 다음에서 얻을 수 있습니다.\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n관련 법률에서 요구하거나 서면으로 동의하지 않는 한, 라이선스에 따라 배포되는 소프트웨어는 명시적이든 묵시적이든 어떠한 종류의 보증이나 조건 없이 \"있는 그대로\" 배포됩니다. 라이선스에 따른 권한 및 제한을 규정하는 특정 언어에 대해서는 라이선스를 참조하십시오.</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">체중 기록</string>
+    <string name="no_weight_entries">아직 체중 기록이 없습니다</string>
+    <string name="weight_changes_appear_here">체중 변화가 여기에 표시됩니다</string>
+</resources>

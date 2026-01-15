@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">تتبع السعرات\nأصبح سهلاً</string>
+    <string name="welcome_subtitle">امسح طعامك بالذكاء الاصطناعي\nوتتبع تغذيتك بكل سهولة</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="already_have_account">لديك حساب بالفعل؟ </string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="sign_in_semantics">تسجيل الدخول إلى حساب موجود</string>
+    <string name="food_scanner_ui">واجهة ماسح الطعام</string>
+    <string name="choose_language">اختر اللغة</string>
+    <string name="select_language">اختر اللغة</string>
+    <string name="close">إغلاق</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">إعداد ملفك الشخصي</string>
+    <string name="profile_setup_subtitle">أخبرنا عن نفسك لنخصص تجربتك</string>
+    <string name="gender_label">الجنس</string>
+    <string name="gender_male">ذكر</string>
+    <string name="gender_female">أنثى</string>
+    <string name="gender_other">آخر</string>
+    <string name="birthdate_label">تاريخ الميلاد</string>
+    <string name="month_label">شهر</string>
+    <string name="day_label">يوم</string>
+    <string name="year_label">سنة</string>
+    <string name="height_weight_label">الطول والوزن</string>
+    <string name="height_label">الطول</string>
+    <string name="weight_label">الوزن</string>
+    <string name="activity_level_label">مستوى النشاط</string>
+    <string name="activity_level_question">كم مرة تتمرن في الأسبوع؟</string>
+    <string name="activity_0_2">0-2 تمارين</string>
+    <string name="activity_0_2_desc">القليل أو لا تمارين</string>
+    <string name="activity_3_5">3-5 تمارين</string>
+    <string name="activity_3_5_desc">تمارين معتدلة</string>
+    <string name="activity_6_plus">6+ تمارين</string>
+    <string name="activity_6_plus_desc">نشط جداً</string>
+    <string name="continue_button">متابعة</string>
+    <string name="back_content_desc">رجوع</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">أهدافك</string>
+    <string name="goals_subtitle">حدد أهداف اللياقة وتفضيلاتك</string>
+    <string name="goal_question">ما هو هدفك؟</string>
+    <string name="goal_lose_weight">إنقاص الوزن</string>
+    <string name="goal_lose_weight_desc">تقليل وزن الجسم</string>
+    <string name="goal_maintain">الحفاظ</string>
+    <string name="goal_maintain_desc">الحفاظ على الوزن الحالي</string>
+    <string name="goal_gain_weight">زيادة الوزن</string>
+    <string name="goal_gain_weight_desc">بناء العضلات</string>
+    <string name="target_weight_label">الوزن المستهدف</string>
+    <string name="goal_weight_label">الوزن المستهدف</string>
+    <string name="to_gain">للكسب</string>
+    <string name="to_lose">لخسارة</string>
+    <string name="pace_question">ما مدى السرعة التي تريد بها تحقيق هدفك؟</string>
+    <string name="pace_slow">بطيء وثابت</string>
+    <string name="pace_moderate">سرعة معتدلة</string>
+    <string name="pace_recommended">موصى به</string>
+    <string name="pace_fast">سرعة عالية</string>
+    <string name="pace_warning">قد تشعر بالتعب وقد يترهل الجلد</string>
+    <string name="diet_preference_label">تفضيلات النظام الغذائي</string>
+    <string name="diet_preference_subtitle">اختياري - يساعدنا في تخصيص اقتراحات الطعام</string>
+    <string name="diet_no_preference">لا توجد تفضيلات</string>
+    <string name="diet_keto">كيتو</string>
+    <string name="diet_vegetarian">نباتي</string>
+    <string name="diet_vegan">نباتي صرف</string>
+    <string name="diet_paleo">باليو</string>
+    <string name="diet_mediterranean">البحر الأبيض المتوسط</string>
+    <string name="rollover_label">ترحيل السعرات</string>
+    <string name="enable_rollover">تفعيل الترحيل</string>
+    <string name="rollover_desc">السعرات غير المستخدمة ترحل لليوم التالي</string>
+    <string name="add_burned_label">إضافة السعرات المحروقة</string>
+    <string name="add_daily_goal">إضافة للهدف اليومي</string>
+    <string name="add_burned_desc">السعرات المحروقة من التمارين تضاف لميزانيتك اليومية</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">حقق أهدافك\nمع الإشعارات</string>
+    <string name="notifications_permission_text">يريد CalViewAI إرسال\nإشعارات إليك</string>
+    <string name="dont_allow">عدم السماح</string>
+    <string name="allow">سماح</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">شريط سرعة تغيير الوزن، من 0.1 إلى 1.5 كجم في الأسبوع</string>
+    <string name="cd_pace_per_week">السرعة الأسبوعية: %s في الأسبوع</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>يناير</item>
+        <item>فبراير</item>
+        <item>مارس</item>
+        <item>أبريل</item>
+        <item>مايو</item>
+        <item>يونيو</item>
+        <item>يوليو</item>
+        <item>أغسطس</item>
+        <item>سبتمبر</item>
+        <item>أكتوبر</item>
+        <item>نوفمبر</item>
+        <item>ديسمبر</item>
+    </string-array>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">Volles Potenzial freischalten</string>
+    <string name="paywall_subtitle">Erhalten Sie unbegrenzte KI-Scans, detaillierte Makroanalyse und personalisierte Einblicke.</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">Unbegrenzte KI-Lebensmittel-Scans</string>
+    <string name="feature_advanced_macros">Erweiterte Makronährstoffaufschlüsselung</string>
+    <string name="feature_trends_insights">Personalisierte Trends &amp; Einblicke</string>
+    <string name="feature_no_ads">Keine Werbung</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">Pläne laden...</string>
+    <string name="plan_yearly_best_value">Jährlich (Bester Wert)</string>
+    <string name="plan_monthly">Monatlich</string>
+    <string name="price_per_month">Nur %s / Monat</string>
+    <string name="cancel_anytime">Jederzeit kündbar</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">Premium jetzt starten</string>
+    <string name="restore_purchases">Käufe wiederherstellen</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">Nutzungsbedingungen</string>
+    <string name="privacy_policy">Datenschutzrichtlinie</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">Schließen</string>
+    <string name="cd_feature_prefix">Funktion: %s</string>
+    <string name="cd_loading_plans">Abonnementpläne laden</string>
+    <string name="cd_subscription_option_selected">%1$s Abonnement, %2$s. %3$s. Ausgewählt</string>
+    <string name="cd_subscription_option_not_selected">%1$s Abonnement, %2$s. %3$s. Nicht ausgewählt</string>
+</resources>

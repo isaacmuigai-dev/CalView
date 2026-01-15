@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">进度</string>
+    <string name="track_health_journey">追踪您的健康旅程</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">当前</string>
+    <string name="streak_best">最佳</string>
+    <string name="day_singular">天</string>
+    <string name="days_plural">天</string>
+    <string name="milestones_unlocked">解锁里程碑</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">周勇士</string>
+    <string name="milestone_two_week_champion">双周冠军</string>
+    <string name="milestone_monthly_master">月度大师</string>
+    <string name="milestone_stellar_streak">恒星记录</string>
+    <string name="milestone_ultimate_champion">终极冠军</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">每日激励</string>
+    <string name="motivation_access_desc">激励提示</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">快到了！您离目标非常近！🎯</string>
+    <string name="msg_halfway_there">已经一半了！继续加油！💪</string>
+    <string name="msg_incredible_streak">不可思议的连续记录！您势不可挡！🔥</string>
+    <string name="msg_great_consistency">了不起的坚持！保持节奏！⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 小步子带来大改变</item>
+        <item>🌟 坚持胜过完美</item>
+        <item>💪 您的身体会听到您大脑所说的一切</item>
+        <item>🎯 进步，而不是完美，这才是最重要的</item>
+        <item>🔥 每个健康的选择都是一次胜利</item>
+        <item>⭐ 您比您想象的更强大</item>
+        <item>🚀 唯一糟糕的锻炼是没发生的锻炼</item>
+        <item>🌈 相信过程，享受旅程</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">体重目标</string>
+    <string name="percent_complete">完成 %d%%</string>
+    <string name="current_label">当前</string>
+    <string name="goal_label">目标</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">每周卡路里</string>
+    <string name="goal_value_format">目标: %d</string>
+    <string name="legend_under">低于</string>
+    <string name="legend_over">超过</string>
+    <string name="legend_goal">目标</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">今日宏量</string>
+    <string name="total_label">总计</string>
+    <string name="macro_protein">蛋白质</string>
+    <string name="macro_carbs">碳水化合物</string>
+    <string name="macro_fats">脂肪</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">微量营养素</string>
+    <string name="micro_fiber">纤维</string>
+    <string name="micro_sugar">糖分</string>
+    <string name="micro_sodium">钠</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">步数</string>
+    <string name="burned_label">燃烧</string>
+    <string name="cal_unit">千卡</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">步数 7天</string>
+    <string name="weekly_burn_label">燃烧 7天</string>
+    <string name="record_label">记录</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">体重过轻</string>
+    <string name="bmi_healthy">健康</string>
+    <string name="bmi_overweight">超重</string>
+    <string name="bmi_obese">肥胖</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">完成的天数</string>
+    <string name="current_streak_desc">当前连续天数</string>
+    <string name="best_streak_desc">最佳连续天数</string>
+</resources>

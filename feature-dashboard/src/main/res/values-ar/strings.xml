@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">تتبع وازدهر</string>
+    <string name="calories_burned_notification">🔥 تم حرق %1$d سعرة! أضيفت إلى هدفك اليومي.</string>
+    <string name="connect_google_health">ربط Google Health</string>
+    <string name="sync_steps_calories">مزامنة الخطوات والسعرات</string>
+    <string name="connect">اتصال</string>
+    <string name="health_score">النتيجة الصحية</string>
+    <string name="health_score_desc">الكربوهيدرات والدهون في المسار الصحيح. أنت منخفض في السعرات والبروتين، مما قد يبطئ فقدان الوزن ويؤثر على الحفاظ على العضلات.</string>
+    <string name="recently_uploaded">تم الرفع حديثاً</string>
+    <string name="empty_meals_message">اضغط + لإضافة وجبتك الأولى لليوم</string>
+    <string name="fiber_left">ألياف متبقية</string>
+    <string name="sugar_left">سكر متبقي</string>
+    <string name="sodium_left">صوديوم متبقي</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="years_old_suffix">سنة</string>
+    <string name="invite_friends">ادعُ الأصدقاء</string>
+    <string name="invite_friends_desc">الرحلة أسهل\nمعاً.</string>
+    <string name="refer_friend_action">قم بدعوة صديق واربح 5$</string>
+    <string name="personal_details">تفاصيل شخصية</string>
+    <string name="adjust_macros">تعديل المغذيات الكبيرة</string>
+    <string name="goal_current_weight">الهدف والوزن الحالي</string>
+    <string name="weight_history">سجل الوزن</string>
+    <string name="language">اللغة</string>
+    <string name="preferences">التفضيلات</string>
+    <string name="appearance">المظهر</string>
+    <string name="appearance_desc">اختر فاتح، داكن أو النظام</string>
+    <string name="appearance_light">فاتح</string>
+    <string name="appearance_dark">داكن</string>
+    <string name="appearance_automatic">تلقائي</string>
+    <string name="add_burned_calories">إضافة السعرات المحروقة</string>
+    <string name="add_burned_calories_desc">إضافة السعرات المحروقة للهدف اليومي</string>
+    <string name="rollover_calories">ترحيل السعرات</string>
+    <string name="rollover_calories_desc">إضافة ما يصل لـ 200 سعرة متبقية من الأمس لهدف اليوم</string>
+    <string name="widgets">الأدوات</string>
+    <string name="how_to_add">كيف تضيف؟</string>
+    <string name="calories_left">سعرات متبقية</string>
+    <string name="log_food_action">+ تسجيل طعام</string>
+    <string name="protein_left">بروتين متبقي</string>
+    <string name="carbs_left">كربوهيدرات متبقية</string>
+    <string name="fats_left">دهون متبقية</string>
+    <string name="scan_food">مسح الطعام</string>
+    <string name="barcode">باركود</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">تفاصيل الطعام</string>
+    <string name="options_menu">خيارات</string>
+    <string name="report_food">إبلاغ عن الطعام</string>
+    <string name="report_submitted">تم إرسال البلاغ</string>
+    <string name="save_image">حفظ الصورة</string>
+    <string name="delete_food">حذف الطعام</string>
+    <string name="calories_label">سعرات</string>
+    <string name="protein_label">بروتين</string>
+    <string name="carbs_label">كربوهيدرات</string>
+    <string name="fats_label">دهون</string>
+    <string name="fiber_label">ألياف</string>
+    <string name="sugar_label">سكر</string>
+    <string name="sodium_label">صوديوم</string>
+    <string name="what_detected">ما اكتشفته</string>
+    <string name="confident_suffix">واثق</string>
+    <string name="i_see_prefix">أرى: </string>
+    <string name="i_suspect_prefix">أشتبه: </string>
+    <string name="ingredients_title">المكونات</string>
+    <string name="add_more_action">+ إضافة المزيد</string>
+    <string name="share_action">مشاركة</string>
+    <string name="save_changes">حفظ التغييرات</string>
+    <string name="recalibrate">إعادة المعايرة</string>
+    <string name="saved_to_gallery">تم الحفظ في المعرض</string>
+
+    <string name="error_saving_image">خطأ في حفظ الصورة</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">الوزن المستهدف</string>
+    <string name="change_goal_action">تغيير الهدف</string>
+    <string name="current_weight_label">الوزن الحالي</string>
+    <string name="height_label">الطول</string>
+    <string name="not_set">غير محدد</string>
+    <string name="dob_label">تاريخ الميلاد</string>
+    <string name="gender_label">الجنس</string>
+    <string name="daily_step_goal_label">هدف الخطوات اليومي</string>
+    <string name="steps_unit">خطوة</string>
+    <string name="edit_content_desc">تعديل %1$s</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">تعديل الاسم</string>
+    <string name="save_action">حفظ</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">ادعُ صديقاً</string>
+    <string name="referral_share_message">انضم إلي في CalViewAI! كود الدعوة الخاص بي: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">تم نسخ الكود للحافظة!</string>
+    <string name="empower_friends">مكّن أصدقاءك</string>
+    <string name="lose_weight_together">&amp; اخسروا الوزن معاً</string>
+    <string name="promo_code_label">كودك الترويجي الشخصي</string>
+    <string name="copy_code_desc">نسخ الكود</string>
+    <string name="share_referral_chooser">مشاركة كود الدعوة</string>
+    <string name="how_to_earn">كيف تكسب</string>
+    <string name="earn_step_1">شارك الكود الترويجي مع أصدقائك</string>
+    <string name="earn_step_2">اربح 5$ عندما يدفع صديقك للاشتراك السنوي</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">تعيين عيد الميلاد</string>
+    <string name="save_changes_button">حفظ التغييرات</string>
+    <string name="set_gender_title">تعيين الجنس</string>
+    <string name="gender_male">ذكر</string>
+    <string name="gender_female">أنثى</string>
+    <string name="gender_other">آخر</string>
+    <string name="edit_weight_goal_title">تعديل هدف الوزن</string>
+    <string name="lose_weight_label">إنقاص الوزن</string>
+    <string name="gain_weight_label">زيادة الوزن</string>
+    <string name="maintain_weight_label">الحفاظ على الوزن</string>
+    <string name="done_action">تم</string>
+    <string name="set_height_weight_title">تعيين الطول والوزن</string>
+    <string name="height_header">الطول</string>
+    <string name="weight_header">الوزن</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">تعديل أهداف التغذية</string>
+    <string name="calorie_goal">هدف السعرات</string>
+    <string name="protein_goal">هدف البروتين</string>
+    <string name="carb_goal">هدف الكربوهيدرات</string>
+    <string name="fat_goal">هدف الدهون</string>
+    <string name="view_micronutrients">عرض المغذيات الدقيقة</string>
+    <string name="fiber_goal">هدف الألياف</string>
+    <string name="sugar_goal">هدف السكر</string>
+    <string name="sodium_goal">هدف الصوديوم</string>
+    <string name="auto_generate_goals">توليد الأهداف تلقائياً</string>
+    <string name="edit_desc">تعديل</string>
+    <string name="check_desc">تم</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">تعديل هدف الخطوات</string>
+    <string name="previous_goal_steps">الهدف السابق %1$d خطوة</string>
+
+    <string name="revert_action">استرجاع</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">طلبات الميزات</string>
+    <string name="shape_future_desc">شكّل مستقبل CalView</string>
+    <string name="tab_trending">🔥 شائع</string>
+    <string name="tab_newest">✨ الأحدث</string>
+    <string name="tab_my_posts">👤 منشوراتي</string>
+    <string name="search_placeholder">بحث في طلبات الميزات...</string>
+    <string name="clear_desc">مسح</string>
+    <string name="create_request_desc">إنشاء طلب</string>
+    <string name="feedback_hub_title">مركز الملاحظات</string>
+    <string name="refresh_desc">تحديث</string>
+    <string name="dismiss_action">إغلاق</string>
+    <string name="new_feature_request_title">طلب ميزة جديدة</string>
+    <string name="share_idea_desc">شارك فكرتك مع المجتمع</string>
+    <string name="feature_title_label">عنوان الميزة</string>
+    <string name="feature_title_placeholder">ما الميزة التي تريدها؟</string>
+    <string name="description_label">الوصف</string>
+    <string name="description_placeholder">صف فكرتك بالتفصيل...</string>
+    <string name="add_tags_label">إضافة وسوم</string>
+    <string name="post_request_action">نشر الطلب</string>
+    <string name="comments_title">التعليقات (%1$d)</string>
+    <string name="add_comment_placeholder">أضف تعليقاً...</string>
+    <string name="send_desc">إرسال</string>
+    <string name="no_comments_yet">لا تعليقات بعد</string>
+    <string name="be_first_comment">كن أول من يشارك أفكاره!</string>
+    <string name="empty_state_title">لا توجد طلبات بعد</string>
+    <string name="empty_state_desc">كن أول من يقترح ميزة!</string>
+    <string name="status_open">مفتوح</string>
+    <string name="status_in_progress">قيد التنفيذ</string>
+    <string name="status_completed">مكتمل</string>
+    <string name="status_declined">مرفوض</string>
+    <string name="just_now">الآن</string>
+    <string name="minutes_ago_suffix">د</string>
+    <string name="hours_ago_suffix">س</string>
+    <string name="days_ago_suffix">ي</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">إضافة أداة</string>
+    <string name="add_calview_widgets_title">أضف أدوات CalView لشاشتك الرئيسية</string>
+    <string name="add_widget_desc">تتبع سعراتك ومغذياتك بلمحة دون فتح التطبيق</string>
+    <string name="step_1_title">اضغط مطولاً على الشاشة الرئيسية</string>
+    <string name="step_1_desc">المس مع الاستمرار مساحة فارغة في شاشتك حتى تظهر القائمة</string>
+    <string name="step_2_title">اضغط \"الأدوات\"</string>
+    <string name="step_2_desc">ابحث عن خيار الأدوات في القائمة أو أسفل الشاشة</string>
+    <string name="step_3_title">ابحث عن CalView</string>
+    <string name="step_3_desc">مرر في قائمة الأدوات أو ابحث عن \"CalView\" لتجد أدواتنا</string>
+    <string name="step_4_title">اسحب الأداة للشاشة الرئيسية</string>
+    <string name="step_4_desc">المس مع الاستمرار الأداة التي تريدها، ثم اسحبها لشاشتك الرئيسية</string>
+    <string name="available_widgets_title">الأدوات المتاحة</string>
+    <string name="widget_calorie_ring_title">حلقة السعرات</string>
+    <string name="widget_calorie_ring_desc">تعرض السعرات المتبقية</string>
+    <string name="widget_macros_title">المغذيات الكبيرة</string>
+    <string name="widget_macros_desc">بروتين، كربوهيدرات، دهون</string>
+    <string name="widget_quick_actions_title">إجراءات سريعة</string>
+    <string name="widget_quick_actions_desc">مسح طعام، باركود</string>
+    <string name="widget_streak_title">سلسلة الالتزام</string>
+    <string name="widget_streak_desc">أيام التسجيل المتتالية</string>
+    <string name="got_it_action">فهمت!</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">تراخيص المصدر المفتوح</string>
+    <string name="open_source_intro">يستخدم CalView المكتبات والموديلات مفتوحة المصدر التالية:</string>
+    <string name="apache_license_2_0">رخصة أباتشي 2.0</string>
+    <string name="apache_license_text">مرخص بموجب رخصة أباتشي، الإصدار 2.0 ("الرخصة")؛ لا يجوز لك استخدام هذا الملف إلا بموجب الرخصة. يمكنك الحصول على نسخة من الرخصة على:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nما لم يقتض القانون المعمول به أو يتم الاتفاق عليه كتابة، يتم توزيع البرنامج الموزع بموجب الرخصة "كما هو"، دون أي ضمانات أو شروط من أي نوع، صريحة أو ضمنية. انظر الرخصة للاطلاع على اللغة المحددة التي تحكم الأذونات والقيود بموجب الرخصة.</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">سجل الوزن</string>
+    <string name="no_weight_entries">لا توجد سجلات وزن بعد</string>
+    <string name="weight_changes_appear_here">ستظهر تغيرات وزنك هنا</string>
+</resources>

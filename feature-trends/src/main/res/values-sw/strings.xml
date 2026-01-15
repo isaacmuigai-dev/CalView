@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Maendeleo</string>
+    <string name="track_health_journey">Fuatilia safari yako ya afya</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Ya Sasa</string>
+    <string name="streak_best">Bora</string>
+    <string name="day_singular">siku</string>
+    <string name="days_plural">siku</string>
+    <string name="milestones_unlocked">Hatua zimefunguliwa</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Shujaa wa Wiki</string>
+    <string name="milestone_two_week_champion">Bingwa wa Wiki Mbili</string>
+    <string name="milestone_monthly_master">Bwana wa Mwezi</string>
+    <string name="milestone_stellar_streak">Mfululizo wa Nyota</string>
+    <string name="milestone_ultimate_champion">Bingwa Mkuu</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Hamasa ya Kila Siku</string>
+    <string name="motivation_access_desc">Kidokezo cha motisha</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">Karibu ufike! Uko karibu sana na lengo lako! 🎯</string>
+    <string name="msg_halfway_there">Nusu imepita! Endelea kusukuma! 💪</string>
+    <string name="msg_incredible_streak">Mfululizo wa ajabu! Hauzuiliki! 🔥</string>
+    <string name="msg_great_consistency">Juhudi kubwa! Weka kasi hiyo! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Hatua ndogo hushinda mabadiliko makubwa</item>
+        <item>🌟 Uthabiti hushinda ukamilifu kila wakati</item>
+        <item>💪 Mwili wako unasikia kila kitu akili yako inasema</item>
+        <item>🎯 Maendeleo, sio ukamilifu, ndiyo muhimu</item>
+        <item>🔥 Kila chaguo la afya ni ushindi</item>
+        <item>⭐ Wewe ni mwenye nguvu kuliko unavyofikiri</item>
+        <item>🚀 Mazoezi mabaya pekee ni yale ambayo hayakufanyika</item>
+        <item>🌈 Amini mchakato, furahia safari</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Lengo la Uzito</string>
+    <string name="percent_complete">%d%% imekamilika</string>
+    <string name="current_label">Sasa</string>
+    <string name="goal_label">Lengo</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Kalori za Wiki</string>
+    <string name="goal_value_format">Lengo: %d</string>
+    <string name="legend_under">Chini</string>
+    <string name="legend_over">Juu</string>
+    <string name="legend_goal">Lengo</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Makro za Leo</string>
+    <string name="total_label">Jumla</string>
+    <string name="macro_protein">Protini</string>
+    <string name="macro_carbs">Wanga</string>
+    <string name="macro_fats">Mafuta</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Virutubisho Vidogo</string>
+    <string name="micro_fiber">Nyuzi</string>
+    <string name="micro_sugar">Sukari</string>
+    <string name="micro_sodium">Sodiamu</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Hatua</string>
+    <string name="burned_label">Zimechomwa</string>
+    <string name="cal_unit">kcal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">Hatua 7siku</string>
+    <string name="weekly_burn_label">Kichomaji 7siku</string>
+    <string name="record_label">Rekodi</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">BMI</string>
+    <string name="bmi_underweight">Uzito mdogo</string>
+    <string name="bmi_healthy">Afya</string>
+    <string name="bmi_overweight">Uzito kupita kiasi</string>
+    <string name="bmi_obese">Unene</string>
+    <string name="bmi_content_desc">BMI: %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">Siku imekamilika</string>
+    <string name="current_streak_desc">Mfululizo wa sasa</string>
+    <string name="best_streak_desc">Mfululizo bora</string>
+</resources>

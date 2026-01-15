@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scanner Permissions & Tutorial -->
+    <string name="camera_access_required">Accesso fotocamera richiesto</string>
+    <string name="camera_permission_desc">CalViewAI necessita dell\'accesso alla fotocamera per scansionare il tuo cibo e fornire informazioni nutrizionali istantanee.</string>
+    <string name="scan_any_food">Scansiona qualsiasi cibo</string>
+    <string name="scan_any_food_desc">Scatta una foto del tuo pasto per un\'analisi istantanea</string>
+    <string name="barcode_scanning">Scansione codice a barre</string>
+    <string name="barcode_scanning_desc">Scansiona codici a barre dei prodotti per info nutrizionali</string>
+    <string name="ai_powered">Basato su IA</string>
+    <string name="ai_powered_desc">Ottieni stime precise delle calorie in pochi secondi</string>
+    <string name="allow_camera_access">Consenti Accesso Fotocamera</string>
+    <string name="maybe_later">Forse più tardi</string>
+    <string name="tips_for_best_results">📸 Suggerimenti per Migliori Risultati</string>
+    <string name="tips_subtitle">Segui questi suggerimenti per ottenere l\'analisi nutrizionale più accurata dalla nostra IA</string>
+    <string name="tip_center_food">Centra il tuo cibo</string>
+    <string name="tip_center_food_desc">Posiziona l\'oggetto principale al centro del mirino per un miglior riconoscimento</string>
+    <string name="tip_good_lighting">Buona illuminazione</string>
+    <string name="tip_good_lighting_desc">La luce naturale è la migliore. Evita ombre forti o ambienti bui</string>
+    <string name="tip_full_plate">Mostra il piatto completo</string>
+    <string name="tip_full_plate_desc">Cattura tutti gli elementi alimentari per ottenere stime precise delle porzioni</string>
+    <string name="tip_fill_frame">Riempi l\'inquadratura</string>
+    <string name="tip_fill_frame_desc">Avvicinati abbastanza in modo che il cibo occupi il 70-80% dello schermo</string>
+    <string name="pro_tip_text">Suggerimento Pro: Per piatti misti, cerca di separare gli elementi in modo che l\'IA possa identificare ogni componente</string>
+    <string name="start_scanning">Inizia Scansione</string>
+    <string name="ill_figure_it_out">Capirò da solo</string>
+    <string name="camera_permission_denied">Permesso Fotocamera Negato</string>
+    <string name="camera_permission_denied_desc">Per scansionare cibo e ottenere informazioni nutrizionali, consenti l\'accesso alla fotocamera nelle impostazioni del tuo dispositivo.</string>
+    <string name="try_again">Riprova</string>
+    <string name="go_back">Torna Indietro</string>
+    <string name="close_desc">Chiudi</string>
+    <string name="info_desc">Info</string>
+
+    <!-- Scanner Overlay -->
+    <string name="barcode_scanner_title">Scanner Codici a Barre</string>
+    <string name="flash_desc">Flash</string>
+    <string name="retry_action">Riprova</string>
+    <string name="scan_mode_scan">Scansiona</string>
+    <string name="scan_mode_barcode">Barre</string>
+    <string name="scan_mode_label">Etichetta</string>
+    <string name="scan_mode_gallery">Galleria</string>
+    <string name="capture_desc">Cattura</string>
+    <string name="food_detected_default">Cibo Rilevato</string>
+    <string name="discard_action">Scarta</string>
+    <string name="log_meal_action">Registra Pasto</string>
+    <string name="product_found_title">Prodotto Trovato</string>
+    <string name="per_100g_serving">Per 100g (porzione: %1$s)</string>
+    <string name="log_this_product_action">Registra questo Prodotto</string>
+    <string name="nutrition_detected_title">Nutrizione Rilevata</string>
+    <string name="log_this_food_action">Registra questo Cibo</string>
+
+    <!-- My Meals / Log Food -->
+    <string name="my_meals_title">I Miei Pasti</string>
+    <string name="quick_actions_title">Azioni Rapide</string>
+    <string name="scan_food_title">Scansiona Cibo</string>
+    <string name="scan_food_subtitle">Scatta una foto</string>
+    <string name="create_meal_title">Crea Pasto</string>
+    <string name="create_meal_subtitle">Aggiungi manualmente</string>
+    <string name="your_meals_title">I Tuoi Pasti</string>
+    <string name="meals_count_suffix"> pasti</string>
+    <string name="no_meals_yet">Ancora nessun pasto</string>
+    <string name="no_meals_desc">Scansiona il tuo cibo o crea un pasto personalizzato</string>
+    <string name="create_custom_meal_title">Crea Pasto Personalizzato</string>
+    <string name="meal_name_label">Nome Pasto *</string>
+    <string name="calories_label">Calorie *</string>
+    <string name="protein_label">Proteine</string>
+    <string name="carbs_label">Carboidrati</string>
+    <string name="fats_label">Grassi</string>
+    <string name="create_action">Crea</string>
+    <string name="cancel_action">Annulla</string>
+    <string name="delete_meal_title">Elimina Pasto?</string>
+    <string name="delete_meal_confirm">Sei sicuro di voler eliminare \"%1$s\"? Questa azione non può essere annullata.</string>
+    <string name="delete_action">Elimina</string>
+    <string name="delete_meal_content_desc">Elimina pasto</string>
+    <string name="analyzing_status">Analisi...</string>
+    <string name="back_desc">Indietro</string>
+</resources>

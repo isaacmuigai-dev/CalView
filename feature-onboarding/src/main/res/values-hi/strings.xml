@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">कैलोरी ट्रैकिंग\nआसान बनाई गई</string>
+    <string name="welcome_subtitle">AI के साथ अपने भोजन को स्कैन करें और\nअपने पोषण को सहजता से ट्रैक करें</string>
+    <string name="get_started">शुरू करें</string>
+    <string name="already_have_account">क्या आपके पास पहले से एक खाता है? </string>
+    <string name="sign_in">साइन इन करें</string>
+    <string name="sign_in_semantics">मौजूदा खाते में साइन इन करें</string>
+    <string name="food_scanner_ui">भोजन स्कैनर UI</string>
+    <string name="choose_language">भाषा चुनें</string>
+    <string name="select_language">भाषा चुनें</string>
+    <string name="close">बंद करें</string>
+
+    <!-- Profile Setup -->
+    <string name="profile_setup_title">अपना प्रोफाइल सेट करें</string>
+    <string name="profile_setup_subtitle">अपने अनुभव को निजीकृत करने के लिए हमें अपने बारे में बताएं</string>
+    <string name="gender_label">लिंग</string>
+    <string name="gender_male">पुरुष</string>
+    <string name="gender_female">महिला</string>
+    <string name="gender_other">अन्य</string>
+    <string name="birthdate_label">जन्म तिथि</string>
+    <string name="month_label">महीना</string>
+    <string name="day_label">दिन</string>
+    <string name="year_label">वर्ष</string>
+    <string name="height_weight_label">ऊंचाई और वजन</string>
+    <string name="height_label">ऊंचाई</string>
+    <string name="weight_label">वजन</string>
+    <string name="activity_level_label">गतिविधि स्तर</string>
+    <string name="activity_level_question">आप सप्ताह में कितने वर्कआउट करते हैं?</string>
+    <string name="activity_0_2">0-2 वर्कआउट</string>
+    <string name="activity_0_2_desc">कम या कोई व्यायाम नहीं</string>
+    <string name="activity_3_5">3-5 वर्कआउट</string>
+    <string name="activity_3_5_desc">मध्यम व्यायाम</string>
+    <string name="activity_6_plus">6+ वर्कआउट</string>
+    <string name="activity_6_plus_desc">बहुत सक्रिय</string>
+    <string name="continue_button">जारी रखें</string>
+    <string name="back_content_desc">वापस</string>
+
+    <!-- Goal Preferences -->
+    <string name="goals_title">आपके लक्ष्य</string>
+    <string name="goals_subtitle">अपने फिटनेस लक्ष्य और प्राथमिकताएं निर्धारित करें</string>
+    <string name="goal_question">आपका लक्ष्य क्या है?</string>
+    <string name="goal_lose_weight">वजन कम करें</string>
+    <string name="goal_lose_weight_desc">शरीर का वजन कम करें</string>
+    <string name="goal_maintain">बनाए रखें</string>
+    <string name="goal_maintain_desc">वर्तमान वजन बनाए रखें</string>
+    <string name="goal_gain_weight">वजन बढ़ाएं</string>
+    <string name="goal_gain_weight_desc">मांसपेशियों का निर्माण करें</string>
+    <string name="target_weight_label">लक्षित वजन</string>
+    <string name="goal_weight_label">लक्षित वजन</string>
+    <string name="to_gain">हासिल करने के लिए</string>
+    <string name="to_lose">कम करने के लिए</string>
+    <string name="pace_question">आप अपना लक्ष्य कितनी तेजी से प्राप्त करना चाहते हैं?</string>
+    <string name="pace_slow">धीमा और स्थिर</string>
+    <string name="pace_moderate">मध्यम गति</string>
+    <string name="pace_recommended">अनुशंसित</string>
+    <string name="pace_fast">तेज गति</string>
+    <string name="pace_warning">आप बहुत थका हुआ महसूस कर सकते हैं और ढीली त्वचा विकसित कर सकते हैं</string>
+    <string name="diet_preference_label">आहार प्राथमिकता</string>
+    <string name="diet_preference_subtitle">वैकल्पिक - हमें भोजन सुझावों को निजीकृत करने में मदद करता है</string>
+    <string name="diet_no_preference">कोई प्राथमिकता नहीं</string>
+    <string name="diet_keto">कीटो</string>
+    <string name="diet_vegetarian">शाकाहारी</string>
+    <string name="diet_vegan">वेगन</string>
+    <string name="diet_paleo">पैलियो</string>
+    <string name="diet_mediterranean">भूमध्यसागरीय</string>
+    <string name="rollover_label">कैलोरी रोलओवर</string>
+    <string name="enable_rollover">रोलओवर सक्षम करें</string>
+    <string name="rollover_desc">अप्रयुक्त कैलोरी अगले दिन रोल ओवर हो जाती है</string>
+    <string name="add_burned_label">जलाई गई कैलोरी जोड़ें</string>
+    <string name="add_daily_goal">दैनिक लक्ष्य में जोड़ें</string>
+    <string name="add_burned_desc">व्यायाम से जलाई गई कैलोरी आपके दैनिक बजट में जुड़ जाती है</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_title">सूचनाओं के साथ अपने\nलक्ष्यों को प्राप्त करें</string>
+    <string name="notifications_permission_text">CalViewAI आपको सूचनाएं\nभेजना चाहता है</string>
+    <string name="dont_allow">अनुमति न दें</string>
+    <string name="allow">अनुमति दें</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_weight_slider">वजन परिवर्तन गति स्लाइडर, 0.1 से 1.5 किलो प्रति सप्ताह</string>
+    <string name="cd_pace_per_week">साप्ताहिक गति: %s प्रति सप्ताह</string>
+    
+    <!-- Month Names -->
+    <string-array name="month_names">
+        <item>जनवरी</item>
+        <item>फ़रवरी</item>
+        <item>मार्च</item>
+        <item>अप्रैल</item>
+        <item>मई</item>
+        <item>जून</item>
+        <item> जुलाई</item>
+        <item>अगस्त</item>
+        <item>सितंबर</item>
+        <item>अक्टूबर</item>
+        <item>नवंबर</item>
+        <item>दिसंबर</item>
+    </string-array>
+</resources>

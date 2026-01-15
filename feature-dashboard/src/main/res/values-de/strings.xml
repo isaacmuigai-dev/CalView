@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">CalViewAI</string>
+    <string name="dashboard_subtitle">Tracken &amp; Gedeihen</string>
+    <string name="calories_burned_notification">🔥 %1$d Kalorien verbrannt! Zum Tagesziel hinzugefügt.</string>
+    <string name="connect_google_health">Google Health verbinden</string>
+    <string name="sync_steps_calories">Schritte und Kalorien synchronisieren</string>
+    <string name="connect">Verbinden</string>
+    <string name="health_score">Gesundheits-Score</string>
+    <string name="health_score_desc">Kohlenhydrate und Fette sind im Plan. Sie sind niedrig in Kalorien und Proteinen, was den Gewichtsverlust verlangsamen und den Muskelerhalt beeinträchtigen kann.</string>
+    <string name="recently_uploaded">Kürzlich hochgeladen</string>
+    <string name="empty_meals_message">Tippen Sie auf +, um Ihre erste Mahlzeit hinzuzufügen</string>
+    <string name="fiber_left">Ballaststoffe übrig</string>
+    <string name="sugar_left">Zucker übrig</string>
+    <string name="sodium_left">Natrium übrig</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="years_old_suffix">Jahre alt</string>
+    <string name="invite_friends">Freunde einladen</string>
+    <string name="invite_friends_desc">Die Reise\nist gemeinsam einfacher.</string>
+    <string name="refer_friend_action">Freund werben und 5$ verdienen</string>
+    <string name="personal_details">Persönliche Details</string>
+    <string name="adjust_macros">Makronährstoffe anpassen</string>
+    <string name="goal_current_weight">Ziel &amp; aktuelles Gewicht</string>
+    <string name="weight_history">Gewichtsverlauf</string>
+    <string name="language">Sprache</string>
+    <string name="preferences">Einstellungen</string>
+    <string name="appearance">Erscheinungsbild</string>
+    <string name="appearance_desc">Hell, Dunkel oder System wählen</string>
+    <string name="appearance_light">Hell</string>
+    <string name="appearance_dark">Dunkel</string>
+    <string name="appearance_automatic">Automatisch</string>
+    <string name="add_burned_calories">Verbrannte Kalorien hinzufügen</string>
+    <string name="add_burned_calories_desc">Verbrannte Kalorien zum Tagesziel hinzufügen</string>
+    <string name="rollover_calories">Kalorien-Rollover</string>
+    <string name="rollover_calories_desc">Bis zu 200 ungenutzte Kalorien von gestern zum heutigen Ziel hinzufügen</string>
+    <string name="widgets">Widgets</string>
+    <string name="how_to_add">Wie hinzufügen?</string>
+    <string name="calories_left">Kalorien übrig</string>
+    <string name="log_food_action">+ Essen protokollieren</string>
+    <string name="protein_left">Protein übrig</string>
+    <string name="carbs_left">Kohlenhydrate übrig</string>
+    <string name="fats_left">Fette übrig</string>
+    <string name="scan_food">Essen scannen</string>
+    <string name="barcode">Barcode</string>
+
+    <!-- Food Detail Screen -->
+    <string name="food_details_title">Lebensmitteldetails</string>
+    <string name="options_menu">Optionen</string>
+    <string name="report_food">Lebensmittel melden</string>
+    <string name="report_submitted">Bericht gesendet</string>
+    <string name="save_image">Bild speichern</string>
+    <string name="delete_food">Lebensmittel löschen</string>
+    <string name="calories_label">Kalorien</string>
+    <string name="protein_label">Protein</string>
+    <string name="carbs_label">Kohlenhydrate</string>
+    <string name="fats_label">Fette</string>
+    <string name="fiber_label">Ballaststoffe</string>
+    <string name="sugar_label">Zucker</string>
+    <string name="sodium_label">Natrium</string>
+    <string name="what_detected">Was ich erkannt habe</string>
+    <string name="confident_suffix">sicher</string>
+    <string name="i_see_prefix">Ich sehe: </string>
+    <string name="i_suspect_prefix">Ich vermute: </string>
+    <string name="ingredients_title">Zutaten</string>
+    <string name="add_more_action">+ Mehr hinzufügen</string>
+    <string name="share_action">Teilen</string>
+    <string name="save_changes">Änderungen speichern</string>
+    <string name="recalibrate">Neu kalibrieren</string>
+    <string name="saved_to_gallery">In Galerie gespeichert</string>
+
+    <string name="error_saving_image">Fehler beim Speichern des Bildes</string>
+
+    <!-- Personal Details Screen -->
+    <string name="goal_weight_title">Zielgewicht</string>
+    <string name="change_goal_action">Ziel ändern</string>
+    <string name="current_weight_label">Aktuelles Gewicht</string>
+    <string name="height_label">Größe</string>
+    <string name="not_set">Nicht festgelegt</string>
+    <string name="dob_label">Geburtsdatum</string>
+    <string name="gender_label">Geschlecht</string>
+    <string name="daily_step_goal_label">Tägliches Schrittziel</string>
+    <string name="steps_unit">Schritte</string>
+    <string name="edit_content_desc">%1$s bearbeiten</string>
+
+    <!-- Edit Name Screen -->
+    <string name="edit_name_title">Namen bearbeiten</string>
+    <string name="save_action">Speichern</string>
+
+    <!-- Refer Friend Screen -->
+    <string name="refer_friend_title">Freund werben</string>
+    <string name="referral_share_message">Komm zu CalViewAI! Mein Empfehlungscode ist: %1$s\nhttps://play.google.com/store/apps/details?id=com.example.calview</string>
+    <string name="code_copied_message">Code in die Zwischenablage kopiert!</string>
+    <string name="empower_friends">Stärke deine Freunde</string>
+    <string name="lose_weight_together">&amp; nehmt zusammen ab</string>
+    <string name="promo_code_label">Dein persönlicher Promo-Code</string>
+    <string name="copy_code_desc">Code kopieren</string>
+    <string name="share_referral_chooser">Empfehlungscode teilen</string>
+    <string name="how_to_earn">Wie man verdient</string>
+    <string name="earn_step_1">Teile deinen Promo-Code mit deinen Freunden</string>
+    <string name="earn_step_2">Verdiene 5$ wenn dein Freund das Jahresabo bezahlt</string>
+
+    <!-- Edit Screens -->
+    <string name="set_birthday_title">Geburtstag festlegen</string>
+    <string name="save_changes_button">Änderungen speichern</string>
+    <string name="set_gender_title">Geschlecht festlegen</string>
+    <string name="gender_male">Männlich</string>
+    <string name="gender_female">Weiblich</string>
+    <string name="gender_other">Andere</string>
+    <string name="edit_weight_goal_title">Gewichtsziel bearbeiten</string>
+    <string name="lose_weight_label">Abnehmen</string>
+    <string name="gain_weight_label">Zunehmen</string>
+    <string name="maintain_weight_label">Gewicht halten</string>
+    <string name="done_action">Fertig</string>
+    <string name="set_height_weight_title">Größe &amp; Gewicht festlegen</string>
+    <string name="height_header">Größe</string>
+    <string name="weight_header">Gewicht</string>
+
+    <!-- Edit Nutrition Goals -->
+    <string name="edit_nutrition_goals_title">Ernährungsziele bearbeiten</string>
+    <string name="calorie_goal">Kalorienziel</string>
+    <string name="protein_goal">Proteinziel</string>
+    <string name="carb_goal">Kohlenhydratziel</string>
+    <string name="fat_goal">Fettziel</string>
+    <string name="view_micronutrients">Mikronährstoffe anzeigen</string>
+    <string name="fiber_goal">Ballaststoffziel</string>
+    <string name="sugar_goal">Zuckerziel</string>
+    <string name="sodium_goal">Natriumziel</string>
+    <string name="auto_generate_goals">Ziele automatisch generieren</string>
+    <string name="edit_desc">Bearbeiten</string>
+    <string name="check_desc">Fertig</string>
+
+    <!-- Edit Steps Goal -->
+    <string name="edit_step_goal_title">Schrittziel bearbeiten</string>
+    <string name="previous_goal_steps">Vorheriges Ziel %1$d Schritte</string>
+
+    <string name="revert_action">Zurücksetzen</string>
+
+    <!-- Feature Request Screen -->
+    <string name="feature_requests_title">Funktionsanfragen</string>
+    <string name="shape_future_desc">Gestalte die Zukunft von CalView</string>
+    <string name="tab_trending">🔥 Angesagt</string>
+    <string name="tab_newest">✨ Neueste</string>
+    <string name="tab_my_posts">👤 Meine Beiträge</string>
+    <string name="search_placeholder">Funktionsanfragen suchen...</string>
+    <string name="clear_desc">Löschen</string>
+    <string name="create_request_desc">Anfrage erstellen</string>
+    <string name="feedback_hub_title">Feedback-Hub</string>
+    <string name="refresh_desc">Aktualisieren</string>
+    <string name="dismiss_action">Verwerfen</string>
+    <string name="new_feature_request_title">Neue Funktionsanfrage</string>
+    <string name="share_idea_desc">Teile deine Idee mit der Community</string>
+    <string name="feature_title_label">Funktionstitel</string>
+    <string name="feature_title_placeholder">Welche Funktion hättest du gerne?</string>
+    <string name="description_label">Beschreibung</string>
+    <string name="description_placeholder">Beschreibe deine Idee im Detail...</string>
+    <string name="add_tags_label">Tags hinzufügen</string>
+    <string name="post_request_action">Anfrage posten</string>
+    <string name="comments_title">Kommentare (%1$d)</string>
+    <string name="add_comment_placeholder">Kommentar hinzufügen...</string>
+    <string name="send_desc">Senden</string>
+    <string name="no_comments_yet">Noch keine Kommentare</string>
+    <string name="be_first_comment">Sei der Erste, der seine Gedanken teilt!</string>
+    <string name="empty_state_title">Noch keine Anfragen</string>
+    <string name="empty_state_desc">Sei der Erste, der eine Funktion vorschlägt!</string>
+    <string name="status_open">Offen</string>
+    <string name="status_in_progress">In Bearbeitung</string>
+    <string name="status_completed">Abgeschlossen</string>
+    <string name="status_declined">Abgelehnt</string>
+    <string name="just_now">gerade eben</string>
+    <string name="minutes_ago_suffix">m</string>
+    <string name="hours_ago_suffix">h</string>
+    <string name="days_ago_suffix">t</string>
+
+    <!-- How To Add Widget -->
+    <string name="add_widget_title">Widget hinzufügen</string>
+    <string name="add_calview_widgets_title">CalView-Widgets zum Startbildschirm hinzufügen</string>
+    <string name="add_widget_desc">Verfolgen Sie Ihre Kalorien und Makros auf einen Blick, ohne die App zu öffnen</string>
+    <string name="step_1_title">Lange auf den Startbildschirm drücken</string>
+    <string name="step_1_desc">Tippen und halten Sie einen leeren Bereich auf Ihrem Startbildschirm, bis ein Menü erscheint</string>
+    <string name="step_2_title">Tippen Sie auf \"Widgets\"</string>
+    <string name="step_2_desc">Suchen Sie im Menü oder am unteren Bildschirmrand nach der Option Widgets</string>
+    <string name="step_3_title">Finden Sie CalView</string>
+    <string name="step_3_desc">Scrollen Sie durch die Widget-Liste oder suchen Sie nach \"CalView\", um unsere Widgets zu finden</string>
+    <string name="step_4_title">Widget auf den Startbildschirm ziehen</string>
+    <string name="step_4_desc">Tippen und halten Sie das gewünschte Widget und ziehen Sie es auf Ihren Startbildschirm</string>
+    <string name="available_widgets_title">Verfügbare Widgets</string>
+    <string name="widget_calorie_ring_title">Kalorien-Ring</string>
+    <string name="widget_calorie_ring_desc">Zeigt verbleibende Kalorien</string>
+    <string name="widget_macros_title">Makros</string>
+    <string name="widget_macros_desc">Proteine, Kohlenhydrate, Fette</string>
+    <string name="widget_quick_actions_title">Schnellaktionen</string>
+    <string name="widget_quick_actions_desc">Essen scannen, Barcode</string>
+    <string name="widget_streak_title">Streak</string>
+    <string name="widget_streak_desc">Täglicher Protokollierungs-Streak</string>
+    <string name="got_it_action">Verstanden!</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">Open-Source-Lizenzen</string>
+    <string name="open_source_intro">CalView verwendet die folgenden Open-Source-Bibliotheken und -Modelle:</string>
+    <string name="apache_license_2_0">Apache Lizenz 2.0</string>
+    <string name="apache_license_text">Lizenziert unter der Apache Lizenz, Version 2.0 (die \"Lizenz\"); Sie dürfen diese Datei nicht verwenden, außer in Übereinstimmung mit der Lizenz. Sie können eine Kopie der Lizenz erhalten unter:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nSofern nicht durch geltendes Recht vorgeschrieben oder schriftlich vereinbart, wird Software unter der Lizenz \"WIE BESEHEN\" VERTEILT, OHNE GARANTIEN ODER BEDINGUNGEN JEGLICHER ART. Siehe die Lizenz für die spezifische Sprache, die Berechtigungen und Einschränkungen unter der Lizenz regelt.</string>
+
+    <!-- Weight History -->
+    <string name="weight_history_title_screen">Gewichtsverlauf</string>
+    <string name="no_weight_entries">Noch keine Gewichtseinträge</string>
+    <string name="weight_changes_appear_here">Ihre Gewichtsänderungen erscheinen hier</string>
+</resources>

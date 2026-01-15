@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paywall Screen -->
+    <string name="unlock_full_potential">पूर्ण क्षमता अनलॉक करें</string>
+    <string name="paywall_subtitle">असीमित AI स्कैन, विस्तृत मैक्रो विश्लेषण और वैयक्तिकृत अंतर्दृष्टि प्राप्त करें।</string>
+    
+    <!-- Features -->
+    <string name="feature_unlimited_scans">असीमित AI भोजन स्कैन</string>
+    <string name="feature_advanced_macros">उन्नत मैक्रोन्यूट्रिएंट ब्रेकडाउन</string>
+    <string name="feature_trends_insights">रुझान और वैयक्तिकृत अंतर्दृष्टि</string>
+    <string name="feature_no_ads">कोई विज्ञापन नहीं</string>
+    
+    <!-- Subscription Plans -->
+    <string name="loading_plans">योजनाएं लोड हो रही हैं...</string>
+    <string name="plan_yearly_best_value">वार्षिक (सर्वोत्तम मूल्य)</string>
+    <string name="plan_monthly">मासिक</string>
+    <string name="price_per_month">बस %s / महीना</string>
+    <string name="cancel_anytime">किसी भी समय रद्द करें</string>
+    
+    <!-- Actions -->
+    <string name="start_premium_now">अभी प्रीमियम शुरू करें</string>
+    <string name="restore_purchases">खरीदारी पुनर्स्थापित करें</string>
+    
+    <!-- Links -->
+    <string name="terms_of_service">सेवा की शर्तें</string>
+    <string name="privacy_policy">गोपनीयता नीति</string>
+    
+    <!-- Content Descriptions -->
+    <string name="cd_close">बंद करें</string>
+    <string name="cd_feature_prefix">सुविधा: %s</string>
+    <string name="cd_loading_plans">सदस्यता योजनाएं लोड हो रही हैं</string>
+    <string name="cd_subscription_option_selected">सदस्यता %1$s, %2$s. %3$s. चयनित</string>
+    <string name="cd_subscription_option_not_selected">सदस्यता %1$s, %2$s. %3$s. चयनित नहीं</string>
+</resources>

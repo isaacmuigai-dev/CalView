@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Progress Screen Header -->
+    <string name="progress_title">Progrès</string>
+    <string name="track_health_journey">Suivez votre parcours santé</string>
+
+    <!-- Daily Streak Card -->
+    <string name="streak_current">Actuel</string>
+    <string name="streak_best">Meilleur</string>
+    <string name="day_singular">jour</string>
+    <string name="days_plural">jours</string>
+    <string name="milestones_unlocked">Jalons débloqués</string>
+    
+    <!-- Milestones -->
+    <string name="milestone_week_warrior">Guerrier de la Semaine</string>
+    <string name="milestone_two_week_champion">Champion de Deux Semaines</string>
+    <string name="milestone_monthly_master">Maître Mensuel</string>
+    <string name="milestone_stellar_streak">Série Stellaire</string>
+    <string name="milestone_ultimate_champion">Champion Ultime</string>
+
+    <!-- Motivational Card -->
+    <string name="daily_motivation">Motivation Quotidienne</string>
+    <string name="motivation_access_desc">Conseil de motivation</string>
+    
+    <!-- Context Messages -->
+    <string name="msg_almost_there">Presque là ! Vous êtes si proche de votre objectif ! 🎯</string>
+    <string name="msg_halfway_there">À mi-chemin ! Continuez à avancer ! 💪</string>
+    <string name="msg_incredible_streak">Série incroyable ! Vous êtes inarrêtable ! 🔥</string>
+    <string name="msg_great_consistency">Grande cohérence ! Gardez le rythme ! ⚡</string>
+
+    <!-- Quotes -->
+    <string-array name="motivational_quotes">
+        <item>💫 Les petits pas mènent aux grands changements</item>
+        <item>🌟 La cohérence bat la perfection à chaque fois</item>
+        <item>💪 Votre corps entend tout ce que votre esprit dit</item>
+        <item>🎯 Le progrès, pas la perfection, est ce qui compte</item>
+        <item>🔥 Chaque choix sain est une victoire</item>
+        <item>⭐ Vous êtes plus fort que vous ne le pensez</item>
+        <item>🚀 Le seul mauvais entraînement est celui qui n\'a pas eu lieu</item>
+        <item>🌈 Faites confiance au processus, profitez du voyage</item>
+    </string-array>
+
+    <!-- Weight Goal Card -->
+    <string name="weight_goal_title">Objectif de Poids</string>
+    <string name="percent_complete">%d%% complet</string>
+    <string name="current_label">Actuel</string>
+    <string name="goal_label">Objectif</string>
+
+    <!-- Weekly Calories Chart -->
+    <string name="weekly_calories_title">Calories Hebdomadaires</string>
+    <string name="goal_value_format">Objectif : %d</string>
+    <string name="legend_under">Sous</string>
+    <string name="legend_over">Sur</string>
+    <string name="legend_goal">Objectif</string>
+
+    <!-- Macro Donut Card -->
+    <string name="todays_macros_title">Macros d\'Aujourd\'hui</string>
+    <string name="total_label">Total</string>
+    <string name="macro_protein">Protéines</string>
+    <string name="macro_carbs">Glucides</string>
+    <string name="macro_fats">Graisses</string>
+
+    <!-- Micronutrients -->
+    <string name="micronutrients_title">Micronutriments</string>
+    <string name="micro_fiber">Fibres</string>
+    <string name="micro_sugar">Sucre</string>
+    <string name="micro_sodium">Sodium</string>
+
+    <!-- Steps & Burned -->
+    <string name="steps_label">Pas</string>
+    <string name="burned_label">Brûlées</string>
+    <string name="cal_unit">cal</string>
+    
+    <!-- Weekly Activity -->
+    <string name="weekly_steps_label">Pas 7j</string>
+    <string name="weekly_burn_label">Brûlées 7j</string>
+    <string name="record_label">Record</string>
+
+    <!-- BMI Card -->
+    <string name="bmi_title">IMC</string>
+    <string name="bmi_underweight">Sous-poids</string>
+    <string name="bmi_healthy">Sain</string>
+    <string name="bmi_overweight">Surpoids</string>
+    <string name="bmi_obese">Obèse</string>
+    <string name="bmi_content_desc">IMC : %1$.1f, %2$s</string>
+
+    <!-- Accessibility -->
+    <string name="day_completed_desc">Jour terminé</string>
+    <string name="current_streak_desc">Série Actuelle</string>
+    <string name="best_streak_desc">Meilleure Série</string>
+</resources>
