@@ -68,7 +68,7 @@ fun GoalPreferencesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -88,7 +88,7 @@ fun GoalPreferencesScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.back_content_desc),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -117,7 +117,7 @@ fun GoalPreferencesScreen(
         ) {
             // Title
             Text(
-                text = "Your goals",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goals_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
@@ -125,7 +125,7 @@ fun GoalPreferencesScreen(
             )
             
             Text(
-                text = "Set your fitness goals and preferences",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goals_subtitle),
                 fontFamily = Inter,
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -135,27 +135,27 @@ fun GoalPreferencesScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             // ===================== GOAL SECTION =====================
-            GoalSectionTitle(title = "What's your goal?", emoji = "🎯")
+            GoalSectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_question), emoji = "🎯")
             
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 GoalOption(
-                    title = "Lose Weight",
+                    title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_lose_weight),
                     emoji = "⬇️",
-                    description = "Reduce body weight",
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_lose_weight_desc),
                     isSelected = selectedGoal == "Lose Weight",
                     onClick = { onGoalSelected("Lose Weight") }
                 )
                 GoalOption(
-                    title = "Maintain",
+                    title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_maintain),
                     emoji = "⚖️",
-                    description = "Keep current weight",
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_maintain_desc),
                     isSelected = selectedGoal == "Maintain",
                     onClick = { onGoalSelected("Maintain") }
                 )
                 GoalOption(
-                    title = "Gain Weight",
+                    title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_gain_weight),
                     emoji = "⬆️",
-                    description = "Build muscle mass",
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_gain_weight_desc),
                     isSelected = selectedGoal == "Gain Weight",
                     onClick = { onGoalSelected("Gain Weight") }
                 )
@@ -171,7 +171,7 @@ fun GoalPreferencesScreen(
                     Spacer(modifier = Modifier.height(28.dp))
                     
                     GoalSectionTitle(
-                        title = if (isGainWeight) "Target weight" else "Goal weight",
+                        title = if (isGainWeight) androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.target_weight_label) else androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goal_weight_label),
                         emoji = "🎯"
                     )
                     
@@ -185,7 +185,9 @@ fun GoalPreferencesScreen(
                         currentWeightKg - targetWeightKg
                     }
                     
-                    val diffText = "${weightDiff.roundToInt()} kg ${if (isGainWeight) "to gain" else "to lose"}"
+                    val toGain = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.to_gain)
+                    val toLose = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.to_lose)
+                    val diffText = "${weightDiff.roundToInt()} kg ${if (isGainWeight) toGain else toLose}"
                     
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -234,7 +236,7 @@ fun GoalPreferencesScreen(
                     
                     // ===================== PACE SECTION =====================
                     GoalSectionTitle(
-                        title = "How fast do you want to reach your goal?",
+                        title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_question),
                         emoji = "⏱️"
                     )
                     
@@ -253,6 +255,7 @@ fun GoalPreferencesScreen(
                     val roundedPace = paceInt / 10f
                     val paceDisplay = "${paceInt / 10}.${paceInt % 10} kg"
                     
+                    val paceDesc = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.cd_pace_per_week, paceDisplay)
                     Text(
                         text = paceDisplay,
                         fontFamily = Inter,
@@ -263,7 +266,7 @@ fun GoalPreferencesScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)
-                            .semantics { contentDescription = "Weekly pace: $paceDisplay per week" }
+                            .semantics { contentDescription = paceDesc }
                     )
                     
                     // Animal emoji row (matches auto-generate design)
@@ -299,6 +302,8 @@ fun GoalPreferencesScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     // Slider with 0.1 kg increments (0.1, 0.2, 0.3... 1.5)
+                    // Slider with 0.1 kg increments (0.1, 0.2, 0.3... 1.5)
+                    val sliderDesc = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.cd_weight_slider)
                     Slider(
                         value = weightChangePerWeek,
                         onValueChange = { newValue ->
@@ -310,7 +315,7 @@ fun GoalPreferencesScreen(
                         steps = 13, // 14 positions: 0.1, 0.2, 0.3... 1.5 (steps = positions - 2)
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = "Weight change pace slider, from 0.1 to 1.5 kg per week" },
+                            .semantics { contentDescription = sliderDesc },
                         colors = SliderDefaults.colors(
                             thumbColor = MaterialTheme.colorScheme.onBackground,
                             activeTrackColor = MaterialTheme.colorScheme.onBackground,
@@ -353,11 +358,11 @@ fun GoalPreferencesScreen(
                     ) {
                         Text(
                             text = when {
-                                weightChangePerWeek <= 0.3f -> "Slow and Steady"
-                                weightChangePerWeek <= 0.5f -> "Moderate pace"
-                                weightChangePerWeek <= 1.0f -> "Recommended"
-                                weightChangePerWeek <= 1.3f -> "Fast pace"
-                                else -> "You may feel very tired and develop loose skin"
+                                weightChangePerWeek <= 0.3f -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_slow)
+                                weightChangePerWeek <= 0.5f -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_moderate)
+                                weightChangePerWeek <= 1.0f -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_recommended)
+                                weightChangePerWeek <= 1.3f -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_fast)
+                                else -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_warning)
                             },
                             fontFamily = Inter,
                             fontWeight = FontWeight.Medium,
@@ -378,43 +383,71 @@ fun GoalPreferencesScreen(
             Spacer(modifier = Modifier.height(28.dp))
             
             // ===================== DIET SECTION =====================
-            GoalSectionTitle(title = "Diet preference", emoji = "🥗")
+            GoalSectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_preference_label), emoji = "🥗")
             
             Text(
-                text = "Optional - helps us customize meal suggestions",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_preference_subtitle),
                 fontFamily = Inter,
                 fontSize = 13.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             
+            val dietNoPref = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_no_preference)
+            val dietKeto = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_keto)
+            val dietVeg = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_vegetarian)
+            val dietVegan = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_vegan)
+            val dietPaleo = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_paleo)
+            val dietMed = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_mediterranean)
+
             val diets = listOf(
-                "No preference" to "🍽️",
-                "Keto" to "🥑",
-                "Vegetarian" to "🥬",
-                "Vegan" to "🌱",
-                "Paleo" to "🥩",
-                "Mediterranean" to "🫒"
+                dietNoPref to "🍽️",
+                dietKeto to "🥑",
+                dietVeg to "🥬",
+                dietVegan to "🌱",
+                dietPaleo to "🥩",
+                dietMed to "🫒"
             )
             
+            // Map localized display names back to internal keys if needed. 
+            // BUT onDietSelected expects a String. If logic uses this String string, we might break it if we send localized string.
+            // GoalPreferencesScreen calls `viewModel.onDietSelected(it)` where `it` is from `diet` list.
+            // If `diet` list is localized, we are sending localized string to VM.
+            // Current code has hardcoded keys: "No preference", "Keto", etc.
+            // I should use `GoalOption`-like approach: Key vs Label.
+            // `DietChip` takes `label`. I should separate keys.
+            
+            val dietKeys = listOf(
+                "No preference",
+                "Keto",
+                "Vegetarian",
+                "Vegan",
+                "Paleo",
+                "Mediterranean"
+            )
+            val dietLabels = listOf(
+                dietNoPref, dietKeto, dietVeg, dietVegan, dietPaleo, dietMed
+            )
+            val dietEmojis = listOf("🍽️", "🥑", "🥬", "🌱", "🥩", "🫒")
+            
+            // Reconstruct the loop.
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                diets.chunked(2).forEach { row ->
+                dietKeys.indices.chunked(2).forEach { indices ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        row.forEach { (diet, emoji) ->
-                            DietChip(
-                                label = diet,
-                                emoji = emoji,
-                                isSelected = selectedDiet == diet,
-                                onClick = { onDietSelected(diet) },
+                        indices.forEach { i ->
+                             DietChip(
+                                label = dietLabels[i],
+                                emoji = dietEmojis[i],
+                                isSelected = selectedDiet == dietKeys[i],
+                                onClick = { onDietSelected(dietKeys[i]) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        // Fill empty space if odd number
-                        if (row.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
+                        if (indices.size == 1) {
+                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
@@ -423,7 +456,7 @@ fun GoalPreferencesScreen(
             Spacer(modifier = Modifier.height(28.dp))
             
             // ===================== ROLLOVER SECTION =====================
-            GoalSectionTitle(title = "Rollover calories", emoji = "🔄")
+            GoalSectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.rollover_label), emoji = "🔄")
             
             Surface(
                 modifier = Modifier
@@ -441,14 +474,14 @@ fun GoalPreferencesScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Enable rollover",
+                            text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.enable_rollover),
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Unused calories carry over to the next day",
+                            text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.rollover_desc),
                             fontFamily = Inter,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -471,7 +504,7 @@ fun GoalPreferencesScreen(
             Spacer(modifier = Modifier.height(20.dp))
             
             // ===================== ADD BURNED CALORIES SECTION =====================
-            GoalSectionTitle(title = "Add burned calories", emoji = "🔥")
+            GoalSectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.add_burned_label), emoji = "🔥")
             
             Surface(
                 modifier = Modifier
@@ -489,14 +522,14 @@ fun GoalPreferencesScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Add to daily goal",
+                            text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.add_daily_goal),
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Calories burned from exercise are added back to your daily allowance",
+                            text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.add_burned_desc),
                             fontFamily = Inter,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -536,7 +569,7 @@ fun GoalPreferencesScreen(
             )
         ) {
             Text(
-                text = "Continue",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.continue_button),
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp

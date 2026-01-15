@@ -72,7 +72,7 @@ object OpenFoodFactsService {
                 ?: nutriments?.optDouble("fat", 0.0)?.toFloat()
                 ?: 0f
             
-            val servingSize = product.optString("serving_size", null)
+            val servingSize = product.optString("serving_size", "")
             
             val brands = product.optString("brands", "")
             val fullName = if (brands.isNotEmpty() && !name.contains(brands, ignoreCase = true)) {

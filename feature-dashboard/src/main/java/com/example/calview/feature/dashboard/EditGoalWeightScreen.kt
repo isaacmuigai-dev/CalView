@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
 import kotlinx.coroutines.flow.collectLatest
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Edit Goal Weight screen with horizontal ruler scale picker.
@@ -40,10 +42,11 @@ fun EditGoalWeightScreen(
     }
     
     // Determine goal label based on comparison with current weight
+    // Determine goal label based on comparison with current weight
     val goalLabel = when {
-        selectedWeight < currentWeight - 1 -> "Lose Weight"
-        selectedWeight > currentWeight + 1 -> "Gain Weight"
-        else -> "Maintain Weight"
+        selectedWeight < currentWeight - 1 -> stringResource(R.string.lose_weight_label)
+        selectedWeight > currentWeight + 1 -> stringResource(R.string.gain_weight_label)
+        else -> stringResource(R.string.maintain_weight_label)
     }
     
     Scaffold(
@@ -51,7 +54,7 @@ fun EditGoalWeightScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Edit Weight Goal",
+                        text = stringResource(R.string.edit_weight_goal_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -128,7 +131,7 @@ fun EditGoalWeightScreen(
                 )
             ) {
                 Text(
-                    text = "Done",
+                    text = stringResource(R.string.done_action),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp

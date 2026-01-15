@@ -1,5 +1,7 @@
 package com.example.calview.feature.onboarding
 
+import androidx.compose.ui.graphics.luminance
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -55,7 +57,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
             .semantics { contentDescription = "CalViewAI splash screen. Loading app." },
         contentAlignment = Alignment.Center
     ) {
@@ -66,43 +68,35 @@ fun SplashScreen(
                 .alpha(alphaAnim)
                 .scale(scaleAnim)
         ) {
-            // App Logo
-            val logoRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
-                com.example.calview.core.ui.R.drawable.ic_logo_white
-            } else {
-                com.example.calview.core.ui.R.drawable.ic_logo_black
+            // Row with Icon and App Name
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // New Vector Icon - theme aware
+                val iconRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
+                    com.example.calview.core.ui.R.drawable.ic_vector_icon_white
+                } else {
+                    com.example.calview.core.ui.R.drawable.ic_vector_icon_black
+                }
+                
+                Image(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = "CalViewAI Icon",
+                    modifier = Modifier.fillMaxWidth(0.2f)
+                        .size(100.dp),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // App Name
+                Text(
+                    text = "CalViewAI",
+                    fontFamily = Inter,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
-            
-            Image(
-                painter = painterResource(id = logoRes),
-                contentDescription = "CalViewAI Logo",
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(RoundedCornerShape(32.dp)),
-                contentScale = ContentScale.Fit
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // App Name
-            Text(
-                text = "CalViewAI",
-                fontFamily = Inter,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Tagline
-            Text(
-                text = "Track & Thrive",
-                fontFamily = Inter,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

@@ -27,14 +27,22 @@ fun OnboardingNavHost(
     val uiState by viewModel.uiState.collectAsState()
     
     // Track selected language
-    var selectedLanguage by remember { mutableStateOf(supportedLanguages.first()) }
+    val currentLanguageCode by viewModel.language.collectAsState()
+    
+    // Initialize selected language based on stored preference
+    var selectedLanguage by remember(currentLanguageCode) { 
+        mutableStateOf(
+            supportedLanguages.find { it.code.equals(currentLanguageCode, ignoreCase = true) } 
+            ?: supportedLanguages.first()
+        ) 
+    }
     
     // Profile setup state
     // Metric-only app (kg/cm)
     // Metric-only app (kg/cm)
     var heightCm by remember { mutableIntStateOf(170) }
     var weightKg by remember { mutableIntStateOf(68) }
-    var birthMonth by remember { mutableStateOf("January") }
+    var birthMonth by remember { mutableIntStateOf(1) }
     var birthDay by remember { mutableIntStateOf(1) }
     var birthYear by remember { mutableIntStateOf(2001) }
     
@@ -77,7 +85,10 @@ fun OnboardingNavHost(
                 onGetStarted = { navController.navigate("profile_setup") },
                 onSignIn = onSignIn,
                 selectedLanguage = selectedLanguage,
-                onLanguageSelected = { language -> selectedLanguage = language }
+                onLanguageSelected = { language -> 
+                    selectedLanguage = language
+                    viewModel.setLanguage(language.code)
+                }
             )
         }
         
@@ -95,15 +106,15 @@ fun OnboardingNavHost(
                 birthYear = birthYear,
                 onMonthChanged = { 
                     birthMonth = it
-                    viewModel.onBirthDateChanged(getMonthNumber(it), birthDay, birthYear)
+                    viewModel.onBirthDateChanged(it, birthDay, birthYear)
                 },
                 onDayChanged = { 
                     birthDay = it
-                    viewModel.onBirthDateChanged(getMonthNumber(birthMonth), it, birthYear)
+                    viewModel.onBirthDateChanged(birthMonth, it, birthYear)
                 },
                 onYearChanged = { 
                     birthYear = it
-                    viewModel.onBirthDateChanged(getMonthNumber(birthMonth), birthDay, it)
+                    viewModel.onBirthDateChanged(birthMonth, birthDay, it)
                 },
                 // Height & Weight (metric only)
                 heightCm = heightCm,
@@ -249,7 +260,7 @@ fun OnboardingNavHost(
                     viewModel.onGoalWeightChanged(targetWeightKg) // Goal weight
                     viewModel.onWeightChanged(currentWeightKg)
                     viewModel.onBirthDateChanged(
-                        getMonthNumber(birthMonth),
+                        birthMonth,
                         birthDay,
                         birthYear
                     )
@@ -268,20 +279,4 @@ fun OnboardingNavHost(
 /**
  * Convert month name to month number (1-12)
  */
-private fun getMonthNumber(monthName: String): Int {
-    return when (monthName) {
-        "January" -> 1
-        "February" -> 2
-        "March" -> 3
-        "April" -> 4
-        "May" -> 5
-        "June" -> 6
-        "July" -> 7
-        "August" -> 8
-        "September" -> 9
-        "October" -> 10
-        "November" -> 11
-        "December" -> 12
-        else -> 1
-    }
-}
+

@@ -88,8 +88,9 @@ fun NotificationsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Title
+            // Title
             Text(
-                text = "Reach your goals with\nnotifications",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
@@ -113,7 +114,7 @@ fun NotificationsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "CalViewAI would like to send you\nNotifications",
+                        text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_permission_text),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
@@ -143,7 +144,7 @@ fun NotificationsScreen(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 Text(
-                                    text = "Don't Allow",
+                                    text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.dont_allow),
                                     fontFamily = Inter,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
@@ -166,7 +167,7 @@ fun NotificationsScreen(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 Text(
-                                    text = "Allow",
+                                    text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.allow),
                                     fontFamily = Inter,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,

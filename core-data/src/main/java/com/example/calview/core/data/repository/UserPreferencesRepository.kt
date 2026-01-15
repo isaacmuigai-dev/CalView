@@ -28,11 +28,15 @@ interface UserPreferencesRepository {
     val rolloverCaloriesAmount: Flow<Int>  // Yesterday's leftover calories (max 200)
     val maxRolloverCalories: Int // Always 200 as per design
     
+    // Language settings
+    val language: Flow<String> // "en", "de", etc. (lowercase)
+    
     // Appearance settings
     val appearanceMode: Flow<String>  // "light", "dark", "automatic"
     
     // Personal details
     val goalWeight: Flow<Float> // Target weight in kg
+    val startWeight: Flow<Float> // Starting weight when goal was set
     val dailyStepsGoal: Flow<Int>  // Daily step target (default 10000)
     val birthMonth: Flow<String>  // "January", "February", etc.
     val birthDay: Flow<Int>  // 1-31
@@ -69,11 +73,15 @@ interface UserPreferencesRepository {
     suspend fun setRolloverExtraCalories(enabled: Boolean)
     suspend fun setRolloverCaloriesAmount(amount: Int)
     
+    // Language settings method
+    suspend fun setLanguage(code: String)
+    
     // Appearance settings method
     suspend fun setAppearanceMode(mode: String)
     
     // Personal details methods
     suspend fun setGoalWeight(weight: Float)
+    suspend fun setStartWeight(weight: Float)
     suspend fun setDailyStepsGoal(steps: Int)
     suspend fun setBirthDate(month: String, day: Int, year: Int)
     suspend fun setGender(gender: String)

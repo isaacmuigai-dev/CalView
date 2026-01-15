@@ -30,6 +30,8 @@ import com.example.calview.core.data.local.MealEntity
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.calview.feature.scanner.R
+import androidx.compose.ui.res.stringResource
 
 // Color palette
 private val GradientStart = Color(0xFF667EEA)
@@ -61,7 +63,8 @@ fun MyMealsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize()
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
         ) {
             // Header
             Box(
@@ -88,13 +91,13 @@ fun MyMealsScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back_desc),
                             tint = Color.White
                         )
                     }
                     
                     Text(
-                        text = "My Meals",
+                        text = stringResource(R.string.my_meals_title),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -112,7 +115,7 @@ fun MyMealsScreen(
                 // Quick Actions
                 item {
                     Text(
-                        text = "Quick Actions",
+                        text = stringResource(R.string.quick_actions_title),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -126,8 +129,8 @@ fun MyMealsScreen(
                         // Scan Food Button
                         QuickActionCard(
                             icon = Icons.Filled.CameraAlt,
-                            title = "Scan Food",
-                            subtitle = "Take a photo",
+                            title = stringResource(R.string.scan_food_title),
+                            subtitle = stringResource(R.string.scan_food_subtitle),
                             color = GradientStart,
                             onClick = onScanFood,
                             modifier = Modifier.weight(1f)
@@ -136,8 +139,8 @@ fun MyMealsScreen(
                         // Create Meal Button
                         QuickActionCard(
                             icon = Icons.Filled.Add,
-                            title = "Create Meal",
-                            subtitle = "Add manually",
+                            title = stringResource(R.string.create_meal_title),
+                            subtitle = stringResource(R.string.create_meal_subtitle),
                             color = AccentCyan,
                             onClick = { showCreateMealDialog = true },
                             modifier = Modifier.weight(1f)
@@ -154,13 +157,13 @@ fun MyMealsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Your Meals",
+                            text = stringResource(R.string.your_meals_title),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "${meals.size} meals",
+                            text = "${meals.size} ${stringResource(R.string.meals_count_suffix)}",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -207,8 +210,8 @@ fun MyMealsScreen(
         mealToDelete?.let { meal ->
             AlertDialog(
                 onDismissRequest = { mealToDelete = null },
-                title = { Text("Delete Meal?") },
-                text = { Text("Are you sure you want to delete \"${meal.name}\"? This action cannot be undone.") },
+                title = { Text(stringResource(R.string.delete_meal_title)) },
+                text = { Text(stringResource(R.string.delete_meal_confirm, meal.name)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -217,12 +220,12 @@ fun MyMealsScreen(
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF4444))
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete_action))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { mealToDelete = null }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel_action))
                     }
                 }
             )
@@ -312,7 +315,7 @@ private fun MealCard(
             ) {
                 if (meal.imagePath != null && File(meal.imagePath).exists()) {
                     AsyncImage(
-                        model = File(meal.imagePath),
+                        model = File(meal.imagePath ?: ""),
                         contentDescription = meal.name,
                         modifier = Modifier
                             .fillMaxSize()
@@ -383,7 +386,7 @@ private fun MealCard(
                         // Status or date
                         if (isAnalyzing) {
                             Text(
-                                text = "Analyzing...",
+                                text = stringResource(R.string.analyzing_status),
                                 fontSize = 12.sp,
                                 color = GradientStart,
                                 fontWeight = FontWeight.Medium
@@ -404,7 +407,7 @@ private fun MealCard(
                     ) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "Delete meal",
+                            contentDescription = stringResource(R.string.delete_meal_content_desc),
                             tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                             modifier = Modifier.size(20.dp)
                         )
@@ -480,7 +483,7 @@ private fun EmptyMealsState() {
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "No meals yet",
+            text = stringResource(R.string.no_meals_yet),
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
@@ -489,7 +492,7 @@ private fun EmptyMealsState() {
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "Scan your food or create a custom meal",
+            text = stringResource(R.string.no_meals_desc),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -514,7 +517,7 @@ private fun CreateMealDialog(
         onDismissRequest = onDismiss,
         title = { 
             Text(
-                "Create Custom Meal",
+                stringResource(R.string.create_custom_meal_title),
                 fontWeight = FontWeight.Bold
             ) 
         },
@@ -525,7 +528,7 @@ private fun CreateMealDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Meal Name *") },
+                    label = { Text(stringResource(R.string.meal_name_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -534,7 +537,7 @@ private fun CreateMealDialog(
                 OutlinedTextField(
                     value = calories,
                     onValueChange = { calories = it.filter { c -> c.isDigit() } },
-                    label = { Text("Calories *") },
+                    label = { Text(stringResource(R.string.calories_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -548,7 +551,7 @@ private fun CreateMealDialog(
                     OutlinedTextField(
                         value = protein,
                         onValueChange = { protein = it.filter { c -> c.isDigit() } },
-                        label = { Text("Protein") },
+                        label = { Text(stringResource(R.string.protein_label)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -558,7 +561,7 @@ private fun CreateMealDialog(
                     OutlinedTextField(
                         value = carbs,
                         onValueChange = { carbs = it.filter { c -> c.isDigit() } },
-                        label = { Text("Carbs") },
+                        label = { Text(stringResource(R.string.carbs_label)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -568,7 +571,7 @@ private fun CreateMealDialog(
                     OutlinedTextField(
                         value = fats,
                         onValueChange = { fats = it.filter { c -> c.isDigit() } },
-                        label = { Text("Fats") },
+                        label = { Text(stringResource(R.string.fats_label)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -592,12 +595,12 @@ private fun CreateMealDialog(
                 enabled = isValid,
                 colors = ButtonDefaults.buttonColors(containerColor = AccentCyan)
             ) {
-                Text("Create")
+                Text(stringResource(R.string.create_action))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel_action))
             }
         }
     )

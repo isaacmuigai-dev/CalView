@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Refer your friend screen.
@@ -40,14 +42,14 @@ fun ReferYourFriendScreen(
     var showCopiedSnackbar by remember { mutableStateOf(false) }
     
     val playStoreUrl = "https://play.google.com/store/apps/details?id=com.example.calview"
-    val shareMessage = "Join me on CalViewAI! My referral code is: $referralCode\n$playStoreUrl"
+    val shareMessage = stringResource(R.string.referral_share_message, referralCode)
     
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Refer your friend",
+                        text = stringResource(R.string.refer_friend_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
@@ -76,7 +78,7 @@ fun ReferYourFriendScreen(
                         }
                     }
                 ) {
-                    Text("Code copied to clipboard!")
+                    Text(stringResource(R.string.code_copied_message))
                 }
             }
         },
@@ -93,7 +95,7 @@ fun ReferYourFriendScreen(
             
             // Title
             Text(
-                text = "Refer your friend",
+                text = stringResource(R.string.refer_friend_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
@@ -161,7 +163,7 @@ fun ReferYourFriendScreen(
             
             // Empower text
             Text(
-                text = "Empower your friends",
+                text = stringResource(R.string.empower_friends),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
@@ -169,7 +171,7 @@ fun ReferYourFriendScreen(
             )
             
             Text(
-                text = "& lose weight together",
+                text = stringResource(R.string.lose_weight_together),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
@@ -198,7 +200,7 @@ fun ReferYourFriendScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Your personal promo code",
+                            text = stringResource(R.string.promo_code_label),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
@@ -228,7 +230,7 @@ fun ReferYourFriendScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "Copy code",
+                            contentDescription = stringResource(R.string.copy_code_desc),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -245,7 +247,7 @@ fun ReferYourFriendScreen(
                         putExtra(Intent.EXTRA_TEXT, shareMessage)
                         type = "text/plain"
                     }
-                    val shareIntent = Intent.createChooser(sendIntent, "Share referral code")
+                    val shareIntent = Intent.createChooser(sendIntent, context.getString(R.string.share_referral_chooser))
                     context.startActivity(shareIntent)
                 },
                 modifier = Modifier
@@ -257,7 +259,7 @@ fun ReferYourFriendScreen(
                 )
             ) {
                 Text(
-                    text = "Share",
+                    text = stringResource(R.string.share_action),
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
@@ -277,7 +279,7 @@ fun ReferYourFriendScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "How to earn",
+                            text = stringResource(R.string.how_to_earn),
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
@@ -293,7 +295,7 @@ fun ReferYourFriendScreen(
                         Text(text = "⭐", fontSize = 14.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Share your promo code to your friends",
+                            text = stringResource(R.string.earn_step_1),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
@@ -307,7 +309,7 @@ fun ReferYourFriendScreen(
                         Text(text = "⭐", fontSize = 14.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Earn \$10 per friend that signs up with your code",
+                            text = stringResource(R.string.earn_step_2),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,

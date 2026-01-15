@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,7 +35,7 @@ fun WeightHistoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Weight history",
+                        text = stringResource(R.string.weight_history_title_screen),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -69,7 +71,7 @@ fun WeightHistoryScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "No weight entries yet",
+                        text = stringResource(R.string.no_weight_entries),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
@@ -77,7 +79,7 @@ fun WeightHistoryScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Your weight changes will appear here",
+                        text = stringResource(R.string.weight_changes_appear_here),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,

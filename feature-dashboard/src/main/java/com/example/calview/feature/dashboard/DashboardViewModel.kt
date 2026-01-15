@@ -8,6 +8,7 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.health.HealthData
+import com.example.calview.core.data.state.SelectedDateHolder
 import com.example.calview.core.ai.FoodAnalysisService
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -25,6 +26,7 @@ class DashboardViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     val healthConnectManager: HealthConnectManager,
     private val foodAnalysisService: FoodAnalysisService,
+    private val selectedDateHolder: SelectedDateHolder,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -326,6 +328,17 @@ class DashboardViewModel @Inject constructor(
     
     fun selectDate(date: Calendar) {
         _selectedDate.value = date
+        // Fetch health data for the selected date
+        viewModelScope.launch {
+            val localDate = java.time.LocalDate.of(
+                date.get(Calendar.YEAR),
+                date.get(Calendar.MONTH) + 1, // Calendar months are 0-indexed
+                date.get(Calendar.DAY_OF_MONTH)
+            )
+            // Update shared date holder so Progress screen can also use it
+            selectedDateHolder.setDate(localDate)
+            healthConnectManager.readDataForDate(localDate)
+        }
     }
     
     fun addWater(amount: Int = 1) {

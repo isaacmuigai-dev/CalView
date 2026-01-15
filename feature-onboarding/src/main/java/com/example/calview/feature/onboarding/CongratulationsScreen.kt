@@ -94,7 +94,7 @@ fun CongratulationsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {

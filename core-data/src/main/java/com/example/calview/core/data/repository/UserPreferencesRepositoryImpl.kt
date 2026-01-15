@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -62,8 +63,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         // Appearance settings
         val APPEARANCE_MODE = stringPreferencesKey("appearance_mode")
         
+        // Language settings
+        val LANGUAGE = stringPreferencesKey("language")
+        
         // Personal details
         val GOAL_WEIGHT = floatPreferencesKey("goal_weight")
+        val START_WEIGHT = floatPreferencesKey("start_weight")
         val DAILY_STEPS_GOAL = intPreferencesKey("daily_steps_goal")
         val BIRTH_MONTH = stringPreferencesKey("birth_month")
         val BIRTH_DAY = intPreferencesKey("birth_day")
@@ -110,7 +115,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             dailyStepsGoal = preferences[PreferencesKeys.DAILY_STEPS_GOAL] ?: 10000,
             birthMonth = preferences[PreferencesKeys.BIRTH_MONTH] ?: "January",
             birthDay = preferences[PreferencesKeys.BIRTH_DAY] ?: 1,
-            birthYear = preferences[PreferencesKeys.BIRTH_YEAR] ?: 2000
+            birthYear = preferences[PreferencesKeys.BIRTH_YEAR] ?: 2000,
+            language = preferences[PreferencesKeys.LANGUAGE] ?: "en"
         )
     }
     
@@ -240,10 +246,19 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val appearanceMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.APPEARANCE_MODE] ?: "light"
     }
+
+    override val language: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LANGUAGE] ?: "en"
+    }.distinctUntilChanged()
     
     // Personal details
     override val goalWeight: Flow<Float> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.GOAL_WEIGHT] ?: 0f
+    }
+
+    override val startWeight: Flow<Float> = context.dataStore.data.map { preferences ->
+        // Default to current weight if start weight not set yet
+        preferences[PreferencesKeys.START_WEIGHT] ?: preferences[PreferencesKeys.WEIGHT] ?: 0f
     }
     
     override val dailyStepsGoal: Flow<Int> = context.dataStore.data.map { preferences ->
@@ -369,10 +384,28 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         syncToFirestore()
     }
     
+    override suspend fun setLanguage(code: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LANGUAGE] = code.lowercase()
+        }
+        syncToFirestore()
+    }
+    
     // Personal details setters
     override suspend fun setGoalWeight(weight: Float) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GOAL_WEIGHT] = weight
+            // If starting weight isn't set, set it now to current weight
+            if (preferences[PreferencesKeys.START_WEIGHT] == null) {
+                 preferences[PreferencesKeys.START_WEIGHT] = preferences[PreferencesKeys.WEIGHT] ?: weight
+            }
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setStartWeight(weight: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.START_WEIGHT] = weight
         }
         syncToFirestore()
     }
@@ -490,7 +523,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.DAILY_STEPS_GOAL] = userData.dailyStepsGoal
                     preferences[PreferencesKeys.BIRTH_MONTH] = userData.birthMonth
                     preferences[PreferencesKeys.BIRTH_DAY] = userData.birthDay
+                    preferences[PreferencesKeys.BIRTH_DAY] = userData.birthDay
                     preferences[PreferencesKeys.BIRTH_YEAR] = userData.birthYear
+                    preferences[PreferencesKeys.LANGUAGE] = userData.language
                 }
                 true
             } else {

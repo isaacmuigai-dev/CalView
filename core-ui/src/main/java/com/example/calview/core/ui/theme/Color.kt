@@ -89,3 +89,43 @@ val DarkBorder = Color(0xFF3A3A45)
 val DarkSuccess = Color(0xFF4ADE80)        // Green
 val DarkWarning = Color(0xFFFFA726)        // Orange
 val DarkError = Color(0xFFEF5350)          // Red
+
+// ============================================
+// GRADIENT DEFINITIONS - Bold & Visible
+// ============================================
+
+// New Modern Theme Base Colors
+val DeepPurple = Color(0xFF451E61)          // #451E61 - Rich deep purple
+val ModernCoral = Color(0xFFFB8E6A)         // #FB8E6A - Vibrant coral/peach
+
+// Light Theme Gradient (White -> Soft Coral -> Soft Purple blend)
+val LightGradientStart = Color(0xFFFFFFFF)  // Pure white
+val LightGradientMid = Color(0xFFFFF0EB)    // White with soft coral tint
+val LightGradientEnd = Color(0xFFF5EEF8)    // White with soft purple tint
+
+// Dark Theme Gradient (Subtle Purple-Black - from Cal AI reference)
+val DarkGradientStart = Color(0xFF16162A)   // Top: Deep purple-tinted black
+val DarkGradientMid = Color(0xFF0F0F15)     // Middle: Very dark charcoal
+val DarkGradientEnd = Color(0xFF0A0A0E)     // Bottom: Near black
+
+// Primary accent colors for new theme - Modern Indigo/Violet
+val IndigoPrimary = Color(0xFF6366F1)       // Deep indigo (primary)
+val IndigoPrimaryLight = Color(0xFF818CF8)  // Bright indigo
+val IndigoPrimaryDark = Color(0xFF4F46E5)   // Rich indigo
+val VioletAccent = Color(0xFF8B5CF6)        // Violet accent
+val VioletGlow = Color(0xFFA78BFA)          // Soft violet glow
+
+// Legacy teal colors (kept for backwards compatibility)
+val TealPrimary = IndigoPrimary
+val TealPrimaryLight = IndigoPrimaryLight
+val TealPrimaryDark = IndigoPrimaryDark
+val MintAccent = VioletAccent               // Map to violet
+val AquaGlow = Color(0xFF06B6D4)            // Keep cyan for specific uses
+
+// ============================================
+// LIGHT THEME DARK ACCENT COLORS
+// Black/Dark accent for buttons, nav bar, and premium elements
+// ============================================
+val DarkAccentPrimary = Color(0xFF1A1A1A)      // Rich black primary
+val DarkAccentSecondary = Color(0xFF2D2D2D)    // Charcoal secondary
+val DarkAccentMuted = Color(0xFF404040)        // Muted dark grey

@@ -43,6 +43,8 @@ import com.example.calview.core.ui.theme.Inter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 // Data Models
 data class FeatureRequest(
@@ -82,11 +84,11 @@ enum class FilterTab {
     MY_POSTS
 }
 
-// Accent Colors
-private val AccentCyan = Color(0xFF00D9FF)
-private val AccentPurple = Color(0xFF7B61FF)
-private val AccentGreen = Color(0xFF00C853)
-private val AccentOrange = Color(0xFFFF6D00)
+// Semantic accent colors (kept for specific meanings)
+private val AccentGreen = Color(0xFF00C853)   // Success/completed
+private val AccentOrange = Color(0xFFFF6D00)  // Warning/in-progress
+
+// Theme-aware accent colors - use MaterialTheme.colorScheme.primary/secondary in composables
 
 /**
  * Feature Request Screen - X-inspired social feed for feature suggestions
@@ -165,14 +167,14 @@ fun FeatureRequestScreen(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { showCreateSheet = true },
-                    containerColor = AccentCyan,
-                    contentColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = CircleShape,
                     modifier = Modifier.size(60.dp)
                 ) {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = "Create Request",
+                        contentDescription = stringResource(R.string.create_request_desc),
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -191,7 +193,7 @@ fun FeatureRequestScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    AccentCyan.copy(alpha = 0.1f),
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     Color.Transparent
                                 )
                             )
@@ -200,7 +202,7 @@ fun FeatureRequestScreen(
                 ) {
                     Column {
                         Text(
-                            "Feature Requests",
+                            text = stringResource(R.string.feature_requests_title),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 28.sp,
@@ -208,7 +210,7 @@ fun FeatureRequestScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Shape the future of CalView",
+                            text = stringResource(R.string.shape_future_desc),
                             fontFamily = Inter,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -233,7 +235,7 @@ fun FeatureRequestScreen(
                 if (isLoading) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
-                        color = AccentCyan
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 
@@ -275,7 +277,7 @@ fun FeatureRequestScreen(
                     .padding(16.dp),
                 action = {
                     TextButton(onClick = { viewModel.clearError() }) {
-                        Text("Dismiss", color = Color.White)
+                        Text(stringResource(R.string.dismiss_action), color = Color.White)
                     }
                 }
             ) {
@@ -325,15 +327,15 @@ private fun FeatureRequestTopBar(
                 Icon(
                     Icons.Default.Lightbulb,
                     contentDescription = null,
-                    tint = AccentCyan,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Feedback Hub",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Bold
-                )
+            Text(
+                text = stringResource(R.string.feedback_hub_title),
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold
+            )
             }
         },
         navigationIcon = {
@@ -346,7 +348,7 @@ private fun FeatureRequestTopBar(
         },
         actions = {
             IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh_desc))
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -369,11 +371,11 @@ private fun FilterTabRow(
         FilterTab.entries.forEach { tab ->
             val isSelected = tab == selectedTab
             val bgColor by animateColorAsState(
-                if (isSelected) AccentCyan else MaterialTheme.colorScheme.surfaceVariant,
+                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 label = "tabBgColor"
             )
             val textColor by animateColorAsState(
-                if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+                if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 label = "tabTextColor"
             )
             
@@ -385,9 +387,9 @@ private fun FilterTabRow(
             ) {
                 Text(
                     text = when (tab) {
-                        FilterTab.TRENDING -> "🔥 Trending"
-                        FilterTab.NEWEST -> "✨ Newest"
-                        FilterTab.MY_POSTS -> "👤 My Posts"
+                        FilterTab.TRENDING -> stringResource(R.string.tab_trending)
+                        FilterTab.NEWEST -> stringResource(R.string.tab_newest)
+                        FilterTab.MY_POSTS -> stringResource(R.string.tab_my_posts)
                     },
                     fontFamily = Inter,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
@@ -414,7 +416,7 @@ private fun SearchBar(
         onValueChange = onQueryChange,
         placeholder = { 
             Text(
-                "Search feature requests...",
+                text = stringResource(R.string.search_placeholder),
                 fontFamily = Inter,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
@@ -431,7 +433,7 @@ private fun SearchBar(
                 IconButton(onClick = { onQueryChange("") }) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Clear",
+                        contentDescription = stringResource(R.string.clear_desc),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -440,7 +442,7 @@ private fun SearchBar(
         singleLine = true,
         shape = RoundedCornerShape(24.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AccentCyan,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surface
@@ -498,7 +500,7 @@ private fun FeatureRequestCard(
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
-                                    listOf(AccentCyan, AccentPurple)
+                                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -577,7 +579,7 @@ private fun FeatureRequestCard(
                     ) {
                         Icon(
                             Icons.Outlined.ChatBubbleOutline,
-                            contentDescription = "Comments",
+                            contentDescription = stringResource(R.string.comments_title, 0).substringBefore(" ("), // hacky approach for description
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -605,11 +607,11 @@ private fun VoteButton(
     onVote: () -> Unit
 ) {
     val bgColor by animateColorAsState(
-        if (hasVoted) AccentCyan.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+        if (hasVoted) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
         label = "voteBgColor"
     )
     val iconColor by animateColorAsState(
-        if (hasVoted) AccentCyan else MaterialTheme.colorScheme.onSurfaceVariant,
+        if (hasVoted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "voteIconColor"
     )
     val scale by animateFloatAsState(
@@ -648,11 +650,11 @@ private fun VoteButton(
 private fun TagChip(tag: String) {
     val tagColors = mapOf(
         "bug" to AccentOrange,
-        "feature" to AccentCyan,
-        "ui" to AccentPurple,
+        "feature" to MaterialTheme.colorScheme.primary,
+        "ui" to MaterialTheme.colorScheme.secondary,
         "health" to AccentGreen
     )
-    val color = tagColors[tag.lowercase()] ?: AccentCyan
+    val color = tagColors[tag.lowercase()] ?: MaterialTheme.colorScheme.primary
     
     Surface(
         color = color.copy(alpha = 0.15f),
@@ -672,10 +674,10 @@ private fun TagChip(tag: String) {
 @Composable
 private fun StatusBadge(status: RequestStatus) {
     val (text, color) = when (status) {
-        RequestStatus.OPEN -> "Open" to MaterialTheme.colorScheme.onSurfaceVariant
-        RequestStatus.IN_PROGRESS -> "In Progress" to AccentOrange
-        RequestStatus.COMPLETED -> "Completed" to AccentGreen
-        RequestStatus.DECLINED -> "Declined" to Color.Gray
+        RequestStatus.OPEN -> stringResource(R.string.status_open) to MaterialTheme.colorScheme.onSurfaceVariant
+        RequestStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress) to AccentOrange
+        RequestStatus.COMPLETED -> stringResource(R.string.status_completed) to AccentGreen
+        RequestStatus.DECLINED -> stringResource(R.string.status_declined) to Color.Gray
     }
     
     if (status != RequestStatus.OPEN) {
@@ -705,12 +707,12 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         Icon(
             Icons.Default.Lightbulb,
             contentDescription = null,
-            tint = AccentCyan.copy(alpha = 0.5f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
             modifier = Modifier.size(80.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "No requests yet",
+            text = stringResource(R.string.empty_state_title),
             fontFamily = Inter,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
@@ -718,7 +720,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "Be the first to suggest a feature!",
+            text = stringResource(R.string.empty_state_desc),
             fontFamily = Inter,
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -758,7 +760,7 @@ private fun CreateRequestSheet(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(
-                            Brush.linearGradient(listOf(AccentCyan, AccentPurple))
+                            Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -773,14 +775,14 @@ private fun CreateRequestSheet(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        "New Feature Request",
+                        text = stringResource(R.string.new_feature_request_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Share your idea with the community",
+                        text = stringResource(R.string.share_idea_desc),
                         fontFamily = Inter,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -794,13 +796,13 @@ private fun CreateRequestSheet(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Feature title", fontFamily = Inter) },
-                placeholder = { Text("What feature would you like?", fontFamily = Inter) },
+                label = { Text(stringResource(R.string.feature_title_label), fontFamily = Inter) },
+                placeholder = { Text(stringResource(R.string.feature_title_placeholder), fontFamily = Inter) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentCyan,
-                    focusedLabelColor = AccentCyan
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -811,14 +813,14 @@ private fun CreateRequestSheet(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description", fontFamily = Inter) },
-                placeholder = { Text("Describe your idea in detail...", fontFamily = Inter) },
+                label = { Text(stringResource(R.string.description_label), fontFamily = Inter) },
+                placeholder = { Text(stringResource(R.string.description_placeholder), fontFamily = Inter) },
                 minLines = 3,
                 maxLines = 5,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentCyan,
-                    focusedLabelColor = AccentCyan
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -827,7 +829,7 @@ private fun CreateRequestSheet(
             
             // Tags
             Text(
-                "Add tags",
+                text = stringResource(R.string.add_tags_label),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
@@ -854,8 +856,8 @@ private fun CreateRequestSheet(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentCyan.copy(alpha = 0.2f),
-                            selectedLabelColor = AccentCyan
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -868,8 +870,8 @@ private fun CreateRequestSheet(
                 onClick = { onSubmit(title, description, selectedTags) },
                 enabled = title.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentCyan,
-                    contentColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 shape = RoundedCornerShape(16.dp),
@@ -884,7 +886,7 @@ private fun CreateRequestSheet(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "Post Request",
+                    text = stringResource(R.string.post_request_action),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -968,7 +970,7 @@ private fun RequestDetailSheet(
                                 .size(20.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    Brush.linearGradient(listOf(AccentCyan, AccentPurple))
+                                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -1023,7 +1025,7 @@ private fun RequestDetailSheet(
             
             // Comments Section
             Text(
-                "Comments (${comments.size})",
+                text = stringResource(R.string.comments_title, comments.size),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
@@ -1045,7 +1047,7 @@ private fun RequestDetailSheet(
                     onValueChange = { commentText = it },
                     placeholder = { 
                         Text(
-                            "Add a comment...",
+                            text = stringResource(R.string.add_comment_placeholder),
                             fontFamily = Inter,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
@@ -1053,7 +1055,7 @@ private fun RequestDetailSheet(
                     singleLine = true,
                     shape = RoundedCornerShape(20.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentCyan,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -1081,8 +1083,8 @@ private fun RequestDetailSheet(
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
-                        tint = if (commentText.isNotBlank()) AccentCyan else MaterialTheme.colorScheme.onSurfaceVariant
+                        contentDescription = stringResource(R.string.send_desc),
+                        tint = if (commentText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1107,13 +1109,13 @@ private fun RequestDetailSheet(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "No comments yet",
+                            text = stringResource(R.string.no_comments_yet),
                             fontFamily = Inter,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            "Be the first to share your thoughts!",
+                            text = stringResource(R.string.be_first_comment),
                             fontFamily = Inter,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -1162,7 +1164,7 @@ private fun CommentItem(
                 .size(32.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(listOf(AccentPurple, AccentCyan))
+                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary))
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -1202,7 +1204,7 @@ private fun CommentItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            // Like Button
+                // Like Button
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -1232,6 +1234,7 @@ private fun CommentItem(
 }
 
 // Helper function to format time ago
+@Composable
 private fun formatTimeAgo(dateTime: LocalDateTime): String {
     val now = LocalDateTime.now()
     val minutes = ChronoUnit.MINUTES.between(dateTime, now)
@@ -1239,10 +1242,10 @@ private fun formatTimeAgo(dateTime: LocalDateTime): String {
     val days = ChronoUnit.DAYS.between(dateTime, now)
     
     return when {
-        minutes < 1 -> "just now"
-        minutes < 60 -> "${minutes}m"
-        hours < 24 -> "${hours}h"
-        days < 7 -> "${days}d"
+        minutes < 1 -> stringResource(R.string.just_now)
+        minutes < 60 -> "${minutes}${stringResource(R.string.minutes_ago_suffix)}"
+        hours < 24 -> "${hours}${stringResource(R.string.hours_ago_suffix)}"
+        days < 7 -> "${days}${stringResource(R.string.days_ago_suffix)}"
         else -> dateTime.format(DateTimeFormatter.ofPattern("MMM d"))
     }
 }

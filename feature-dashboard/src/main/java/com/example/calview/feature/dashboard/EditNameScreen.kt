@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Edit name screen.
@@ -49,7 +51,7 @@ fun EditNameScreen(
                         enabled = name.isNotBlank()
                     ) {
                         Text(
-                            text = "Save",
+                            text = stringResource(R.string.save_action),
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             color = if (name.isNotBlank()) Color.Black else Color.Gray
@@ -73,7 +75,7 @@ fun EditNameScreen(
             
             // Title
             Text(
-                text = "Edit name",
+                text = stringResource(R.string.edit_name_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,

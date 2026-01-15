@@ -62,4 +62,9 @@ interface DailyLogRepository {
      * Restore daily logs from cloud.
      */
     suspend fun restoreFromCloud(): Boolean
+
+    /**
+     * Clear all daily logs from local database.
+     */
+    suspend fun clearAllLogs()
 }

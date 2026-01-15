@@ -20,6 +20,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Edit Step Goal screen matching the design with:
@@ -69,7 +71,7 @@ fun EditStepsGoalScreen(
         ) {
             // Title
             Text(
-                text = "Edit Step Goal",
+                text = stringResource(R.string.edit_step_goal_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
@@ -124,7 +126,7 @@ fun EditStepsGoalScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Previous goal $previousGoal steps",
+                            text = stringResource(R.string.previous_goal_steps, previousGoal),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
@@ -147,7 +149,7 @@ fun EditStepsGoalScreen(
                 },
                 label = {
                     Text(
-                        text = "Daily Step Goal",
+                        text = stringResource(R.string.daily_step_goal_label),
                         fontFamily = Inter
                     )
                 },
@@ -188,7 +190,7 @@ fun EditStepsGoalScreen(
                     )
                 ) {
                     Text(
-                        text = "Revert",
+                        text = stringResource(R.string.revert_action),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
@@ -215,7 +217,7 @@ fun EditStepsGoalScreen(
                     )
                 ) {
                     Text(
-                        text = "Done",
+                        text = stringResource(R.string.done_action),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp

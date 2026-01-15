@@ -9,6 +9,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -21,6 +23,13 @@ class OnboardingViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
+    
+    val language: StateFlow<String> = userPreferencesRepository.language
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = "en"
+        )
 
     fun completeOnboarding(onComplete: () -> Unit) {
         viewModelScope.launch {
@@ -160,6 +169,12 @@ class OnboardingViewModel @Inject constructor(
 
     fun onGoalWeightChanged(weight: Float) {
         _uiState.value = _uiState.value.copy(goalWeight = weight)
+    }
+
+    fun setLanguage(code: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setLanguage(code)
+        }
     }
 
     /**

@@ -36,6 +36,8 @@ import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SettingsScreen(
@@ -67,7 +69,7 @@ fun SettingsScreen(
     SettingsContent(
         userName = uiState.userName.ifEmpty { "User" },
         photoUrl = uiState.photoUrl,
-        ageStr = if (uiState.age > 0) "${uiState.age} years old" else "",
+        ageStr = if (uiState.age > 0) "${uiState.age} ${stringResource(R.string.years_old_suffix)}" else "",
         appearanceMode = uiState.appearanceMode,
         addCaloriesBack = uiState.addCaloriesBack,
         rolloverCalories = uiState.rolloverCalories,
@@ -174,10 +176,10 @@ fun SettingsContent(
     val horizontalPadding = AdaptiveLayoutUtils.getHorizontalPadding(windowSizeClass.widthSizeClass)
     val maxContentWidth = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass)
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -190,7 +192,7 @@ fun SettingsContent(
         ) {
         // Title
         Text(
-            text = "Settings",
+            text = stringResource(R.string.settings_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -343,7 +345,7 @@ fun InviteFriendsCard(onReferFriendClick: () -> Unit = {}) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Group, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Invite friends", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.invite_friends), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Box(
@@ -351,16 +353,30 @@ fun InviteFriendsCard(onReferFriendClick: () -> Unit = {}) {
                     .fillMaxWidth()
                     .height(140.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black)
             ) {
-                // Mock image background
+                // Background Image
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.img_refer_friend_bg),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                
+                // Dark overlay for text readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                )
+
+                // Content
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.CenterStart)
                 ) {
                     Text(
-                        "The journey\nis easier together.",
+                        stringResource(R.string.invite_friends_desc),
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -373,7 +389,7 @@ fun InviteFriendsCard(onReferFriendClick: () -> Unit = {}) {
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Refer a friend to earn \$10",
+                            stringResource(R.string.refer_friend_action),
                             color = Color.Black,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
@@ -394,15 +410,15 @@ fun SettingsList(
 ) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            SettingsItem(Icons.Default.Badge, "Personal details", onClick = onPersonalDetailsClick)
+            SettingsItem(Icons.Default.Badge, stringResource(R.string.personal_details), onClick = onPersonalDetailsClick)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-            SettingsItem(Icons.Default.Refresh, "Adjust macronutrients", onClick = onEditMacrosClick)
+            SettingsItem(Icons.Default.Refresh, stringResource(R.string.adjust_macros), onClick = onEditMacrosClick)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-            SettingsItem(Icons.Default.Flag, "Goal & current weight", onClick = onPersonalDetailsClick)
+            SettingsItem(Icons.Default.Flag, stringResource(R.string.goal_current_weight), onClick = onPersonalDetailsClick)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-            SettingsItem(Icons.Default.History, "Weight history", onClick = onWeightHistoryClick)
+            SettingsItem(Icons.Default.History, stringResource(R.string.weight_history), onClick = onWeightHistoryClick)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-            SettingsItem(Icons.Default.Translate, "Language", onClick = onLanguageClick)
+            SettingsItem(Icons.Default.Translate, stringResource(R.string.language), onClick = onLanguageClick)
         }
     }
 }
@@ -456,8 +472,8 @@ fun PreferencesSection(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Appearance", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Choose light, dark, or system appearance", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.appearance), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.appearance_desc), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -517,8 +533,8 @@ fun PreferencesSection(
             
             // Add Burned Calories toggle
             PreferenceToggle(
-                title = "Add Burned Calories",
-                subtitle = "Add burned calories to daily goal",
+                title = stringResource(R.string.add_burned_calories),
+                subtitle = stringResource(R.string.add_burned_calories_desc),
                 checked = addCaloriesBack,
                 onCheckedChange = onAddCaloriesBackChange
             )
@@ -527,8 +543,8 @@ fun PreferencesSection(
             
             // Rollover Calories toggle
             PreferenceToggle(
-                title = "Rollover calories",
-                subtitle = "Add up to 200 left over calories from yesterday into today's daily goal",
+                title = stringResource(R.string.rollover_calories),
+                subtitle = stringResource(R.string.rollover_calories_desc),
                 checked = rolloverCalories,
                 onCheckedChange = onRolloverCaloriesChange
             )
@@ -585,13 +601,13 @@ fun WidgetsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Widgets",
+                stringResource(R.string.widgets),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                "How to add?",
+                stringResource(R.string.how_to_add),
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { onHowToAddClick() }
@@ -642,7 +658,7 @@ fun WidgetCaloriesOnly(remainingCalories: Int = 0) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Calories left",
+                        stringResource(R.string.calories_left),
                         fontSize = 8.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -658,7 +674,7 @@ fun WidgetCaloriesOnly(remainingCalories: Int = 0) {
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 Text(
-                    "+ Log your food",
+                    stringResource(R.string.log_food_action),
                     color = MaterialTheme.colorScheme.surface,
                     fontSize = 10.sp
                 )
@@ -700,7 +716,7 @@ fun WidgetCaloriesWithMacros(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Calories left",
+                        stringResource(R.string.calories_left),
                         fontSize = 7.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -708,9 +724,9 @@ fun WidgetCaloriesWithMacros(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                WidgetMacroItem(Color(0xFFD64D50), Icons.Default.Favorite, "${proteinLeft}g", "Protein left")
-                WidgetMacroItem(Color(0xFFE5A87B), Icons.Default.Grass, "${carbsLeft}g", "Carbs left")
-                WidgetMacroItem(Color(0xFF6A8FB3), Icons.Default.Opacity, "${fatsLeft}g", "Fats left")
+                WidgetMacroItem(Color(0xFFD64D50), Icons.Default.Favorite, "${proteinLeft}g", stringResource(R.string.protein_left))
+                WidgetMacroItem(Color(0xFFE5A87B), Icons.Default.Grass, "${carbsLeft}g", stringResource(R.string.carbs_left))
+                WidgetMacroItem(Color(0xFF6A8FB3), Icons.Default.Opacity, "${fatsLeft}g", stringResource(R.string.fats_left))
             }
         }
     }
@@ -749,7 +765,7 @@ fun WidgetQuickActions() {
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Scan Food",
+                            stringResource(R.string.scan_food),
                             fontSize = 8.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -772,7 +788,7 @@ fun WidgetQuickActions() {
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Barcode",
+                            stringResource(R.string.barcode),
                             fontSize = 8.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )

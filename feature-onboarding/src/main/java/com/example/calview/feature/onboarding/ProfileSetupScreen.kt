@@ -35,10 +35,10 @@ fun ProfileSetupScreen(
     selectedGender: String,
     onGenderSelected: (String) -> Unit,
     // Birthdate
-    birthMonth: String,
+    birthMonth: Int,
     birthDay: Int,
     birthYear: Int,
-    onMonthChanged: (String) -> Unit,
+    onMonthChanged: (Int) -> Unit,
     onDayChanged: (Int) -> Unit,
     onYearChanged: (Int) -> Unit,
     // Height & Weight (Metric only - kg/cm)
@@ -56,10 +56,13 @@ fun ProfileSetupScreen(
     val scrollState = rememberScrollState()
     val isComplete = selectedGender.isNotEmpty() && selectedWorkouts.isNotEmpty()
     
+    // Resources
+    val monthNames = androidx.compose.ui.res.stringArrayResource(com.example.calview.feature.onboarding.R.array.month_names)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
             .statusBarsPadding()
             .navigationBarsPadding()  // Ensure buttons don't overlap navigation bar
     ) {
@@ -79,7 +82,7 @@ fun ProfileSetupScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.back_content_desc),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -108,7 +111,7 @@ fun ProfileSetupScreen(
         ) {
             // Title
             Text(
-                text = "Set up your profile",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.profile_setup_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
@@ -116,7 +119,7 @@ fun ProfileSetupScreen(
             )
             
             Text(
-                text = "Tell us about yourself to personalize your experience",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.profile_setup_subtitle),
                 fontFamily = Inter,
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -126,28 +129,28 @@ fun ProfileSetupScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             // ===================== GENDER SECTION =====================
-            SectionTitle(title = "Gender", emoji = "👤")
+            SectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.gender_label), emoji = "👤")
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 GenderChip(
-                    label = "Male",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.gender_male),
                     emoji = "👨",
                     isSelected = selectedGender == "Male",
                     onClick = { onGenderSelected("Male") },
                     modifier = Modifier.weight(1f)
                 )
                 GenderChip(
-                    label = "Female",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.gender_female),
                     emoji = "👩",
                     isSelected = selectedGender == "Female",
                     onClick = { onGenderSelected("Female") },
                     modifier = Modifier.weight(1f)
                 )
                 GenderChip(
-                    label = "Other",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.gender_other),
                     emoji = "🧑",
                     isSelected = selectedGender == "Other",
                     onClick = { onGenderSelected("Other") },
@@ -158,7 +161,7 @@ fun ProfileSetupScreen(
             Spacer(modifier = Modifier.height(28.dp))
             
             // ===================== BIRTHDATE SECTION =====================
-            SectionTitle(title = "Birthdate", emoji = "🎂")
+            SectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.birthdate_label), emoji = "🎂")
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -166,17 +169,21 @@ fun ProfileSetupScreen(
             ) {
                 // Month dropdown
                 DropdownSelector(
-                    label = "Month",
-                    value = birthMonth,
-                    options = listOf("January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"),
-                    onValueSelected = onMonthChanged,
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.month_label),
+                    value = monthNames.getOrElse(birthMonth - 1) { "" },
+                    options = monthNames.toList(),
+                    onValueSelected = { selectedName -> 
+                        val index = monthNames.indexOf(selectedName)
+                        if (index >= 0) {
+                            onMonthChanged(index + 1)
+                        }
+                    },
                     modifier = Modifier.weight(1.5f)
                 )
                 
                 // Day dropdown
                 DropdownSelector(
-                    label = "Day",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.day_label),
                     value = birthDay.toString(),
                     options = (1..31).map { it.toString() },
                     onValueSelected = { onDayChanged(it.toInt()) },
@@ -185,7 +192,7 @@ fun ProfileSetupScreen(
                 
                 // Year dropdown
                 DropdownSelector(
-                    label = "Year",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.year_label),
                     value = birthYear.toString(),
                     options = (1940..2010).map { it.toString() },
                     onValueSelected = { onYearChanged(it.toInt()) },
@@ -196,7 +203,7 @@ fun ProfileSetupScreen(
             Spacer(modifier = Modifier.height(28.dp))
             
             // ===================== HEIGHT & WEIGHT SECTION =====================
-            SectionTitle(title = "Height & Weight", emoji = "📏")
+            SectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.height_weight_label), emoji = "📏")
             
             // Metric inputs - Dropdown selectors
             Row(
@@ -204,14 +211,14 @@ fun ProfileSetupScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 DropdownSelector(
-                    label = "Height",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.height_label),
                     value = "$heightCm cm",
                     options = (100..220).map { "$it cm" },
                     onValueSelected = { onHeightCmChanged(it.replace(" cm", "").toInt()) },
                     modifier = Modifier.weight(1f)
                 )
                 DropdownSelector(
-                    label = "Weight",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.weight_label),
                     value = "$weightKg kg",
                     options = (30..200).map { "$it kg" },
                     onValueSelected = { onWeightKgChanged(it.replace(" kg", "").toInt()) },
@@ -222,10 +229,10 @@ fun ProfileSetupScreen(
             Spacer(modifier = Modifier.height(28.dp))
             
             // ===================== ACTIVITY LEVEL SECTION =====================
-            SectionTitle(title = "Activity Level", emoji = "🏃")
+            SectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_level_label), emoji = "🏃")
             
             Text(
-                text = "How many workouts do you do per week?",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_level_question),
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 color = Color.Gray,
@@ -234,20 +241,20 @@ fun ProfileSetupScreen(
             
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActivityOption(
-                    label = "0-2 workouts",
-                    description = "Little to no exercise",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_0_2),
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_0_2_desc),
                     isSelected = selectedWorkouts == "0-2",
                     onClick = { onWorkoutsSelected("0-2") }
                 )
                 ActivityOption(
-                    label = "3-5 workouts",
-                    description = "Moderate exercise",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_3_5),
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_3_5_desc),
                     isSelected = selectedWorkouts == "3-5",
                     onClick = { onWorkoutsSelected("3-5") }
                 )
                 ActivityOption(
-                    label = "6+ workouts",
-                    description = "Very active",
+                    label = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_6_plus),
+                    description = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_6_plus_desc),
                     isSelected = selectedWorkouts == "6+",
                     onClick = { onWorkoutsSelected("6+") }
                 )
@@ -271,7 +278,7 @@ fun ProfileSetupScreen(
             )
         ) {
             Text(
-                text = "Continue",
+                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.continue_button),
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp

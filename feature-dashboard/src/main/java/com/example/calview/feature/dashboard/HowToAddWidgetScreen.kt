@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Screen explaining how to add widgets to the home screen.
@@ -36,7 +38,7 @@ fun HowToAddWidgetScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Add Widget",
+                        text = stringResource(R.string.add_widget_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold
                     )
@@ -92,7 +94,7 @@ fun HowToAddWidgetScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = "Add CalView widgets to your home screen",
+                text = stringResource(R.string.add_calview_widgets_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
@@ -103,7 +105,7 @@ fun HowToAddWidgetScreen(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Track your calories and macros at a glance without opening the app",
+                text = stringResource(R.string.add_widget_desc),
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -115,8 +117,8 @@ fun HowToAddWidgetScreen(
             // Step 1
             InstructionStep(
                 number = 1,
-                title = "Long press on your home screen",
-                description = "Touch and hold an empty area on your home screen until a menu appears",
+                title = stringResource(R.string.step_1_title),
+                description = stringResource(R.string.step_1_desc),
                 icon = Icons.Default.TouchApp
             )
             
@@ -125,8 +127,8 @@ fun HowToAddWidgetScreen(
             // Step 2
             InstructionStep(
                 number = 2,
-                title = "Tap \"Widgets\"",
-                description = "Look for the Widgets option in the menu or at the bottom of the screen",
+                title = stringResource(R.string.step_2_title),
+                description = stringResource(R.string.step_2_desc),
                 icon = Icons.Default.Widgets
             )
             
@@ -135,8 +137,8 @@ fun HowToAddWidgetScreen(
             // Step 3
             InstructionStep(
                 number = 3,
-                title = "Find CalView",
-                description = "Scroll through the widget list or search for \"CalView\" to find our widgets",
+                title = stringResource(R.string.step_3_title),
+                description = stringResource(R.string.step_3_desc),
                 icon = Icons.Default.Search
             )
             
@@ -145,8 +147,8 @@ fun HowToAddWidgetScreen(
             // Step 4
             InstructionStep(
                 number = 4,
-                title = "Drag widget to home screen",
-                description = "Touch and hold the widget you want, then drag it to your home screen",
+                title = stringResource(R.string.step_4_title),
+                description = stringResource(R.string.step_4_desc),
                 icon = Icons.Default.OpenWith
             )
             
@@ -154,7 +156,7 @@ fun HowToAddWidgetScreen(
             
             // Available widgets preview
             Text(
-                text = "Available Widgets",
+                text = stringResource(R.string.available_widgets_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
@@ -169,14 +171,14 @@ fun HowToAddWidgetScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 WidgetTypeCard(
-                    name = "Calorie Ring",
-                    description = "Shows remaining calories",
+                    name = stringResource(R.string.widget_calorie_ring_title),
+                    description = stringResource(R.string.widget_calorie_ring_desc),
                     icon = Icons.Default.DonutLarge,
                     modifier = Modifier.weight(1f)
                 )
                 WidgetTypeCard(
-                    name = "Macros",
-                    description = "Protein, carbs, fats",
+                    name = stringResource(R.string.widget_macros_title),
+                    description = stringResource(R.string.widget_macros_desc),
                     icon = Icons.Default.PieChart,
                     modifier = Modifier.weight(1f)
                 )
@@ -189,14 +191,14 @@ fun HowToAddWidgetScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 WidgetTypeCard(
-                    name = "Quick Actions",
-                    description = "Scan food, barcode",
+                    name = stringResource(R.string.widget_quick_actions_title),
+                    description = stringResource(R.string.widget_quick_actions_desc),
                     icon = Icons.Default.FlashOn,
                     modifier = Modifier.weight(1f)
                 )
                 WidgetTypeCard(
-                    name = "Streak",
-                    description = "Daily logging streak",
+                    name = stringResource(R.string.widget_streak_title),
+                    description = stringResource(R.string.widget_streak_desc),
                     icon = Icons.Default.LocalFireDepartment,
                     modifier = Modifier.weight(1f)
                 )
@@ -216,7 +218,7 @@ fun HowToAddWidgetScreen(
                 )
             ) {
                 Text(
-                    "Got it!",
+                    text = stringResource(R.string.got_it_action),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp

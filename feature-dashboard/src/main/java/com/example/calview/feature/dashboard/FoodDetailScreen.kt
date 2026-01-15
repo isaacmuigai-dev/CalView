@@ -1,6 +1,7 @@
 package com.example.calview.feature.dashboard
 
 import android.content.ContentValues
+import java.text.SimpleDateFormat
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -50,17 +51,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
 import java.util.*
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
-// Color palette
-private val GradientCyan = Color(0xFF00D4AA)
-private val GradientPurple = Color(0xFF7C3AED)
-private val GradientPink = Color(0xFFEC4899)
-private val GradientBlue = Color(0xFF3B82F6)
-private val GradientOrange = Color(0xFFF59E0B)
-private val DarkText = Color(0xFF1F2937)
-private val MutedText = Color(0xFF6B7280)
+// NOTE: Use MaterialTheme.colorScheme for all colors - no hardcoded values
 
 /**
  * Food Detail Screen - Shows full food details with share/save functionality
@@ -189,7 +184,7 @@ fun FoodDetailScreen(
                     }
                     
                     Text(
-                        text = "Food Details",
+                        text = stringResource(R.string.food_details_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White
@@ -231,15 +226,15 @@ fun FoodDetailScreen(
                                 onDismissRequest = { showOptionsMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Report Food") },
+                                    text = { Text(stringResource(R.string.report_food)) },
                                     leadingIcon = { Icon(Icons.Outlined.Flag, null) },
                                     onClick = {
                                         showOptionsMenu = false
-                                        Toast.makeText(context, "Report submitted", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.report_submitted), Toast.LENGTH_SHORT).show()
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Save Image") },
+                                    text = { Text(stringResource(R.string.save_image)) },
                                     leadingIcon = { Icon(Icons.Outlined.Download, null) },
                                     onClick = {
                                         showOptionsMenu = false
@@ -250,7 +245,7 @@ fun FoodDetailScreen(
                                 )
                                 HorizontalDivider()
                                 DropdownMenuItem(
-                                    text = { Text("Delete Food", color = Color(0xFFEF4444)) },
+                                    text = { Text(stringResource(R.string.delete_food), color = Color(0xFFEF4444)) },
                                     leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = Color(0xFFEF4444)) },
                                     onClick = {
                                         showOptionsMenu = false
@@ -270,7 +265,7 @@ fun FoodDetailScreen(
                     .fillMaxSize()
                     .offset(y = (-24).dp)
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(Color.White)
+                    .background(surfaceColor)
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)
             ) {
@@ -285,13 +280,13 @@ fun FoodDetailScreen(
                             Icons.Outlined.BookmarkBorder,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
-                            tint = MutedText
+                            tint = onSurfaceVariantColor
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = formatMealTimeDetail(meal.timestamp),
                             fontSize = 14.sp,
-                            color = MutedText
+                            color = onSurfaceVariantColor
                         )
                     }
                 }
@@ -308,15 +303,15 @@ fun FoodDetailScreen(
                         text = meal.name,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText,
+                        color = onSurfaceColor,
                         modifier = Modifier.weight(1f)
                     )
                     
                     // Serving counter
                     Surface(
                         shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                        color = Color.White
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        color = surfaceColor
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -369,8 +364,8 @@ fun FoodDetailScreen(
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(16.dp),
-                                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                                    color = Color.White
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                                    color = surfaceColor
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(16.dp),
@@ -379,28 +374,28 @@ fun FoodDetailScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .background(Color(0xFFF3F4F6), CircleShape),
+                                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
                                                 Icons.Filled.LocalFireDepartment,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(24.dp),
-                                                tint = DarkText
+                                                tint = onSurfaceColor
                                             )
                                         }
                                         Spacer(modifier = Modifier.width(16.dp))
                                         Column {
                                             Text(
-                                                text = "Calories",
+                                                text = stringResource(R.string.calories_label),
                                                 fontSize = 14.sp,
-                                                color = MutedText
+                                                color = onSurfaceVariantColor
                                             )
                                             Text(
                                                 text = "${meal.calories * servingCount}",
                                                 fontSize = 32.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = DarkText
+                                                color = onSurfaceColor
                                             )
                                         }
                                     }
@@ -414,21 +409,21 @@ fun FoodDetailScreen(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     MacroDetailCard(
-                                        label = "Protein",
+                                        label = stringResource(R.string.protein_label),
                                         value = "${meal.protein * servingCount}g",
                                         icon = Icons.Filled.Favorite,
                                         color = Color(0xFFEF4444),
                                         modifier = Modifier.weight(1f)
                                     )
                                     MacroDetailCard(
-                                        label = "Carbs",
+                                        label = stringResource(R.string.carbs_label),
                                         value = "${meal.carbs * servingCount}g",
                                         icon = Icons.Filled.Eco,
                                         color = Color(0xFFF59E0B),
                                         modifier = Modifier.weight(1f)
                                     )
                                     MacroDetailCard(
-                                        label = "Fats",
+                                        label = stringResource(R.string.fats_label),
                                         value = "${meal.fats * servingCount}g",
                                         icon = Icons.Filled.WaterDrop,
                                         color = Color(0xFF3B82F6),
@@ -446,19 +441,19 @@ fun FoodDetailScreen(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     MicroDetailCard(
-                                        label = "Fiber",
+                                        label = stringResource(R.string.fiber_label),
                                         value = "${meal.fiber * servingCount}g",
                                         emoji = "🌾",
                                         modifier = Modifier.weight(1f)
                                     )
                                     MicroDetailCard(
-                                        label = "Sugar",
+                                        label = stringResource(R.string.sugar_label),
                                         value = "${meal.sugar * servingCount}g",
                                         emoji = "🍬",
                                         modifier = Modifier.weight(1f)
                                     )
                                     MicroDetailCard(
-                                        label = "Sodium",
+                                        label = stringResource(R.string.sodium_label),
                                         value = "${meal.sodium * servingCount}mg",
                                         emoji = "🧂",
                                         modifier = Modifier.weight(1f)
@@ -471,8 +466,8 @@ fun FoodDetailScreen(
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(16.dp),
-                                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                                    color = Color.White
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                                    color = surfaceColor
                                 ) {
                                     Row(
                                         modifier = Modifier
@@ -485,7 +480,7 @@ fun FoodDetailScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .size(48.dp)
-                                                    .background(Color(0xFFFEE2E2), CircleShape),
+                                                    .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
@@ -496,10 +491,10 @@ fun FoodDetailScreen(
                                             Spacer(modifier = Modifier.width(16.dp))
                                             Column {
                                                 Text(
-                                                    text = "Health score",
+                                                    text = stringResource(R.string.health_score),
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Medium,
-                                                    color = DarkText
+                                                    color = onSurfaceColor
                                                 )
                                                 Spacer(modifier = Modifier.height(4.dp))
                                                 // Progress bar
@@ -528,7 +523,7 @@ fun FoodDetailScreen(
                                             text = "$healthScore/10",
                                             fontSize = 18.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = DarkText
+                                            color = onSurfaceColor
                                         )
                                     }
                                 }
@@ -550,7 +545,7 @@ fun FoodDetailScreen(
                                 .padding(4.dp)
                                 .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
                                 .background(
-                                    if (pagerState.currentPage == index) DarkText else Color(0xFFD1D5DB),
+                                    if (pagerState.currentPage == index) onSurfaceColor else Color(0xFFD1D5DB),
                                     CircleShape
                                 )
                         )
@@ -592,7 +587,7 @@ fun FoodDetailScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "What I Detected",
+                                        text = stringResource(R.string.what_detected),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = onSurfaceColor
@@ -609,7 +604,7 @@ fun FoodDetailScreen(
                                             }
                                         ) {
                                             Text(
-                                                "${meal.confidenceScore.toInt()}% confident",
+                                                "${meal.confidenceScore.toInt()}% ${stringResource(R.string.confident_suffix)}",
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Medium,
@@ -630,8 +625,9 @@ fun FoodDetailScreen(
                                 if (highConfidenceItems.isNotEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
+                                            val prefix = stringResource(R.string.i_see_prefix)
                                             withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = onSurfaceColor)) {
-                                                append("I see: ")
+                                                append(prefix)
                                             }
                                             highConfidenceItems.forEachIndexed { index, item ->
                                                 withStyle(SpanStyle(color = onSurfaceColor)) {
@@ -661,8 +657,9 @@ fun FoodDetailScreen(
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = buildAnnotatedString {
+                                            val prefix = stringResource(R.string.i_suspect_prefix)
                                             withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = Color(0xFFFF9800))) {
-                                                append("I suspect: ")
+                                                append(prefix)
                                             }
                                             lowConfidenceItems.forEachIndexed { index, item ->
                                                 withStyle(SpanStyle(color = onSurfaceColor)) {
@@ -670,7 +667,7 @@ fun FoodDetailScreen(
                                                 }
                                                 if (item.detection_note != null) {
                                                     withStyle(SpanStyle(
-                                                        color = MutedText,
+                                                        color = onSurfaceVariantColor,
                                                         fontSize = 12.sp,
                                                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                                     )) {
@@ -707,14 +704,14 @@ fun FoodDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Ingredients",
+                        text = stringResource(R.string.ingredients_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = onSurfaceColor
                     )
                     TextButton(onClick = { showAddIngredientDialog = true }) {
                         Text(
-                            text = "+ Add more",
+                            text = stringResource(R.string.add_more_action),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -938,8 +935,8 @@ private fun MacroDetailCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-        color = Color.White
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -955,13 +952,13 @@ private fun MacroDetailCard(
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = MutedText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -977,8 +974,8 @@ private fun MicroDetailCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-        color = Color.White
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -989,13 +986,13 @@ private fun MicroDetailCard(
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = MutedText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -1100,28 +1097,36 @@ private fun ShareFoodSheet(
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color.White.copy(alpha = 0.85f), // More opaque for readability
-                            shadowElevation = 4.dp
+                        // Gradient background with transparency using light theme colors
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            Color(0xFFFFFFFF).copy(alpha = 0.75f),  // Pure white with transparency
+                                            Color(0xFFFFF0EB).copy(alpha = 0.75f),  // White with soft coral tint
+                                            Color(0xFFF5EEF8).copy(alpha = 0.75f)   // White with soft purple tint
+                                        )
+                                    )
+                                )
+                                .padding(horizontal = 12.dp, vertical = 16.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(12.dp)
-                            ) {
+                            Column {
                                 // Top row: Logo + App name + Food name
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // App Logo - Larger
+                                    // App Logo - 50dp for visibility and branding
                                     Image(
                                         painter = androidx.compose.ui.res.painterResource(
-                                            id = com.example.calview.feature.dashboard.R.drawable.app_logo
+                                            id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
                                         ),
                                         contentDescription = "CalViewAI Logo",
-                                        modifier = Modifier.size(48.dp)
+                                        modifier = Modifier.size(50.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = "CalViewAI",
@@ -1342,21 +1347,21 @@ private fun ShareOptionButton(
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .background(Color(0xFFF3F4F6), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = label,
                 modifier = Modifier.size(24.dp),
-                tint = DarkText
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = label,
             fontSize = 13.sp,
-            color = MutedText
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -1371,7 +1376,26 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity, servi
         try {
             android.util.Log.d("ShareFood", "Starting save to gallery for: ${meal.name}")
             
-            val fileName = "${meal.name.replace(" ", "_")}_CalViewAI_${System.currentTimeMillis()}.jpg"
+            // Check if meal has an image
+            if (meal.imagePath == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "No image to save", Toast.LENGTH_SHORT).show()
+                }
+                return@withContext
+            }
+            
+            // Check if source image exists
+            val sourceFile = File(meal.imagePath)
+            if (!sourceFile.exists()) {
+                android.util.Log.e("ShareFood", "Source image file not found: ${meal.imagePath}")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Source image not found", Toast.LENGTH_SHORT).show()
+                }
+                return@withContext
+            }
+            // Short filename - max 10 chars from meal name
+            val shortName = meal.name.take(10).replace(" ", "_").replace("/", "_").replace(".", "")
+            val fileName = "${shortName}_${System.currentTimeMillis() % 10000}.jpg"
             android.util.Log.d("ShareFood", "File name: $fileName")
             
             // Generate branded image first
@@ -1419,21 +1443,53 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity, servi
                     }
                 }
             } else {
-                // For Android 9 and below
-                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                val calviewDir = File(picturesDir, "CalViewAI")
-                calviewDir.mkdirs()
-                val file = File(calviewDir, fileName)
-                
-                FileOutputStream(file).use { out ->
-                    brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                }
-                
-                // Notify media scanner
-                android.media.MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), null, null)
-                
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "✓ Saved to Pictures/CalViewAI", Toast.LENGTH_LONG).show()
+                // For Android 9 and below - save to app cache then copy to gallery
+                try {
+                    // First save to app cache (always writable)
+                    val cacheDir = File(context.cacheDir, "share_images")
+                    if (!cacheDir.exists()) {
+                        cacheDir.mkdirs()
+                    }
+                    val cacheFile = File(cacheDir, fileName)
+                    
+                    FileOutputStream(cacheFile).use { out ->
+                        brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                    }
+                    
+                    // Try to copy to Pictures directory
+                    val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                    val calviewDir = File(picturesDir, "CalViewAI")
+                    
+                    try {
+                        if (!calviewDir.exists()) {
+                            calviewDir.mkdirs()
+                        }
+                        val destFile = File(calviewDir, fileName)
+                        cacheFile.copyTo(destFile, overwrite = true)
+                        
+                        // Notify media scanner
+                        android.media.MediaScannerConnection.scanFile(context, arrayOf(destFile.absolutePath), null, null)
+                        
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "✓ Saved to Pictures/CalViewAI", Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        // Fallback - keep in cache and show different message
+                        android.util.Log.e("ShareFood", "Failed to copy to Pictures, keeping in cache: ${e.message}")
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "✓ Image saved (check app cache)", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    
+                    // Clean up cache file if copy succeeded, otherwise keep it
+                    if (File(calviewDir, fileName).exists()) {
+                        cacheFile.delete()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ShareFood", "Save to cache failed: ${e.message}", e)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
             
@@ -1451,36 +1507,52 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity, servi
 private suspend fun shareFood(context: Context, meal: MealEntity, servingCount: Int) {
     withContext(Dispatchers.IO) {
         try {
-            // Generate branded image
-            val brandedBitmap = generateBrandedImage(context, meal, servingCount)
+            var shouldShareText = true
             
-            if (brandedBitmap != null) {
-                // Save to cache and share
-                val cacheDir = File(context.cacheDir, "share_images")
-                cacheDir.mkdirs()
-                val shareFile = File(cacheDir, "calviewai_${System.currentTimeMillis()}.jpg")
-                
-                FileOutputStream(shareFile).use { output ->
-                    brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
-                }
-                brandedBitmap.recycle()
-                
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    shareFile
-                )
-                
-                withContext(Dispatchers.Main) {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "image/jpeg"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // Check if meal has an image and it exists
+            if (meal.imagePath != null) {
+                val sourceFile = File(meal.imagePath)
+                if (sourceFile.exists()) {
+                    // Generate branded image
+                    val brandedBitmap = generateBrandedImage(context, meal, servingCount)
+                    
+                    if (brandedBitmap != null) {
+                        // Save to cache and share - explicitly create directory
+                        val cacheDir = File(context.cacheDir, "share_images")
+                        if (!cacheDir.exists()) {
+                            val created = cacheDir.mkdirs()
+                            android.util.Log.d("ShareFood", "Created cache dir: $created at ${cacheDir.absolutePath}")
+                        }
+                        val shareFile = File(cacheDir, "calviewai_${System.currentTimeMillis()}.jpg")
+                        
+                        FileOutputStream(shareFile).use { output ->
+                            brandedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
+                        }
+                        brandedBitmap.recycle()
+                        
+                        val uri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            shareFile
+                        )
+                        
+                        withContext(Dispatchers.Main) {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/jpeg"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Share ${meal.name}"))
+                        }
+                        shouldShareText = false
                     }
-                    context.startActivity(Intent.createChooser(intent, "Share ${meal.name}"))
+                } else {
+                    android.util.Log.e("ShareFood", "Source image not found: ${meal.imagePath}")
                 }
-            } else {
-                // Fallback to text share
+            }
+            
+            // Fallback to text share if image sharing failed
+            if (shouldShareText) {
                 withContext(Dispatchers.Main) {
                     val shareText = buildString {
                         appendLine("🍽️ ${meal.name}")
@@ -1502,6 +1574,7 @@ private suspend fun shareFood(context: Context, meal: MealEntity, servingCount: 
                 }
             }
         } catch (e: Exception) {
+            android.util.Log.e("ShareFood", "Share failed: ${e.message}", e)
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "Failed to share", Toast.LENGTH_SHORT).show()
             }
@@ -1535,26 +1608,54 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         
         val width = foodBitmap.width.toFloat()
         val height = foodBitmap.height.toFloat()
-        val margin = width * 0.03f
         
-        // Card at TOP - LARGER floating WHITE card with more opacity
-        val cardWidth = width - (margin * 2)
-        val cardHeight = height * 0.15f // Taller card for macros
-        val cardTop = margin
-        val cardRadius = width * 0.03f
+        // Improved margins - larger for better visibility
+        val horizontalMargin = width * 0.04f
+        val topMargin = height * 0.02f
         
-        // Draw semi-transparent WHITE rounded card (85% opacity)
-        val cardPaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(217, 255, 255, 255) // 85% opacity WHITE
+        // Card dimensions - much taller for better readability
+        val cardWidth = width - (horizontalMargin * 2)
+        val cardHeight = height * 0.55f // Significantly increased height
+        val cardRadius = width * 0.035f
+        
+        val cardRect = android.graphics.RectF(horizontalMargin, topMargin, horizontalMargin + cardWidth, topMargin + cardHeight)
+        
+        // Draw gradient background with transparency using light theme colors
+        val gradientPaint = android.graphics.Paint().apply {
             isAntiAlias = true
+            shader = android.graphics.LinearGradient(
+                cardRect.left, cardRect.top,
+                cardRect.left, cardRect.bottom,
+                intArrayOf(
+                    android.graphics.Color.argb(191, 255, 255, 255),  // Pure white 75% opacity
+                    android.graphics.Color.argb(191, 255, 240, 235),  // Soft coral tint 75% opacity
+                    android.graphics.Color.argb(191, 245, 238, 248)   // Soft purple tint 75% opacity
+                ),
+                floatArrayOf(0f, 0.5f, 1f),
+                android.graphics.Shader.TileMode.CLAMP
+            )
         }
-        val cardRect = android.graphics.RectF(margin, cardTop, margin + cardWidth, cardTop + cardHeight)
-        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, cardPaint)
         
-        // Load app logo - LARGER
-        val logoSize = (cardHeight * 0.4f).toInt().coerceAtLeast(48)
+        // Add shadow effect
+        val shadowPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(40, 0, 0, 0)
+            isAntiAlias = true
+            maskFilter = android.graphics.BlurMaskFilter(8f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        
+        // Draw shadow slightly offset
+        canvas.drawRoundRect(
+            android.graphics.RectF(cardRect.left + 4, cardRect.top + 4, cardRect.right + 4, cardRect.bottom + 4),
+            cardRadius, cardRadius, shadowPaint
+        )
+        // Draw gradient card
+        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, gradientPaint)
+        
+        // Load app logo - 50dp equivalent for branding
+        val density = context.resources.displayMetrics.density
+        val logoSize = (50 * density).toInt().coerceAtLeast(80)
         val logoBitmap = try {
-            val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.app_logo)
+            val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.ic_calview_logo)
             if (drawable != null) {
                 val bitmap = Bitmap.createBitmap(logoSize, logoSize, Bitmap.Config.ARGB_8888)
                 val logoCanvas = Canvas(bitmap)
@@ -1564,7 +1665,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
             } else null
         } catch (e: Exception) { null }
         
-        // Text paints - BLACK text for white card
+        // Text paints matching preview
         val appNamePaint = android.graphics.Paint().apply {
             color = android.graphics.Color.BLACK
             textSize = width * 0.04f
@@ -1574,13 +1675,13 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         
         val foodNamePaint = android.graphics.Paint().apply {
             color = android.graphics.Color.argb(180, 0, 0, 0)
-            textSize = width * 0.03f
+            textSize = width * 0.025f
             isAntiAlias = true
         }
         
         val macroValuePaint = android.graphics.Paint().apply {
             color = android.graphics.Color.BLACK
-            textSize = width * 0.035f
+            textSize = width * 0.038f
             isAntiAlias = true
             typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
             textAlign = android.graphics.Paint.Align.CENTER
@@ -1588,7 +1689,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         
         val macroLabelPaint = android.graphics.Paint().apply {
             color = android.graphics.Color.argb(150, 0, 0, 0)
-            textSize = width * 0.025f
+            textSize = width * 0.02f
             isAntiAlias = true
             textAlign = android.graphics.Paint.Align.CENTER
         }
@@ -1599,37 +1700,38 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
             textAlign = android.graphics.Paint.Align.CENTER
         }
         
-        // Content layout
-        val contentPadding = width * 0.025f
-        val contentLeft = margin + contentPadding
+        // Content layout - matching preview padding
+        val contentPadding = width * 0.03f
+        val contentLeft = horizontalMargin + contentPadding
         
-        // Top row: Logo + App name + Food name
-        val topRowCenterY = cardTop + (cardHeight * 0.3f)
+        // Row 1: Logo + CalViewAI + Meal name (positioned at top of card)
+        val logoY = topMargin + contentPadding
+        val textBaseY = logoY + (logoSize * 0.45f)
         
         if (logoBitmap != null) {
-            val logoY = topRowCenterY - (logoSize / 2f)
             canvas.drawBitmap(logoBitmap, contentLeft, logoY, null)
             
-            val textLeft = contentLeft + logoSize + contentPadding
-            canvas.drawText("CalViewAI", textLeft, topRowCenterY - 2, appNamePaint)
-            canvas.drawText(meal.name.take(30), textLeft, topRowCenterY + foodNamePaint.textSize + 2, foodNamePaint)
+            val textLeft = contentLeft + logoSize + (contentPadding * 0.6f)
+            canvas.drawText("CalViewAI", textLeft, textBaseY, appNamePaint)
+            canvas.drawText(meal.name.take(30), textLeft, textBaseY + appNamePaint.textSize + 4, foodNamePaint)
             
             logoBitmap.recycle()
         } else {
-            canvas.drawText("CalViewAI", contentLeft, topRowCenterY, appNamePaint)
+            canvas.drawText("CalViewAI", contentLeft, textBaseY, appNamePaint)
+            canvas.drawText(meal.name.take(30), contentLeft, textBaseY + appNamePaint.textSize + 4, foodNamePaint)
         }
         
-        // Bottom row: Macros with emojis
-        val macroRowY = cardTop + (cardHeight * 0.75f)
+        // Row 2: Macros - emoji ABOVE value, then label below (matching preview Column layout)
+        val macroRowY = logoY + logoSize + (contentPadding * 1.5f)
         val macroSpacing = cardWidth / 4f
-        val macroStartX = margin + (macroSpacing / 2f)
+        val macroStartX = horizontalMargin + (macroSpacing / 2f)
         
         val calories = meal.calories * servingCount
         val protein = meal.protein * servingCount
         val carbs = meal.carbs * servingCount
         val fats = meal.fats * servingCount
         
-        // Draw each macro: emoji, value, label
+        // Draw each macro column: emoji, then value, then label
         val macros = listOf(
             Triple("🔥", "$calories", "cal"),
             Triple("💪", "${protein}g", "protein"),
@@ -1637,11 +1739,18 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
             Triple("💧", "${fats}g", "fats")
         )
         
+        val emojiLineHeight = emojiPaint.textSize
+        val valueLineHeight = macroValuePaint.textSize
+        val labelLineHeight = macroLabelPaint.textSize
+        
         macros.forEachIndexed { index, (emoji, value, label) ->
             val x = macroStartX + (index * macroSpacing)
-            canvas.drawText(emoji, x, macroRowY - macroValuePaint.textSize * 0.8f, emojiPaint)
-            canvas.drawText(value, x, macroRowY + 4, macroValuePaint)
-            canvas.drawText(label, x, macroRowY + macroLabelPaint.textSize + 6, macroLabelPaint)
+            // Emoji at top
+            canvas.drawText(emoji, x, macroRowY + emojiLineHeight, emojiPaint)
+            // Value below emoji
+            canvas.drawText(value, x, macroRowY + emojiLineHeight + valueLineHeight + 4, macroValuePaint)
+            // Label below value
+            canvas.drawText(label, x, macroRowY + emojiLineHeight + valueLineHeight + labelLineHeight + 8, macroLabelPaint)
         }
         
         foodBitmap.recycle()

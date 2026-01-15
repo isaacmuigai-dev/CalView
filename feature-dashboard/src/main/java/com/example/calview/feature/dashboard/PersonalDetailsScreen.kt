@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Personal Details screen showing editable user profile information.
@@ -40,7 +42,7 @@ fun PersonalDetailsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Personal details",
+                        text = stringResource(R.string.personal_details),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -87,7 +89,7 @@ fun PersonalDetailsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Goal Weight",
+                            text = stringResource(R.string.goal_weight_title),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
@@ -112,7 +114,7 @@ fun PersonalDetailsScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Change Goal",
+                            text = stringResource(R.string.change_goal_action),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp
@@ -133,7 +135,7 @@ fun PersonalDetailsScreen(
                 Column {
                     // Current Weight
                     PersonalDetailItem(
-                        label = "Current Weight",
+                        label = stringResource(R.string.current_weight_label),
                         value = "${uiState.currentWeight.toInt()} kg",
                         onClick = onEditHeightWeight
                     )
@@ -145,8 +147,8 @@ fun PersonalDetailsScreen(
                     
                     // Height
                     PersonalDetailItem(
-                        label = "Height",
-                        value = uiState.formattedHeight.ifEmpty { "Not set" },
+                        label = stringResource(R.string.height_label),
+                        value = uiState.formattedHeight.ifEmpty { stringResource(R.string.not_set) },
                         onClick = onEditHeightWeight
                     )
                     
@@ -157,7 +159,7 @@ fun PersonalDetailsScreen(
                     
                     // Date of birth
                     PersonalDetailItem(
-                        label = "Date of birth",
+                        label = stringResource(R.string.dob_label),
                         value = uiState.formattedBirthDate,
                         onClick = onEditBirthday
                     )
@@ -169,8 +171,8 @@ fun PersonalDetailsScreen(
                     
                     // Gender
                     PersonalDetailItem(
-                        label = "Gender",
-                        value = uiState.gender.ifEmpty { "Not set" },
+                        label = stringResource(R.string.gender_label),
+                        value = uiState.gender.ifEmpty { stringResource(R.string.not_set) },
                         onClick = onEditGender
                     )
                     
@@ -181,8 +183,8 @@ fun PersonalDetailsScreen(
                     
                     // Daily Step Goal
                     PersonalDetailItem(
-                        label = "Daily Step Goal",
-                        value = "${uiState.dailyStepsGoal} steps",
+                        label = stringResource(R.string.daily_step_goal_label),
+                        value = "${uiState.dailyStepsGoal} ${stringResource(R.string.steps_unit)}",
                         onClick = onEditStepsGoal
                     )
                 }
@@ -226,7 +228,7 @@ private fun PersonalDetailItem(
             )
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = "Edit $label",
+                contentDescription = stringResource(R.string.edit_content_desc, label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )

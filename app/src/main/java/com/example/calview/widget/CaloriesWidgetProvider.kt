@@ -101,6 +101,15 @@ class CaloriesWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_barcode_button, barcodePendingIntent)
+
+            // Fix potential "Problem loading widget" due to VectorDrawable compatibility
+            // by programmatically converting vectors to bitmaps
+            drawableToBitmap(context, R.drawable.ic_scan_food)?.let {
+                views.setImageViewBitmap(R.id.widget_scan_icon, it)
+            }
+            drawableToBitmap(context, R.drawable.ic_barcode)?.let {
+                views.setImageViewBitmap(R.id.widget_barcode_icon, it)
+            }
         
         // Set initial fallback values IMMEDIATELY to prevent "problem loading widget"
         views.setTextViewText(R.id.widget_calories_remaining, "—")
@@ -282,6 +291,52 @@ class CaloriesWidgetProvider : AppWidgetProvider() {
             String.format("%,d", number)
         } else {
             number.toString()
+        }
+    }
+
+    /**
+     * Convert vector drawable to bitmap for RemoteViews compatibility
+     */
+    /**
+     * Convert vector drawable to bitmap for RemoteViews compatibility.
+     * Limits size to avoid TransactionTooLargeException.
+     */
+    private fun drawableToBitmap(context: Context, drawableId: Int): android.graphics.Bitmap? {
+        try {
+            val drawable = androidx.core.content.ContextCompat.getDrawable(context, drawableId) ?: return null
+            
+            // Limit max size to ~48dp (approx 144px at xxhdpi) to be safe for widget IPC
+            val maxSizePx = 144
+            
+            var width = drawable.intrinsicWidth
+            var height = drawable.intrinsicHeight
+            
+            if (width <= 0 || height <= 0) {
+                width = maxSizePx
+                height = maxSizePx
+            } else if (width > maxSizePx || height > maxSizePx) {
+                val ratio = width.toFloat() / height.toFloat()
+                if (width > height) {
+                    width = maxSizePx
+                    height = (maxSizePx / ratio).toInt()
+                } else {
+                    height = maxSizePx
+                    width = (maxSizePx * ratio).toInt()
+                }
+            }
+            
+            val bitmap = android.graphics.Bitmap.createBitmap(
+                width,
+                height,
+                android.graphics.Bitmap.Config.ARGB_8888
+            )
+            val canvas = android.graphics.Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            return bitmap
+        } catch (e: Exception) {
+            android.util.Log.e("CaloriesWidget", "Error converting drawable to bitmap", e)
+            return null
         }
     }
 

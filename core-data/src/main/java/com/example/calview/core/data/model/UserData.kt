@@ -44,5 +44,8 @@ data class UserData(
     val dailyStepsGoal: Int = 10000,
     val birthMonth: String = "January",
     val birthDay: Int = 1,
-    val birthYear: Int = 2000
+    val birthYear: Int = 2000,
+    
+    // Localization
+    val language: String = "en"
 )

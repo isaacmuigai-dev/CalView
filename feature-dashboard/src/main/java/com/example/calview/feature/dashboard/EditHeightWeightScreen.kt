@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Set Height & Weight screen with metric units only (cm/kg).
@@ -42,7 +44,7 @@ fun EditHeightWeightScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Set Height & Weight",
+                        text = stringResource(R.string.set_height_weight_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -73,13 +75,14 @@ fun EditHeightWeightScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
+            
             // Column headers
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
-                    text = "Height",
+                    text = stringResource(R.string.height_header),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -89,7 +92,7 @@ fun EditHeightWeightScreen(
                 )
                 
                 Text(
-                    text = "Weight",
+                    text = stringResource(R.string.weight_header),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -138,7 +141,7 @@ fun EditHeightWeightScreen(
                 )
             ) {
                 Text(
-                    text = "Save changes",
+                    text = stringResource(R.string.save_changes_button),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp

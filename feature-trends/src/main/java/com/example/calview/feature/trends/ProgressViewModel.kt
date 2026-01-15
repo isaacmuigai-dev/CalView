@@ -5,13 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.health.HealthConnectManager
+import com.example.calview.core.data.state.SelectedDateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
+import com.example.calview.feature.trends.R
 
 data class WeightEntry(
     val date: LocalDate,
@@ -30,10 +35,12 @@ data class DailyCalories(
 private data class UserMetrics(
     val weight: Float,
     val goalWeight: Float,
+    val startWeight: Float,
     val height: Int,
     val calories: Int,
     val protein: Int
 )
+
 
 private data class MacroGoals(
     val carbs: Int,
@@ -47,7 +54,7 @@ data class ProgressUiState(
     val goalWeight: Float = 0f,
     val height: Int = 0, // in cm
     val bmi: Float = 0f,
-    val bmiCategory: String = "Healthy",
+    val bmiCategory: Int = R.string.bmi_healthy,
     val weightProgress: Float = 0f, // 0-1
     
     // Goals
@@ -69,6 +76,10 @@ data class ProgressUiState(
     val caloriesBurned: Int = 0,
     
     // Weekly data
+    val weeklySteps: Long = 0,
+    val weeklyCaloriesBurned: Double = 0.0,
+    val caloriesBurnedRecord: Double = 0.0,
+    val stepsRecord: Long = 0,  // Best daily steps in past 7 days
     val weeklyCalories: List<DailyCalories> = emptyList(),
     val weeklyAverageCalories: Int = 0,
     
@@ -80,15 +91,21 @@ data class ProgressUiState(
     // Weight history
     val weightHistory: List<WeightEntry> = emptyList(),
     
+    // Selected date display
+    val selectedDate: LocalDate = LocalDate.now(),
+    val isToday: Boolean = true,
+    
     // Loading state
     val isLoading: Boolean = true
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ProgressViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val mealRepository: MealRepository,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val selectedDateHolder: SelectedDateHolder
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ProgressUiState())
@@ -97,18 +114,20 @@ class ProgressViewModel @Inject constructor(
     init {
         loadProgressData()
     }
-    
+
     private fun loadProgressData() {
         viewModelScope.launch {
             // Combine user metrics flows (split to avoid 5+ flow limitation)
             combine(
                 userPreferencesRepository.weight,
                 userPreferencesRepository.goalWeight,
+                userPreferencesRepository.startWeight,
                 userPreferencesRepository.height,
                 userPreferencesRepository.recommendedCalories,
-                userPreferencesRepository.recommendedProtein
-            ) { weight, goalWeight, height, calories, protein ->
-                UserMetrics(weight, goalWeight, height, calories, protein)
+            ) { weight, goalWeight, startWeight, height, calories ->
+                UserMetrics(weight, goalWeight, startWeight, height, calories, 0) // Temp holder, correct below
+            }.combine(userPreferencesRepository.recommendedProtein) { metrics, protein ->
+                metrics.copy(protein = protein)
             }.combine(
                 combine(
                     userPreferencesRepository.recommendedCarbs,
@@ -124,21 +143,27 @@ class ProgressViewModel @Inject constructor(
                 
                 // Determine BMI category
                 val bmiCategory = when {
-                    bmi < 18.5f -> "Underweight"
-                    bmi < 25f -> "Healthy"
-                    bmi < 30f -> "Overweight"
-                    else -> "Obese"
+                    bmi < 18.5f -> R.string.bmi_underweight
+                    bmi < 25f -> R.string.bmi_healthy
+                    bmi < 30f -> R.string.bmi_overweight
+                    else -> R.string.bmi_obese
                 }
                 
                 // Calculate weight progress
-                val weightProgress = if (metrics.goalWeight > 0 && metrics.weight > metrics.goalWeight) {
-                    ((metrics.weight - metrics.goalWeight) / metrics.weight).coerceIn(0f, 1f)
-                } else if (metrics.goalWeight > 0 && metrics.weight < metrics.goalWeight) {
-                    ((metrics.goalWeight - metrics.weight) / metrics.goalWeight).coerceIn(0f, 1f)
-                } else if (metrics.goalWeight > 0) {
-                    1f // At goal
+                // Formula: (Current - Start) / (Goal - Start)
+                // If Start is not set (0), assume Start = Current (0% progress)
+                val start = if (metrics.startWeight > 0) metrics.startWeight else metrics.weight
+                val current = metrics.weight
+                val goal = metrics.goalWeight
+                
+                val weightProgress = if (start == goal) {
+                    1f
+                } else if (goal < start) {
+                    // Weight loss goal
+                    ((start - current) / (start - goal)).coerceIn(0f, 1f)
                 } else {
-                    0f
+                    // Weight gain goal
+                    ((current - start) / (goal - start)).coerceIn(0f, 1f)
                 }
                 
                 ProgressUiState(
@@ -181,23 +206,36 @@ class ProgressViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(
                         todaySteps = healthData.steps.toInt(),
-                        caloriesBurned = healthData.caloriesBurned.toInt()
+                        caloriesBurned = healthData.caloriesBurned.toInt(),
+                        weeklySteps = healthData.weeklySteps,
+                        weeklyCaloriesBurned = healthData.weeklyCaloriesBurned,
+                        caloriesBurnedRecord = healthData.maxCaloriesBurnedRecord,
+                        stepsRecord = healthData.maxStepsRecord
                     )
                 }
             }
         }
         
-        // Refresh health data if available
+        // Observe shared selected date and refresh health data
         viewModelScope.launch {
-            if (healthConnectManager.isAvailable()) {
-                healthConnectManager.readTodayData()
+            selectedDateHolder.selectedDate.collect { date ->
+                _uiState.update { it.copy(
+                    selectedDate = date,
+                    isToday = date == LocalDate.now()
+                )}
+                if (healthConnectManager.isAvailable()) {
+                    healthConnectManager.readDataForDate(date)
+                }
             }
         }
 
         
-        // Load today's meal data
+        // Load meal data for selected date (reactive to date changes)
         viewModelScope.launch {
-            mealRepository.getMealsForToday().collect { meals ->
+            selectedDateHolder.selectedDate.flatMapLatest { date ->
+                val dateString = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date)
+                mealRepository.getMealsForDate(dateString)
+            }.collect { meals ->
                 val todayCalories = meals.sumOf { it.calories }
                 val todayProtein = meals.sumOf { it.protein.toDouble() }.toFloat()
                 val todayCarbs = meals.sumOf { it.carbs.toDouble() }.toFloat()
@@ -246,14 +284,14 @@ class ProgressViewModel @Inject constructor(
                 }
                 
                 // Generate weekly calorie data
-                val weekDays = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
                 val weeklyCalories = (0..6).map { dayOffset ->
                     val checkDate = weekStart.plusDays(dayOffset.toLong())
+                    val dayName = checkDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayMeals = meals.filter { meal ->
                         LocalDate.ofEpochDay(meal.timestamp / (24 * 60 * 60 * 1000)) == checkDate
                     }
                     DailyCalories(
-                        day = weekDays[dayOffset],
+                        day = dayName,
                         calories = dayMeals.sumOf { it.calories },
                         protein = dayMeals.sumOf { it.protein.toDouble() }.toFloat(),
                         carbs = dayMeals.sumOf { it.carbs.toDouble() }.toFloat(),

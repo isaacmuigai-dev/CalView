@@ -26,6 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAIButton
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.onboarding.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
 
 /**
  * Welcome screen matching the "Calorie tracking made easy" design.
@@ -43,9 +48,10 @@ fun WelcomeScreen(
     selectedLanguage: LanguageOption = supportedLanguages.first(),
     onLanguageSelected: (LanguageOption) -> Unit = {}
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier.fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
     ) {
         Box(
             modifier = Modifier
@@ -65,19 +71,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Phone Mockup taking up almost half the screen
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PhoneMockup(
-                        modifier = Modifier
-                            .fillMaxHeight(0.75f) // Adjust scale within the available space
-                            .aspectRatio(0.48f)
-                    )
-                }
+                Spacer(modifier = Modifier.weight(1f))
 
                 // Bottom section: Title, Subtitle, Button
                 Column(
@@ -86,7 +80,7 @@ fun WelcomeScreen(
                 ) {
                     // Title
                     Text(
-                        text = "Calorie tracking\nmade easy",
+                        text = stringResource(R.string.welcome_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
                         fontSize = 32.sp, // Slightly smaller to fit if needed
@@ -99,7 +93,7 @@ fun WelcomeScreen(
 
                     // Subtitle
                     Text(
-                        text = "Scan your food with AI and track\nyour nutrition effortlessly",
+                        text = stringResource(R.string.welcome_subtitle),
                         fontFamily = Inter,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -111,7 +105,7 @@ fun WelcomeScreen(
 
                     // Get Started button
                     CalAIButton(
-                        text = "Get Started",
+                        text = stringResource(R.string.get_started),
                         onClick = onGetStarted
                     )
 
@@ -121,13 +115,14 @@ fun WelcomeScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Already have an account? ",
+                            text = stringResource(R.string.already_have_account),
                             fontFamily = Inter,
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        val signInDesc = stringResource(R.string.sign_in_semantics)
                         Text(
-                            text = "Sign in",
+                            text = stringResource(R.string.sign_in),
                             fontFamily = Inter,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -137,7 +132,7 @@ fun WelcomeScreen(
                                 .clickable { onSignIn() }
                                 .semantics {
                                     role = Role.Button
-                                    contentDescription = "Sign in to existing account"
+                                    contentDescription = signInDesc
                                 }
                         )
                     }
@@ -182,164 +177,20 @@ fun PhoneMockup(
                     color = Color.Transparent,
                     border = BorderStroke(2.dp, borderColor.copy(alpha = 0.5f))
                 ) {
-                    // Simulated nutrition UI
-                    NutritionScreenMockup(borderColor)
+                    // Actual scanning UI Image
+                    Image(
+                        painter = painterResource(id = com.example.calview.feature.onboarding.R.drawable.scanner_ui_mockup),
+                        contentDescription = stringResource(R.string.food_scanner_ui),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
                 }
             }
         }
     }
 }
 
-/**
- * Simulated nutrition UI content for the phone mockup.
- * Uses transparent backgrounds and borders to blend with screen background.
- */
-@Composable
-fun NutritionScreenMockup(contentColor: Color) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Status bar simulation
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("2:10", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = contentColor)
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("••••", fontSize = 10.sp, color = contentColor.copy(alpha = 0.5f))
-            }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Navigation header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Transparent,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, contentColor)
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(contentColor.copy(alpha = 0.1f), shape = RoundedCornerShape(14.dp))
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Nutrition",
-                    color = contentColor,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Food image placeholder
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Color.Transparent,
-            border = BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("🍕🥗", fontSize = 32.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Food title
-        Text(
-            text = "Turkey Sandwich With\nPotato Chips",
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            lineHeight = 18.sp,
-            color = contentColor
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Nutrition cards
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            NutritionMini("🔥", "Calories", "460", contentColor, Modifier.weight(1f))
-            NutritionMini("🍞", "Carbs", "45g", contentColor, Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            NutritionMini("🥩", "Protein", "25g", contentColor, Modifier.weight(1f))
-            NutritionMini("🧈", "Fat", "20g", contentColor, Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Health score
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Transparent,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("❤️", fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Health Score", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = contentColor)
-                }
-                Text("7/10", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = contentColor)
-            }
-        }
-    }
-}
-
-@Composable
-private fun NutritionMini(
-    emoji: String,
-    label: String,
-    value: String,
-    contentColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier,
-        color = Color.Transparent,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.3f))
-    ) {
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(emoji, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(label, fontSize = 10.sp, color = contentColor.copy(alpha = 0.7f))
-                Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = contentColor)
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

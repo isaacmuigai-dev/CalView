@@ -46,6 +46,8 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import com.example.calview.feature.scanner.R
+import androidx.compose.ui.res.stringResource
 
 // Color palette for premium design
 private val GradientStart = Color(0xFF1E3A5F)  // Darker navy blue
@@ -200,7 +202,7 @@ fun CameraPermissionScreen(
             
             // Title
             Text(
-                text = "Camera Access Required",
+                text = stringResource(R.string.camera_access_required),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -211,7 +213,7 @@ fun CameraPermissionScreen(
             
             // Description
             Text(
-                text = "CalViewAI needs camera access to scan your food and provide instant nutrition information.",
+                text = stringResource(R.string.camera_permission_desc),
                 fontSize = 16.sp,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center,
@@ -226,18 +228,18 @@ fun CameraPermissionScreen(
             ) {
                 PermissionFeatureItem(
                     icon = Icons.Filled.Restaurant,
-                    title = "Scan any food",
-                    description = "Take a photo of your meal for instant analysis"
+                    title = stringResource(R.string.scan_any_food),
+                    description = stringResource(R.string.scan_any_food_desc)
                 )
                 PermissionFeatureItem(
                     icon = Icons.Filled.QrCodeScanner,
-                    title = "Barcode scanning",
-                    description = "Scan product barcodes for nutrition info"
+                    title = stringResource(R.string.barcode_scanning),
+                    description = stringResource(R.string.barcode_scanning_desc)
                 )
                 PermissionFeatureItem(
                     icon = Icons.Filled.Bolt,
-                    title = "AI-powered",
-                    description = "Get accurate calorie estimates in seconds"
+                    title = stringResource(R.string.ai_powered),
+                    description = stringResource(R.string.ai_powered_desc)
                 )
             }
             
@@ -260,7 +262,7 @@ fun CameraPermissionScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Allow Camera Access",
+                    text = stringResource(R.string.allow_camera_access),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = GradientStart
@@ -272,7 +274,7 @@ fun CameraPermissionScreen(
             // Skip text
             TextButton(onClick = onGoBack) {
                 Text(
-                    text = "Maybe Later",
+                    text = stringResource(R.string.maybe_later),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f)
                 )
@@ -398,7 +400,7 @@ fun CameraBestPracticesScreen(
             
             // Title
             Text(
-                text = "📸 Tips for Best Results",
+                text = stringResource(R.string.tips_for_best_results),
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -409,7 +411,7 @@ fun CameraBestPracticesScreen(
             
             // Subtitle
             Text(
-                text = "Follow these tips to get the most accurate nutrition analysis from our AI",
+                text = stringResource(R.string.tips_subtitle),
                 fontSize = 15.sp,
                 color = Color.White.copy(alpha = 0.85f),
                 textAlign = TextAlign.Center,
@@ -424,26 +426,26 @@ fun CameraBestPracticesScreen(
             ) {
                 GlassTipCard(
                     icon = Icons.Filled.CenterFocusStrong,
-                    title = "Center your food",
-                    description = "Place the main item in the center of the viewfinder for best recognition"
+                    title = stringResource(R.string.tip_center_food),
+                    description = stringResource(R.string.tip_center_food_desc)
                 )
                 
                 GlassTipCard(
                     icon = Icons.Filled.WbSunny,
-                    title = "Good lighting",
-                    description = "Natural daylight works best. Avoid harsh shadows or dim environments"
+                    title = stringResource(R.string.tip_good_lighting),
+                    description = stringResource(R.string.tip_good_lighting_desc)
                 )
                 
                 GlassTipCard(
                     icon = Icons.Filled.CropFree,
-                    title = "Show the full plate",
-                    description = "Capture all food items to get accurate portion estimates"
+                    title = stringResource(R.string.tip_full_plate),
+                    description = stringResource(R.string.tip_full_plate_desc)
                 )
                 
                 GlassTipCard(
                     icon = Icons.Filled.ZoomIn,
-                    title = "Fill the frame",
-                    description = "Get close enough so food takes up 70-80% of the screen"
+                    title = stringResource(R.string.tip_fill_frame),
+                    description = stringResource(R.string.tip_fill_frame_desc)
                 )
             }
             
@@ -467,7 +469,7 @@ fun CameraBestPracticesScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Pro tip: For mixed plates, try to spread items out so the AI can identify each component",
+                        text = stringResource(R.string.pro_tip_text),
                         fontSize = 13.sp,
                         color = Color.White.copy(alpha = 0.9f),
                         lineHeight = 18.sp
@@ -495,7 +497,7 @@ fun CameraBestPracticesScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Start Scanning",
+                    text = stringResource(R.string.start_scanning),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = GradientStart
@@ -507,7 +509,7 @@ fun CameraBestPracticesScreen(
             // Skip option
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "I'll figure it out",
+                    text = stringResource(R.string.ill_figure_it_out),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f)
                 )
@@ -634,7 +636,8 @@ fun CameraPermissionDeniedScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
     ) {
         Column(
             modifier = Modifier
@@ -662,7 +665,7 @@ fun CameraPermissionDeniedScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = "Camera Permission Denied",
+                text = stringResource(R.string.camera_permission_denied),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -672,7 +675,7 @@ fun CameraPermissionDeniedScreen(
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "To scan food and get nutrition information, please allow camera access in your device settings.",
+                text = stringResource(R.string.camera_permission_denied_desc),
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -689,7 +692,7 @@ fun CameraPermissionDeniedScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = "Try Again",
+                    text = stringResource(R.string.try_again),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -706,7 +709,7 @@ fun CameraPermissionDeniedScreen(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Text(
-                    text = "Go Back",
+                    text = stringResource(R.string.go_back),
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -914,7 +917,7 @@ fun ScannerOverlayWithModes(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close_desc),
                     tint = Color.White
                 )
             }
@@ -928,7 +931,7 @@ fun ScannerOverlayWithModes(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Info,
-                    contentDescription = "Info",
+                    contentDescription = stringResource(R.string.info_desc),
                     tint = Color.White
                 )
             }
@@ -944,7 +947,7 @@ fun ScannerOverlayWithModes(
                     // Barcode viewfinder - rectangular with text above
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Barcode Scanner",
+                            text = stringResource(R.string.barcode_scanner_title),
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
@@ -1000,7 +1003,7 @@ fun ScannerOverlayWithModes(
                         ) {
                             Icon(
                                 imageVector = if (flashEnabled) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                                contentDescription = "Flash",
+                                contentDescription = stringResource(R.string.flash_desc),
                                 tint = Color.White
                             )
                         }
@@ -1159,28 +1162,28 @@ fun ModeTabsRow(
     ) {
         ScanModeTab(
             icon = Icons.Filled.CameraAlt,
-            label = "Scan",
+            label = stringResource(R.string.scan_mode_scan),
             isSelected = selectedMode == ScanMode.SCAN_FOOD,
             onClick = { onModeSelected(ScanMode.SCAN_FOOD) },
             modifier = Modifier.weight(1f)
         )
         ScanModeTab(
             icon = Icons.Filled.QrCodeScanner,
-            label = "Barcode",
+            label = stringResource(R.string.scan_mode_barcode),
             isSelected = selectedMode == ScanMode.BARCODE,
             onClick = { onModeSelected(ScanMode.BARCODE) },
             modifier = Modifier.weight(1f)
         )
         ScanModeTab(
             icon = Icons.Filled.Description,
-            label = "Label",
+            label = stringResource(R.string.scan_mode_label),
             isSelected = selectedMode == ScanMode.FOOD_LABEL,
             onClick = { onModeSelected(ScanMode.FOOD_LABEL) },
             modifier = Modifier.weight(1f)
         )
         ScanModeTab(
             icon = Icons.Filled.PhotoLibrary,
-            label = "Gallery",
+            label = stringResource(R.string.scan_mode_gallery),
             isSelected = selectedMode == ScanMode.GALLERY,
             onClick = { onModeSelected(ScanMode.GALLERY) },
             modifier = Modifier.weight(1f)
@@ -1248,7 +1251,7 @@ fun ShutterButton(onClick: () -> Unit) {
             // Shutter aperture style icon
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Capture",
+                contentDescription = stringResource(R.string.capture_desc),
                 tint = Color.Black.copy(alpha = 0.6f),
                 modifier = Modifier.size(28.dp)
             )
@@ -1271,7 +1274,7 @@ fun AnalysisResultBottomSheet(
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
-                response.detected_items.firstOrNull()?.name ?: "Food Detected",
+                response.detected_items.firstOrNull()?.name ?: stringResource(R.string.food_detected_default),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -1295,7 +1298,7 @@ fun AnalysisResultBottomSheet(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text("Discard", color = Color.Black)
+                    Text(stringResource(R.string.discard_action), color = Color.Black)
                 }
                 Button(
                     onClick = onLogMeal,
@@ -1303,7 +1306,7 @@ fun AnalysisResultBottomSheet(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text("Log Meal")
+                    Text(stringResource(R.string.log_meal_action))
                 }
             }
         }
@@ -1361,13 +1364,13 @@ fun BarcodeResultBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Product Found",
+                    text = stringResource(R.string.product_found_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarkText
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Filled.Close, contentDescription = "Close", tint = MutedText)
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close_desc), tint = MutedText)
                 }
             }
             
@@ -1384,7 +1387,7 @@ fun BarcodeResultBottomSheet(
             
             if (product.servingSize != null) {
                 Text(
-                    text = "Per 100g (serving: ${product.servingSize})",
+                    text = stringResource(R.string.per_100g_serving, product.servingSize),
                     fontSize = 12.sp,
                     color = MutedText
                 )
@@ -1412,7 +1415,7 @@ fun BarcodeResultBottomSheet(
                 colors = ButtonDefaults.buttonColors(containerColor = AccentCyan),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Log This Product", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.log_this_product_action), fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -1447,13 +1450,13 @@ fun OcrResultBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Nutrition Detected",
+                    text = stringResource(R.string.nutrition_detected_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarkText
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Filled.Close, contentDescription = "Close", tint = MutedText)
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close_desc), tint = MutedText)
                 }
             }
             
@@ -1479,7 +1482,7 @@ fun OcrResultBottomSheet(
                 colors = ButtonDefaults.buttonColors(containerColor = AccentCyan),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Log This Food", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.log_this_food_action), fontWeight = FontWeight.SemiBold)
             }
         }
     }

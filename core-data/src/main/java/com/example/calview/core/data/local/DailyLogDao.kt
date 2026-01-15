@@ -38,4 +38,7 @@ interface DailyLogDao {
     
     @Delete
     suspend fun delete(log: DailyLogEntity)
+
+    @Query("DELETE FROM daily_logs")
+    suspend fun deleteAll()
 }

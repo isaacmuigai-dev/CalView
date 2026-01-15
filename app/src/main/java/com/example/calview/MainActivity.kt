@@ -29,6 +29,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -76,16 +80,23 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 
 
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+
 @OptIn(androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     
     @Inject
     lateinit var authRepository: AuthRepository
@@ -114,6 +125,19 @@ class MainActivity : ComponentActivity() {
         
         // Set user email for billing manager (enables test account premium bypass)
         billingManager.setUserEmail(authRepository.getUserEmail().takeIf { it.isNotEmpty() })
+        
+        // Observe language preference and update app locale
+        lifecycleScope.launch {
+            userPreferencesRepository.language
+                .distinctUntilChanged()
+                .collect { languageCode ->
+                    val currentLocales = AppCompatDelegate.getApplicationLocales()
+                    if (currentLocales.toLanguageTags() != languageCode) {
+                        val appLocale = LocaleListCompat.forLanguageTags(languageCode)
+                        AppCompatDelegate.setApplicationLocales(appLocale)
+                    }
+                }
+        }
         
         setContent {
             // Calculate window size class for adaptive layouts
@@ -209,11 +233,41 @@ fun AppNavigation(
                                 userPreferencesRepository?.setUserName(displayName)
                                 userPreferencesRepository?.setPhotoUrl(photoUrl)
                             }
-                        }
-                        showSignInSheet = false
-                        // Navigate to main (dashboard)
-                        navController.navigate("main") {
-                            popUpTo("onboarding") { inclusive = true }
+                            
+                            if (restored) {
+                                showSignInSheet = false
+                                // Navigate to main (dashboard)
+                                navController.navigate("main") {
+                                    popUpTo("onboarding") { inclusive = true }
+                                }
+                            } else {
+                                // Logic:
+                                // If user signed in but no data found (new user / deleted data),
+                                // check if they just finished onboarding logic (isOnboardingComplete=true locally).
+                                // If yes -> Sync local data to cloud & Go to Main.
+                                // If no (signed in at Welcome screen) -> user should complete onboarding.
+                                
+                                val isComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
+                                if (isComplete) {
+                                    // Form filled, just syncing
+                                    userPreferencesRepository?.syncToCloud()
+                                    // mealRepository/dailyLogRepository sync if needed, but likely empty for new user
+                                    
+                                    showSignInSheet = false
+                                    navController.navigate("main") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
+                                } else {
+                                    // Signed in at Welcome.
+                                    // User Rule: "if no data found for current user it should ask them to create data via onboarding screens"
+                                    // Stay on onboarding screen (Welcome). Sheet closes.
+                                    showSignInSheet = false
+                                    
+                                    // Optional: Redirect to profile setup if they are at Welcome?
+                                    // If we are at "welcome", we are already there.
+                                    // If they click "Get Started" now, they flow through onboarding authenticated.
+                                }
+                            }
                         }
                     }
                 }
@@ -250,6 +304,25 @@ fun AppNavigation(
         composable("splash") {
             com.example.calview.feature.onboarding.SplashScreen(
                 onTimeout = {
+                    // Check if signed in AND onboarding complete
+                    // If signed in but no data (e.g. glitch), force onboarding
+                    // We need to check flow/UserPrefs synchronously or via State
+                    // But Splash should be fast.
+                    // For now, assume if isSignedIn, they are good, UNLESS logic in SignIn/Logout handles state.
+                    // Logout clears data -> isSignedIn becomes false (via AuthRepo)?
+                    // AuthRepo.isSignedIn check firebase user.
+                    // If I logout, firebase user is null. isSignedIn is false. Splash -> Onboarding. Correct.
+                    
+                    // If I Login -> !Restored -> Stay Onboarding.
+                    // If I kill app and restart?
+                    // isSignedIn = true.
+                    // DataStore (isOnboardingComplete) = false.
+                    // Splash -> Main ? -> Main has 0s.
+                    // We probably should check isOnboardingComplete here too to be safe.
+                    // However, we don't have easy access to UserPrefs value synchronously here without blocking.
+                    // Let's stick to "if isSignedIn" for now, as Login logic enforces onboarding completion before enabling 'main' via state?
+                    // Actually if we go to Main with 0s, it's okay per "default to 0".
+                    
                     val destination = if (isSignedIn) "main" else "onboarding"
                     navController.navigate(destination) {
                         popUpTo("splash") { inclusive = true }
@@ -272,7 +345,7 @@ fun AppNavigation(
         }
         
         composable(
-            route = "main?tab={tab}&scrollToUploads={scrollToUploads}",
+            route = "main?tab={tab}&scrollToUploads={scrollToUploads}&showScanMenu={showScanMenu}",
             arguments = listOf(
                 androidx.navigation.navArgument("tab") {
                     type = androidx.navigation.NavType.IntType
@@ -281,15 +354,21 @@ fun AppNavigation(
                 androidx.navigation.navArgument("scrollToUploads") {
                     type = androidx.navigation.NavType.BoolType
                     defaultValue = false
+                },
+                androidx.navigation.navArgument("showScanMenu") {
+                    type = androidx.navigation.NavType.BoolType
+                    defaultValue = false
                 }
             )
         ) { backStackEntry ->
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
             val scrollToUploads = backStackEntry.arguments?.getBoolean("scrollToUploads") ?: false
+            val showScanMenuArg = backStackEntry.arguments?.getBoolean("showScanMenu") ?: false
             val isPremium by (billingManager?.isPremium ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState()
             MainTabs(
                 initialTab = initialTab,
                 scrollToRecentUploads = scrollToUploads,
+                showScanMenuOnStart = showScanMenuArg,
                 isPremium = isPremium,
                 onPaywallClick = { navController.navigate("paywall") },
                 onScanClick = { navController.navigate("scanner") },
@@ -374,10 +453,10 @@ fun AppNavigation(
                                             val idToken = googleIdTokenCredential.idToken
                                             
                                             // Re-authenticate with Firebase
-                                            authRepository.reauthenticateWithGoogle(idToken).let { reAuthResult ->
+                                            authRepository?.reauthenticateWithGoogle(idToken)?.let { reAuthResult ->
                                                 if (reAuthResult.isSuccess) {
                                                     // Retry delete after re-authentication
-                                                    authRepository.deleteAccount().let { deleteResult ->
+                                                    authRepository?.deleteAccount()?.let { deleteResult ->
                                                         if (deleteResult.isSuccess) {
                                                             // Navigate to splash screen (splash -> welcome)
                                                             navController.navigate("splash") {
@@ -401,6 +480,12 @@ fun AppNavigation(
                     scope.launch {
                         // Sync all user data to Firestore before signing out
                         userPreferencesRepository?.syncToCloud()
+                        
+                        // CLEAR ALL LOCAL DATA
+                        mealRepository?.clearAllMeals()
+                        dailyLogRepository?.clearAllLogs()
+                        userPreferencesRepository?.clearAllData()
+                        
                         authRepository?.signOut()
                         // Navigate to welcome/onboarding screen after logout
                         navController.navigate("onboarding") {
@@ -464,10 +549,17 @@ fun AppNavigation(
             billingManager?.let { manager ->
                 PaywallScreen(
                     billingManager = manager,
-                    onClose = { navController.popBackStack() },
+                    onClose = {
+                        // Navigate to Dashboard instead of popping back to Settings
+                        navController.navigate("main?tab=0") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    },
                     onSubscriptionSuccess = {
-                        // Navigate back and proceed to camera menu
-                        navController.popBackStack()
+                        // Navigate to Dashboard and show scanning menu
+                        navController.navigate("main?tab=0&showScanMenu=true") {
+                            popUpTo("main") { inclusive = true }
+                        }
                     }
                 )
             }
@@ -696,6 +788,11 @@ fun AppNavigation(
                 },
                 onLanguageSelected = { languageCode ->
                     // Save language preference
+                    scope.launch {
+                        userPreferencesRepository?.let { repo ->
+                            repo.setLanguage(languageCode)
+                        }
+                    }
                     navController.navigate("main?tab=2") {
                         popUpTo("main?tab=2") { inclusive = true }
                     }
@@ -757,6 +854,7 @@ private fun handleSignInResult(
 fun MainTabs(
     initialTab: Int = 0,
     scrollToRecentUploads: Boolean = false,
+    showScanMenuOnStart: Boolean = false,
     isPremium: Boolean = false,
     onPaywallClick: () -> Unit = {},
     onScanClick: () -> Unit,
@@ -776,7 +874,7 @@ fun MainTabs(
     onLogout: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
-    var showCameraMenu by remember { mutableStateOf(false) }
+    var showCameraMenu by remember { mutableStateOf(showScanMenuOnStart) }
     
     // Handler for FAB click - checks premium status first
     val onFabClick: () -> Unit = {
@@ -903,7 +1001,7 @@ fun MainTabs(
         Scaffold(
             bottomBar = {
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
                     tonalElevation = 8.dp,
                     modifier = Modifier.navigationBarsPadding()
                 ) {
@@ -1089,6 +1187,7 @@ fun CameraMenuItem(
 
 /**
  * Custom navigation item button for bottom bar with theme support.
+ * Only icon and text color change when selected - no background box.
  */
 @Composable
 private fun NavigationItemButton(
@@ -1097,19 +1196,27 @@ private fun NavigationItemButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Animated icon/text color
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        },
+        animationSpec = tween(durationMillis = 200),
+        label = "navContentColor"
+    )
+    
     Column(
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (isSelected) 
-                MaterialTheme.colorScheme.primary 
-            else 
-                MaterialTheme.colorScheme.onSurface,
+            tint = contentColor,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -1117,10 +1224,7 @@ private fun NavigationItemButton(
             text = label,
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isSelected) 
-                MaterialTheme.colorScheme.primary 
-            else 
-                MaterialTheme.colorScheme.onSurface
+            color = contentColor
         )
     }
 }

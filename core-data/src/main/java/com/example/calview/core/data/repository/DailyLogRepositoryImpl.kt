@@ -154,4 +154,13 @@ class DailyLogRepositoryImpl @Inject constructor(
             false
         }
     }
+
+    override suspend fun clearAllLogs() {
+        try {
+            dailyLogDao.deleteAll()
+            Log.d(TAG, "Cleared all local daily logs")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing daily logs", e)
+        }
+    }
 }

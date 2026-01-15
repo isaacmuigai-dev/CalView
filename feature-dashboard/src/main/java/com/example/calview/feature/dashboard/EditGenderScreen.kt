@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Set Gender screen with Male, Female, Other selection buttons.
@@ -32,7 +34,7 @@ fun EditGenderScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Set Gender",
+                        text = stringResource(R.string.set_gender_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -66,19 +68,19 @@ fun EditGenderScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 GenderOptionButton(
-                    label = "Male",
+                    label = stringResource(R.string.gender_male),
                     isSelected = selectedGender == "Male",
                     onClick = { selectedGender = "Male" }
                 )
                 
                 GenderOptionButton(
-                    label = "Female",
+                    label = stringResource(R.string.gender_female),
                     isSelected = selectedGender == "Female",
                     onClick = { selectedGender = "Female" }
                 )
                 
                 GenderOptionButton(
-                    label = "Other",
+                    label = stringResource(R.string.gender_other),
                     isSelected = selectedGender == "Other",
                     onClick = { selectedGender = "Other" }
                 )
@@ -102,7 +104,7 @@ fun EditGenderScreen(
                 )
             ) {
                 Text(
-                    text = "Save changes",
+                    text = stringResource(R.string.save_changes_button),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp

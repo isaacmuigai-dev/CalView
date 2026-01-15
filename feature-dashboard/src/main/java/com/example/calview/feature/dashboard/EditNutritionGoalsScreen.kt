@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Edit Nutrition Goals screen - allows users to edit calorie and macro goals.
@@ -84,7 +86,7 @@ fun EditNutritionGoalsScreen(
         ) {
             // Title
             Text(
-                text = "Edit nutrition goals",
+                text = stringResource(R.string.edit_nutrition_goals_title),
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
@@ -98,7 +100,7 @@ fun EditNutritionGoalsScreen(
                 icon = Icons.Default.LocalFireDepartment,
                 iconTint = MaterialTheme.colorScheme.onBackground,
                 progressColor = MaterialTheme.colorScheme.onBackground,
-                label = "Calorie goal",
+                label = stringResource(R.string.calorie_goal),
                 value = calories,
                 unit = "",
                 progress = 1f,
@@ -115,7 +117,7 @@ fun EditNutritionGoalsScreen(
                 icon = Icons.Default.Favorite,
                 iconTint = Color(0xFFE57373),
                 progressColor = Color(0xFFE57373),
-                label = "Protein goal",
+                label = stringResource(R.string.protein_goal),
                 value = protein,
                 unit = "g",
                 progress = 0.7f,
@@ -129,7 +131,7 @@ fun EditNutritionGoalsScreen(
                 icon = Icons.Default.Grass,
                 iconTint = Color(0xFFFFB74D),
                 progressColor = Color(0xFFFFB74D),
-                label = "Carb goal",
+                label = stringResource(R.string.carb_goal),
                 value = carbs,
                 unit = "g",
                 progress = 0.8f,
@@ -143,7 +145,7 @@ fun EditNutritionGoalsScreen(
                 icon = Icons.Default.Opacity,
                 iconTint = Color(0xFF64B5F6),
                 progressColor = Color(0xFF64B5F6),
-                label = "Fat goal",
+                label = stringResource(R.string.fat_goal),
                 value = fats,
                 unit = "g",
                 progress = 0.6f,
@@ -162,7 +164,7 @@ fun EditNutritionGoalsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "View micronutrients",
+                    text = stringResource(R.string.view_micronutrients),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
@@ -185,7 +187,7 @@ fun EditNutritionGoalsScreen(
                     icon = Icons.Default.Grain,
                     iconTint = Color(0xFF9575CD),
                     progressColor = Color(0xFF9575CD),
-                    label = "Fiber goal",
+                    label = stringResource(R.string.fiber_goal),
                     value = fiber,
                     unit = "g",
                     progress = 0.5f,
@@ -198,7 +200,7 @@ fun EditNutritionGoalsScreen(
                     icon = Icons.Default.Cake,
                     iconTint = Color(0xFFEC407A),
                     progressColor = Color(0xFFEC407A),
-                    label = "Sugar goal",
+                    label = stringResource(R.string.sugar_goal),
                     value = sugar,
                     unit = "g",
                     progress = 0.4f,
@@ -211,7 +213,7 @@ fun EditNutritionGoalsScreen(
                     icon = Icons.Default.WaterDrop,
                     iconTint = Color(0xFFFFB74D),
                     progressColor = Color(0xFFFFB74D),
-                    label = "Sodium goal",
+                    label = stringResource(R.string.sodium_goal),
                     value = sodium,
                     unit = "mg",
                     progress = 0.3f,
@@ -235,7 +237,7 @@ fun EditNutritionGoalsScreen(
                 )
             ) {
                 Text(
-                    text = "Auto Generate Goals",
+                    text = stringResource(R.string.auto_generate_goals),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
@@ -256,7 +258,7 @@ fun EditNutritionGoalsScreen(
                 )
             ) {
                 Text(
-                    text = "Save Changes",
+                    text = stringResource(R.string.save_changes_button),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -372,7 +374,7 @@ private fun NutrientGoalCard(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit",
+                            contentDescription = stringResource(R.string.edit_desc),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -384,7 +386,7 @@ private fun NutrientGoalCard(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Done",
+                            contentDescription = stringResource(R.string.check_desc),
                             tint = Color(0xFF4CAF50),
                             modifier = Modifier.size(20.dp)
                         )

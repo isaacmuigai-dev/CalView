@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Data class for language option.
@@ -63,7 +65,7 @@ fun LanguageSelectorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Language",
+                        text = stringResource(R.string.language),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp

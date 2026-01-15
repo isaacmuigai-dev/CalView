@@ -39,6 +39,8 @@ class DashboardViewModelTest {
     private val userPreferencesRepository: UserPreferencesRepository = mockk()
     private val healthConnectManager: HealthConnectManager = mockk(relaxed = true)
     private val foodAnalysisService: FoodAnalysisService = mockk(relaxed = true)
+    // Add SelectedDateHolder mock
+    private val selectedDateHolder: com.example.calview.core.data.state.SelectedDateHolder = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true)
     
     // Use UnconfinedTestDispatcher for immediate execution
@@ -85,7 +87,14 @@ class DashboardViewModelTest {
 
     @Test
     fun `initial state has correct default goal and zero consumption`() = runBlocking {
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Get first state where goalCalories is set
         val state = viewModel.dashboardState.first { it.goalCalories == 2000 }
@@ -121,7 +130,14 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getMealsForToday() } returns flowOf(listOf(meal1, meal2))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Wait for state with meals data
         val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
@@ -169,7 +185,14 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getMealsForToday() } returns flowOf(listOf(completedMeal, analyzingMeal, pendingMeal))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Wait for state with consumed calories
         val state = viewModel.dashboardState.first { it.consumedCalories > 0 }
@@ -200,7 +223,14 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getRecentUploads() } returns flowOf(listOf(recentMeal))
 
         // Act
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Wait for state with recent uploads
         val state = viewModel.dashboardState.first { it.recentUploads.isNotEmpty() }
@@ -214,7 +244,14 @@ class DashboardViewModelTest {
     @Test
     fun `addWater increases water consumed`() = runBlocking {
         // Arrange
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Wait for initial state
         viewModel.dashboardState.first { it.goalCalories == 2000 }
@@ -233,7 +270,14 @@ class DashboardViewModelTest {
     @Test
     fun `removeWater decreases water consumed but not below zero`() = runBlocking {
         // Arrange
-        viewModel = DashboardViewModel(mealRepository, userPreferencesRepository, healthConnectManager, foodAnalysisService, context)
+        viewModel = DashboardViewModel(
+            mealRepository, 
+            userPreferencesRepository, 
+            healthConnectManager, 
+            foodAnalysisService, 
+            selectedDateHolder,
+            context
+        )
         
         // Wait for initial state
         viewModel.dashboardState.first { it.goalCalories == 2000 }

@@ -7,6 +7,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +26,10 @@ data class HealthData(
     val steps: Long = 0,
     val caloriesBurned: Double = 0.0,
     val exerciseMinutes: Long = 0,
+    val weeklySteps: Long = 0,
+    val weeklyCaloriesBurned: Double = 0.0,
+    val maxCaloriesBurnedRecord: Double = 0.0,
+    val maxStepsRecord: Long = 0,  // Best daily steps in past 7 days
     val isConnected: Boolean = false,
     val isAvailable: Boolean = false
 )
@@ -40,6 +46,7 @@ class HealthConnectManager @Inject constructor(
     // Required permissions
     val permissions = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
+        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(ExerciseSessionRecord::class)
     )
@@ -101,6 +108,13 @@ class HealthConnectManager @Inject constructor(
      * Read today's health data
      */
     suspend fun readTodayData() {
+        readDataForDate(LocalDate.now(ZoneId.systemDefault()))
+    }
+    
+    /**
+     * Read health data for a specific date
+     */
+    suspend fun readDataForDate(date: LocalDate) {
         if (!isAvailable()) {
             _healthData.value = HealthData(isAvailable = false)
             return
@@ -118,49 +132,171 @@ class HealthConnectManager @Inject constructor(
         }
         
         try {
-            val today = LocalDate.now()
-            val startOfDay = today.atStartOfDay(ZoneId.systemDefault()).toInstant()
-            val endOfDay = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+            val zoneId = ZoneId.systemDefault()
+            val today = LocalDate.now(zoneId)
             
-            val timeRangeFilter = TimeRangeFilter.between(startOfDay, endOfDay)
+            // Time ranges for the requested date
+            val startOfRequestedDay = date.atStartOfDay(zoneId).toInstant()
+            val endOfRequestedDay = date.plusDays(1).atStartOfDay(zoneId).toInstant()
             
-            // Read steps
+            // Weekly calculations relative to requested date
+            val startOfWeek = date.minusDays(6).atStartOfDay(zoneId).toInstant()
+            val startOfMonth = date.minusDays(29).atStartOfDay(zoneId).toInstant()
+            
+            // Request full month data to calculate records and weekly aggregates locally
+            val monthRangeFilter = TimeRangeFilter.between(startOfMonth, endOfRequestedDay)
+            
+            // Read steps (30 days)
             val stepsResponse = client.readRecords(
                 ReadRecordsRequest(
                     recordType = StepsRecord::class,
-                    timeRangeFilter = timeRangeFilter
+                    timeRangeFilter = monthRangeFilter
                 )
             )
-            val totalSteps = stepsResponse.records.sumOf { it.count }
+            // Filter locally for specific time windows
+            val totalStepsForDate = stepsResponse.records.filter { 
+                it.startTime >= startOfRequestedDay && it.startTime < endOfRequestedDay 
+            }.sumOf { it.count }
+            val totalStepsWeek = stepsResponse.records.filter { it.startTime >= startOfWeek }.sumOf { it.count }
             
-            // Read calories
-            val caloriesResponse = client.readRecords(
+            // Read active calories (30 days)
+            val activeCaloriesResponse = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = ActiveCaloriesBurnedRecord::class,
+                    timeRangeFilter = monthRangeFilter
+                )
+            )
+            android.util.Log.d("HealthConnect", "=== ACTIVE CALORIES DEBUG ===")
+            android.util.Log.d("HealthConnect", "Active calories records count: ${activeCaloriesResponse.records.size}")
+            val activeCaloriesForDate = activeCaloriesResponse.records.filter { 
+                it.startTime >= startOfRequestedDay && it.startTime < endOfRequestedDay 
+            }.sumOf { it.energy.inKilocalories }
+            val activeCaloriesWeek = activeCaloriesResponse.records.filter { it.startTime >= startOfWeek }.sumOf { it.energy.inKilocalories }
+            android.util.Log.d("HealthConnect", "Active calories for date: $activeCaloriesForDate")
+            android.util.Log.d("HealthConnect", "Active calories for week: $activeCaloriesWeek")
+            
+            // Read total calories as fallback (some apps only record total, not active)
+            val totalCaloriesResponse = client.readRecords(
                 ReadRecordsRequest(
                     recordType = TotalCaloriesBurnedRecord::class,
-                    timeRangeFilter = timeRangeFilter
+                    timeRangeFilter = monthRangeFilter
                 )
             )
-            val totalCalories = caloriesResponse.records.sumOf { it.energy.inKilocalories }
+            android.util.Log.d("HealthConnect", "=== TOTAL CALORIES DEBUG ===")
+            android.util.Log.d("HealthConnect", "Total calories records count: ${totalCaloriesResponse.records.size}")
+            val totalCaloriesFromRecord = totalCaloriesResponse.records.filter { 
+                it.startTime >= startOfRequestedDay && it.startTime < endOfRequestedDay 
+            }.sumOf { it.energy.inKilocalories }
+            val totalCaloriesWeekFromRecord = totalCaloriesResponse.records.filter { it.startTime >= startOfWeek }.sumOf { it.energy.inKilocalories }
+            android.util.Log.d("HealthConnect", "Total calories for date: $totalCaloriesFromRecord")
+            android.util.Log.d("HealthConnect", "Total calories for week: $totalCaloriesWeekFromRecord")
             
-            // Read exercise
+            // For daily "burned" display: Use ActiveCaloriesBurned (exercise calories)
+            // For weekly stats: Use ActiveCaloriesBurned only (more meaningful for exercise tracking)
+            // FALLBACK 1: If Active is 0 but Total exists, estimate activity by subtracting BMR
+            // FALLBACK 2: If no calorie data at all, estimate from steps (avg 0.04 cal/step)
+            val estimatedDailyBMR = 1500.0 // Average BMR per day
+            val caloriesPerStep = 0.04 // Average calories burned per step
+            
+            val caloriesBurnedForDate = if (activeCaloriesForDate > 0) {
+                activeCaloriesForDate // Prefer actual active calories
+            } else if (totalCaloriesFromRecord > estimatedDailyBMR) {
+                // Fallback 1: Total minus estimated BMR = approximate activity
+                (totalCaloriesFromRecord - estimatedDailyBMR).coerceAtLeast(0.0)
+            } else if (totalStepsForDate > 0) {
+                // Fallback 2: Estimate calories from steps
+                totalStepsForDate * caloriesPerStep
+            } else {
+                0.0
+            }
+            
+            val weeklyCaloriesBurned = if (activeCaloriesWeek > 0) {
+                activeCaloriesWeek // Prefer actual active calories
+            } else if (totalCaloriesWeekFromRecord > estimatedDailyBMR * 7) {
+                // Fallback 1: Total minus estimated weekly BMR
+                (totalCaloriesWeekFromRecord - estimatedDailyBMR * 7).coerceAtLeast(0.0)
+            } else if (totalStepsWeek > 0) {
+                // Fallback 2: Estimate calories from weekly steps
+                totalStepsWeek * caloriesPerStep
+            } else {
+                0.0
+            }
+            android.util.Log.d("HealthConnect", "=== FINAL CALORIES (with fallback) ===")
+            android.util.Log.d("HealthConnect", "Activity calories for date: $caloriesBurnedForDate")
+            android.util.Log.d("HealthConnect", "Activity calories for week: $weeklyCaloriesBurned")
+            
+            // Calculate Daily Record (Max ACTIVE calories burned in a single day within the last 7 days)
+            // Use active calories, or estimate from total minus BMR, or estimate from steps
+            val activeCaloriesByDay = activeCaloriesResponse.records
+                .filter { it.startTime >= startOfWeek } // Only last 7 days
+                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
+                .mapValues { (_, records) -> records.sumOf { it.energy.inKilocalories } }
+            
+            // Fallback 1: Estimate from total calories minus BMR
+            val totalCaloriesByDay = totalCaloriesResponse.records
+                .filter { it.startTime >= startOfWeek }
+                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
+                .mapValues { (_, records) -> 
+                    (records.sumOf { it.energy.inKilocalories } - estimatedDailyBMR).coerceAtLeast(0.0)
+                }
+            
+            // Fallback 2: Estimate from steps
+            val stepsByDayForCalories = stepsResponse.records
+                .filter { it.startTime >= startOfWeek }
+                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
+                .mapValues { (_, records) -> records.sumOf { it.count } * caloriesPerStep }
+            
+            // Priority: Active > Total-BMR > Steps-based
+            val estimatedCaloriesByDay = when {
+                activeCaloriesByDay.isNotEmpty() -> activeCaloriesByDay
+                totalCaloriesByDay.any { it.value > 0 } -> totalCaloriesByDay
+                else -> stepsByDayForCalories
+            }
+            
+            val maxCaloriesRecord = estimatedCaloriesByDay.values.maxOrNull() ?: 0.0
+            android.util.Log.d("HealthConnect", "Max calories record (activity only): $maxCaloriesRecord")
+            android.util.Log.d("HealthConnect", "Active calories by day count: ${activeCaloriesByDay.size}")
+            
+            // Calculate max steps record (best daily steps in past 7 days)
+            val stepsByDay = stepsResponse.records
+                .filter { it.startTime >= startOfWeek } // Only last 7 days
+                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
+                .mapValues { (_, records) -> records.sumOf { it.count } }
+            val maxStepsRecord = stepsByDay.values.maxOrNull() ?: 0L
+            android.util.Log.d("HealthConnect", "Max steps record (7d): $maxStepsRecord")
+            android.util.Log.d("HealthConnect", "Steps by day count: ${stepsByDay.size}")
+            
+            // Read exercise for the requested date
             val exerciseResponse = client.readRecords(
                 ReadRecordsRequest(
                     recordType = ExerciseSessionRecord::class,
-                    timeRangeFilter = timeRangeFilter
+                    timeRangeFilter = TimeRangeFilter.between(startOfRequestedDay, endOfRequestedDay)
                 )
             )
             val exerciseMinutes = exerciseResponse.records.sumOf { record ->
                 java.time.Duration.between(record.startTime, record.endTime).toMinutes()
             }
+            android.util.Log.d("HealthConnect", "Exercise records: ${exerciseResponse.records.size}, minutes: $exerciseMinutes")
+            
+            android.util.Log.d("HealthConnect", "=== STEPS DEBUG ===")
+            android.util.Log.d("HealthConnect", "Steps for date: $totalStepsForDate")
+            android.util.Log.d("HealthConnect", "Steps for week: $totalStepsWeek")
             
             _healthData.value = HealthData(
-                steps = totalSteps,
-                caloriesBurned = totalCalories,
+                steps = totalStepsForDate,
+                caloriesBurned = caloriesBurnedForDate,
                 exerciseMinutes = exerciseMinutes,
+                weeklySteps = totalStepsWeek,
+                weeklyCaloriesBurned = weeklyCaloriesBurned,
+                maxCaloriesBurnedRecord = maxCaloriesRecord,
+                maxStepsRecord = maxStepsRecord,
                 isConnected = true,
                 isAvailable = true
             )
+            android.util.Log.d("HealthConnect", "=== HEALTH DATA UPDATED ===")
+            android.util.Log.d("HealthConnect", "HealthData: steps=$totalStepsForDate, burned=$caloriesBurnedForDate, weeklyBurned=$weeklyCaloriesBurned, stepsRecord=$maxStepsRecord")
         } catch (e: Exception) {
+            e.printStackTrace()
             _healthData.value = HealthData(isAvailable = true, isConnected = false)
         }
     }

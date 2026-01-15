@@ -55,12 +55,14 @@ class ScannerViewModel @Inject constructor(
     private var progressAnimationJob: kotlinx.coroutines.Job? = null
     
     // Analysis stages with progress ranges and messages
+    // Now goes all the way to 100% so user sees complete progress while waiting for AI
     private val analysisStages = listOf(
-        AnalysisStage(0f, 20f, "Analysing..."),
-        AnalysisStage(20f, 40f, "Identifying food items..."),
-        AnalysisStage(40f, 60f, "Breaking down components..."),
-        AnalysisStage(60f, 80f, "Calculating nutrition..."),
-        AnalysisStage(80f, 95f, "Finalizing...")
+        AnalysisStage(0f, 15f, "Analysing..."),
+        AnalysisStage(15f, 35f, "Identifying food items..."),
+        AnalysisStage(35f, 55f, "Breaking down components..."),
+        AnalysisStage(55f, 75f, "Calculating nutrition..."),
+        AnalysisStage(75f, 90f, "Finalizing..."),
+        AnalysisStage(90f, 100f, "Almost done!")
     )
     
     private data class AnalysisStage(
@@ -142,8 +144,9 @@ class ScannerViewModel @Inject constructor(
                                     )
                                 } catch (e: Exception) { null }
                                 
-                                // Animate progress smoothly from current to 100% before showing results
-                                animateProgressToCompletion(id)
+                                // Progress is already at 100%, just show completion briefly
+                                // Small delay to let user see "Complete!" message
+                                delay(300)
                                 
                                 val updatedMeal = MealEntity(
                                     id = id,
@@ -230,12 +233,12 @@ class ScannerViewModel @Inject constructor(
     /**
      * Animates progress through stages with smooth increments.
      * Each stage has a message and progress range.
-     * Progress runs continuously until cancelled by AI completion.
+     * Progress animates to 100% and then holds there while waiting for AI results.
      */
     private suspend fun animateProgressStages() {
         for (stage in analysisStages) {
-            val steps = 10 // Number of increments per stage
-            val stepDuration = 400L // Milliseconds between increments
+            val steps = 15 // More increments for smoother animation
+            val stepDuration = 200L // Faster updates (200ms) for responsive feel
             val progressPerStep = (stage.endProgress - stage.startProgress) / steps
             
             // Update message at stage start
@@ -248,10 +251,11 @@ class ScannerViewModel @Inject constructor(
             }
         }
         
-        // Hold at 90% if AI is still processing
+        // Hold at 100% while waiting for AI to complete
+        // This is the expected behavior - user sees 100% and waits for results
         while (true) {
             delay(500)
-            updateProgressWithMessage(90f, "Almost there...")
+            updateProgressWithMessage(100f, "Waiting for results...")
         }
     }
     

@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
+import java.text.DateFormatSymbols
+import java.util.Locale
 
 /**
  * Set Birthday screen with Month, Day, Year wheel pickers.
@@ -32,10 +36,11 @@ fun EditBirthdayScreen(
     onBack: () -> Unit,
     onSave: (month: String, day: Int, year: Int) -> Unit
 ) {
-    val months = listOf(
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    )
+// in EditBirthdayScreen function
+    val currentLocale = Locale.getDefault()
+    val months = remember(currentLocale) {
+        DateFormatSymbols.getInstance(currentLocale).months.filter { it.isNotEmpty() }
+    }
     val days = (1..31).toList()
     val years = (1940..2010).toList()
     
@@ -48,7 +53,7 @@ fun EditBirthdayScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Set Birthday",
+                        text = stringResource(R.string.set_birthday_title),
                         fontFamily = Inter,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
@@ -122,7 +127,7 @@ fun EditBirthdayScreen(
                 )
             ) {
                 Text(
-                    text = "Save changes",
+                    text = stringResource(R.string.save_changes_button),
                     fontFamily = Inter,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp

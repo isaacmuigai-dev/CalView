@@ -20,7 +20,7 @@ class ProgressUiStateTest {
         assertEquals(0f, state.goalWeight, 0.01f)
         assertEquals(0, state.height)
         assertEquals(0f, state.bmi, 0.01f)
-        assertEquals("Healthy", state.bmiCategory)
+        assertEquals(com.example.calview.feature.trends.R.string.bmi_healthy, state.bmiCategory)
         assertEquals(0f, state.weightProgress, 0.01f)
         assertTrue(state.isLoading)
     }
@@ -99,13 +99,13 @@ class ProgressUiStateTest {
         val updated = state.copy(
             currentWeight = 80f,
             bmi = 25.5f,
-            bmiCategory = "Overweight",
+            bmiCategory = com.example.calview.feature.trends.R.string.bmi_overweight,
             isLoading = false
         )
         
         assertEquals(80f, updated.currentWeight, 0.01f)
         assertEquals(25.5f, updated.bmi, 0.01f)
-        assertEquals("Overweight", updated.bmiCategory)
+        assertEquals(com.example.calview.feature.trends.R.string.bmi_overweight, updated.bmiCategory)
         assertFalse(updated.isLoading)
         // Original should be unchanged
         assertEquals(0f, state.currentWeight, 0.01f)

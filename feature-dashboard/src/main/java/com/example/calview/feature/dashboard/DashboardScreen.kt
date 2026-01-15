@@ -35,6 +35,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +62,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -85,8 +88,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
-
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
@@ -120,28 +123,8 @@ fun DashboardScreen(
     // State for showing food detail screen
     var selectedMeal by remember { mutableStateOf<com.example.calview.core.data.local.MealEntity?>(null) }
     
-    // Track if we've shown the burned calories notification this session
-    var hasShownBurnedCaloriesNotification by remember { mutableStateOf(false) }
-    
-    // Show Snackbar when burned calories are added (only once per significant change)
-    LaunchedEffect(state.burnedCaloriesAdded, state.addCaloriesBackEnabled) {
-        if (state.addCaloriesBackEnabled && 
-            state.burnedCaloriesAdded >= 100 && 
-            !hasShownBurnedCaloriesNotification) {
-            snackbarHostState.showSnackbar(
-                message = "🔥 ${state.burnedCaloriesAdded} calories burned! Added to your daily goal.",
-                duration = SnackbarDuration.Short
-            )
-            hasShownBurnedCaloriesNotification = true
-        }
-    }
-    
-    // Reset notification flag when setting is turned off
-    LaunchedEffect(state.addCaloriesBackEnabled) {
-        if (!state.addCaloriesBackEnabled) {
-            hasShownBurnedCaloriesNotification = false
-        }
-    }
+    // NOTE: Removed annoying burned calories notification (snackbar)
+    // The notification was triggered too frequently and displayed misleading calorie values
     
     // Check if streak lost and show dialog once per session
     LaunchedEffect(state.streakLost) {
@@ -239,7 +222,7 @@ fun DashboardScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
         ) {
             DashboardContent(
                 state = state,
@@ -279,7 +262,7 @@ fun DashboardContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
         contentAlignment = Alignment.TopCenter
     ) {
         LazyColumn(
@@ -292,9 +275,7 @@ fun DashboardContent(
         ) {
         item {
             HeaderSection(streakDays = state.currentStreak)
-        }
-
-        item {
+            Spacer(modifier = Modifier.height(4.dp))
             DateSelector(
                 selectedDate = state.selectedDate, 
                 onDateSelected = onDateSelected,
@@ -321,7 +302,9 @@ fun DashboardContent(
             sugarConsumed = state.sugarG,
             sodiumConsumed = state.sodiumG,
             rolloverCaloriesEnabled = state.rolloverCaloriesEnabled,
-            rolloverCaloriesAmount = state.rolloverCaloriesAmount
+            rolloverCaloriesAmount = state.rolloverCaloriesAmount,
+            burnedCalories = state.burnedCaloriesAdded,
+            addCaloriesBackEnabled = state.addCaloriesBackEnabled
         )
         }
         
@@ -367,13 +350,13 @@ fun DashboardContent(
                             }
                             Column {
                                 Text(
-                                    text = "Connect Google Health",
+                                    text = stringResource(R.string.connect_google_health),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Sync steps and calories",
+                                    text = stringResource(R.string.sync_steps_calories),
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -393,7 +376,7 @@ fun DashboardContent(
                             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
                         ) {
                             Text(
-                                text = "Connect",
+                                text = stringResource(R.string.connect),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
@@ -438,7 +421,7 @@ fun DashboardContent(
 
         item {
             Text(
-                "Recently uploaded",
+                stringResource(R.string.recently_uploaded),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
@@ -463,7 +446,7 @@ fun DashboardContent(
                     ) {
                         Icon(RecentMealIcon, null, modifier = Modifier.size(60.dp), tint = Color(0xFFE8F5E9))
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Tap + to add your first meal of the day", color = Color.Gray, fontSize = 14.sp)
+                        Text(stringResource(R.string.empty_meals_message), color = Color.Gray, fontSize = 14.sp)
                     }
                 }
             }
@@ -506,7 +489,7 @@ fun MicroStatsRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         MicroCard(
-            label = "Fiber left", 
+            label = stringResource(R.string.fiber_left), 
             value = "${fiber}g", 
             icon = Icons.Filled.Grass, 
             iconTint = Color(0xFF66BB6A), 
@@ -514,7 +497,7 @@ fun MicroStatsRow(
             modifier = Modifier.weight(1f)
         )
         MicroCard(
-            label = "Sugar left", 
+            label = stringResource(R.string.sugar_left), 
             value = "${sugar}g", 
             icon = Icons.Filled.Cake, 
             iconTint = Color(0xFFEC407A), 
@@ -522,7 +505,7 @@ fun MicroStatsRow(
             modifier = Modifier.weight(1f)
         )
         MicroCard(
-            label = "Sodium left", 
+            label = stringResource(R.string.sodium_left), 
             value = "${sodium}mg", 
             icon = Icons.Filled.WaterDrop, 
             iconTint = Color(0xFFFFA726), 
@@ -622,7 +605,7 @@ fun HealthScoreCard(score: Int) {
     CalAICard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Health score", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.health_score), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text("$score/10", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -634,7 +617,7 @@ fun HealthScoreCard(score: Int) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                "Carbs and fat are on track. You\'re low in calories and protein, which can slow weight loss and impact muscle retention.",
+                stringResource(R.string.health_score_desc),
                 fontSize = 14.sp,
                 color = Color.Gray,
                 lineHeight = 20.sp
@@ -653,38 +636,40 @@ fun HeaderSection(streakDays: Int = 0) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(top = 16.dp, bottom = 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // App logo
-            val logoRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
-                com.example.calview.core.ui.R.drawable.ic_logo_white
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // New Vector Icon - theme aware
+            // New Vector Icon - theme aware (checks background luminance to determine theme)
+            // If background is dark (luminance < 0.5), use white icon. Else use black.
+            val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+            val iconRes = if (isDarkTheme) {
+                com.example.calview.core.ui.R.drawable.ic_vector_icon_white
             } else {
-                com.example.calview.core.ui.R.drawable.ic_logo_black
+                com.example.calview.core.ui.R.drawable.ic_vector_icon_black
             }
             
             Image(
-                painter = painterResource(id = logoRes),
-                contentDescription = "CalViewAI Logo",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(14.dp)),
-                contentScale = ContentScale.Fit
+                painter = painterResource(id = iconRes),
+                contentDescription = "CalViewAI Icon",
+                modifier = Modifier.fillMaxWidth(0.15f)
+                    .size(80.dp),
+                contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    "CalViewAI",
-                    fontSize = 24.sp,
+                    stringResource(R.string.dashboard_title),
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    "Track & Thrive",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -779,7 +764,7 @@ fun DateSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 1.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -966,7 +951,9 @@ fun NutritionOverviewCard(
     sugarConsumed: Int = 0,
     sodiumConsumed: Int = 0,
     rolloverCaloriesEnabled: Boolean = false,
-    rolloverCaloriesAmount: Int = 0
+    rolloverCaloriesAmount: Int = 0,
+    burnedCalories: Int = 0,
+    addCaloriesBackEnabled: Boolean = false
 ) {
     // Shared toggle state for all cards
     var showEaten by remember { mutableStateOf(true) }
@@ -1049,22 +1036,43 @@ fun NutritionOverviewCard(
                                     )
                                     // Rollover indicator
                                     if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                            shape = RoundedCornerShape(4.dp)
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Schedule,
-                                                contentDescription = "Rollover calories",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(14.dp)
-                                            )
                                             Text(
-                                                text = "+$rolloverCaloriesAmount",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                text = "+$rolloverCaloriesAmount Rollover",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                             )
+                                        }
+                                    }
+                                    
+                                    // Active Calories indicator
+                                    if (addCaloriesBackEnabled && burnedCalories > 0) {
+                                        Surface(
+                                            color = Color(0xFFE8F5E9), // Light green
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.LocalFireDepartment, 
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(10.dp),
+                                                    tint = Color(0xFF2E7D32) // Dark green
+                                                )
+                                                Text(
+                                                    text = "+$burnedCalories Active",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Color(0xFF2E7D32),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
                                         }
                                     }
                                 }

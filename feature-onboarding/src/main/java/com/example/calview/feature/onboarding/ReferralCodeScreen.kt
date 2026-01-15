@@ -39,7 +39,7 @@ fun ReferralCodeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
             .padding(horizontal = 24.dp)
             .statusBarsPadding()
             .navigationBarsPadding()

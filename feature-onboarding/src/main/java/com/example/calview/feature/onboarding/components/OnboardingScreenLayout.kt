@@ -32,9 +32,10 @@ fun OnboardingScreenLayout(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.background,
-        modifier = modifier.fillMaxSize()
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
     ) {
         Column(
             modifier = Modifier
