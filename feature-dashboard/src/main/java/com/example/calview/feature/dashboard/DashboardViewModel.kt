@@ -26,7 +26,9 @@ class DashboardViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     val healthConnectManager: HealthConnectManager,
     private val foodAnalysisService: FoodAnalysisService,
+    private val coachMessageGenerator: com.example.calview.core.data.coach.CoachMessageGenerator,
     private val selectedDateHolder: SelectedDateHolder,
+    private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -67,6 +69,10 @@ class DashboardViewModel @Inject constructor(
     // Observe repository for water updates and date checks
     init {
         viewModelScope.launch {
+            checkRollover()
+        }
+
+        viewModelScope.launch {
             combine(
                 userPreferencesRepository.waterConsumed,
                 userPreferencesRepository.waterDate
@@ -97,6 +103,44 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
             }.collect()
+        }
+    }
+
+    private suspend fun checkRollover() {
+        val isRolloverEnabled = userPreferencesRepository.rolloverExtraCalories.first()
+        if (!isRolloverEnabled) return
+
+        val lastRolloverDate = userPreferencesRepository.lastRolloverDate.first()
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val todayMillis = today.timeInMillis
+
+        // If we haven't calculated rollover for today yet
+        if (lastRolloverDate < todayMillis) {
+            // Calculate for Yesterday
+            val yesterday = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, -1)
+            }
+            val yesterdayDateString = dateFormat.format(yesterday.time)
+            
+            // Get yesterday's meals
+            val yesterdayMeals = mealRepository.getMealsForDate(yesterdayDateString).first()
+            val completedMeals = yesterdayMeals.filter { it.analysisStatus == AnalysisStatus.COMPLETED }
+            val consumed = completedMeals.sumOf { it.calories }
+            
+            // Get usage goal (using current goal as proxy for yesterday's goal)
+            val goal = userPreferencesRepository.recommendedCalories.first()
+            
+            val remaining = (goal - consumed).coerceAtLeast(0)
+            val rolloverAmount = remaining.coerceIn(0, 200) // Max 200 as per requirement
+            
+            // Save rollover amount and mark today as done
+            userPreferencesRepository.setRolloverCaloriesAmount(rolloverAmount)
+            userPreferencesRepository.setLastRolloverDate(todayMillis)
         }
     }
 
@@ -158,15 +202,19 @@ class DashboardViewModel @Inject constructor(
             sugar = sugar,
             sodium = sodium
         )
-    }.combine(addCaloriesBackEnabled) { intermediate, addCaloriesOn ->
-        Pair(intermediate, addCaloriesOn)
-    }.combine(storedProteinGoal) { (intermediate, addCaloriesOn), proteinG ->
-        Triple(intermediate, addCaloriesOn, proteinG)
-    }.combine(storedCarbsGoal) { (intermediate, addCaloriesOn, proteinG), carbsG ->
-        MacroState(intermediate, addCaloriesOn, proteinG, carbsG)
+    }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
+         Pair(intermediate, waterSettings)
+    }.combine(addCaloriesBackEnabled) { (intermediate, waterSettings), addCaloriesOn ->
+        Triple(intermediate, waterSettings, addCaloriesOn)
+    }.combine(storedProteinGoal) { (intermediate, waterSettings, addCaloriesOn), proteinG ->
+        MacroState(intermediate, addCaloriesOn, proteinG, 0, waterSettings) // Temp struct
+    }.combine(storedCarbsGoal) { macroState, carbsG ->
+        // Repackage to include carbs
+        macroState.copy(carbsGoal = carbsG)
     }.combine(storedFatsGoal) { macroState, fatsG ->
         val intermediate = macroState.intermediate
         val addCaloriesOn = macroState.addCaloriesOn
+        val waterSettings = macroState.waterSettings
         
         // Calculate burned calories added to goal (only if setting is ON)
         val burnedCalories = intermediate.core.health.caloriesBurned.toInt()
@@ -178,6 +226,13 @@ class DashboardViewModel @Inject constructor(
         val carbsGoal = if (macroState.carbsGoal > 0) macroState.carbsGoal else (calorieGoal * 0.50 / 4).toInt()
         val fatsGoalFinal = if (fatsG > 0) fatsG else (calorieGoal * 0.25 / 9).toInt()
         
+        val coachTip = coachMessageGenerator.generateMacroTip(
+            proteinRemaining = proteinGoal - intermediate.protein,
+            carbsRemaining = carbsGoal - intermediate.carbs,
+            fatsRemaining = fatsGoalFinal - intermediate.fats,
+            caloriesRemaining = intermediate.core.goal + intermediate.effectiveRollover + effectiveBurned - intermediate.consumed
+        )
+
         DashboardState(
             consumedCalories = intermediate.consumed,
             remainingCalories = (intermediate.core.goal + intermediate.effectiveRollover + effectiveBurned - intermediate.consumed).coerceAtLeast(0),
@@ -203,7 +258,14 @@ class DashboardViewModel @Inject constructor(
             rolloverCaloriesEnabled = intermediate.rolloverOn,
             rolloverCaloriesAmount = intermediate.effectiveRollover,
             addCaloriesBackEnabled = addCaloriesOn,
-            burnedCaloriesAdded = effectiveBurned
+            burnedCaloriesAdded = effectiveBurned,
+            coachTip = coachTip,
+            // Water Reminder Settings
+            waterReminderEnabled = waterSettings?.enabled ?: false,
+            waterReminderIntervalHours = waterSettings?.intervalHours ?: 2,
+            waterReminderStartHour = waterSettings?.startHour ?: 8,
+            waterReminderEndHour = waterSettings?.endHour ?: 22,
+            waterReminderDailyGoalMl = waterSettings?.dailyGoalMl ?: 2500
         )
     }.combine(allMeals) { state, allMealsList ->
         // Calculate streak detection
@@ -298,11 +360,52 @@ class DashboardViewModel @Inject constructor(
             }
         }
         
+        // Calculate health score based on nutrition data
+        val healthScore = calculateHealthScore(
+            caloriesConsumed = state.consumedCalories,
+            caloriesGoal = state.goalCalories,
+            proteinConsumed = state.proteinG,
+            proteinGoal = state.proteinGoal,
+            carbsConsumed = state.carbsG,
+            carbsGoal = state.carbsGoal,
+            fatsConsumed = state.fatsG,
+            fatsGoal = state.fatsGoal,
+            waterConsumed = state.waterConsumed,
+            steps = state.steps.toInt(),
+            stepsGoal = state.stepsGoal
+        )
+        
+        // Generate dynamic recommendation based on current nutrition status
+        val healthRecommendation = generateHealthRecommendation(
+            caloriesConsumed = state.consumedCalories,
+            caloriesGoal = state.goalCalories,
+            proteinConsumed = state.proteinG,
+            proteinGoal = state.proteinGoal,
+            carbsConsumed = state.carbsG,
+            carbsGoal = state.carbsGoal,
+            fatsConsumed = state.fatsG,
+            fatsGoal = state.fatsGoal
+        )
+        
         state.copy(
             streakLost = streakLost,
             currentStreak = streak,
-            completedDays = completedDays
+            completedDays = completedDays,
+            healthScore = healthScore,
+            healthRecommendation = healthRecommendation
         )
+    }.scan(DashboardState()) { previous, current ->
+        // Detect health score change
+        if (previous.healthScore != 0 && current.healthScore != previous.healthScore) {
+             val tip = coachMessageGenerator.generateHealthScoreTip(
+                 currentScore = current.healthScore,
+                 previousScore = previous.healthScore,
+                 lastActivityTimestamp = System.currentTimeMillis() // Simplified tracking
+             )
+             current.copy(coachTip = tip)
+        } else {
+             current
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
 
     
@@ -317,11 +420,13 @@ class DashboardViewModel @Inject constructor(
         // Sync steps to DataStore for Widget
         viewModelScope.launch {
             healthConnectManager.healthData.collect { data ->
-                if (data.steps > 0) {
-                    userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
-                    userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
-                    updateWidget()
-                }
+                // Always sync to ensure widget resets to 0 on new days
+                userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
+                userPreferencesRepository.setActivityStats(
+                    caloriesBurned = data.caloriesBurned.toInt(),
+                    weeklyBurn = data.weeklyCaloriesBurned.toInt(),
+                    recordBurn = data.maxCaloriesBurnedRecord.toInt()
+                )
             }
         }
     }
@@ -347,6 +452,14 @@ class DashboardViewModel @Inject constructor(
             userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
             _waterConsumed.value = newValue // Updates immediately for UI responsiveness
             updateWidget()
+        }
+    }
+    
+    fun refreshHealthData() {
+        viewModelScope.launch {
+            if (healthConnectManager.isAvailable()) {
+                healthConnectManager.readTodayData()
+            }
         }
     }
     
@@ -389,11 +502,7 @@ class DashboardViewModel @Inject constructor(
         }
     }
     
-    fun refreshHealthData() {
-        viewModelScope.launch {
-            healthConnectManager.readTodayData()
-        }
-    }
+
     
     /**
      * Update a meal (e.g., after editing in FoodDetailScreen)
@@ -450,7 +559,7 @@ class DashboardViewModel @Inject constructor(
             }
             
             // Reload the image from path
-            val imageFile = File(meal.imagePath)
+            val imageFile = File(meal.imagePath!!)
             if (!imageFile.exists()) {
                 return null
             }
@@ -481,6 +590,170 @@ class DashboardViewModel @Inject constructor(
             null
         }
     }
+    
+    /**
+     * Calculate health score (0-10) based on nutrition adherence, activity, and hydration.
+     */
+    private fun calculateHealthScore(
+        caloriesConsumed: Int,
+        caloriesGoal: Int,
+        proteinConsumed: Int,
+        proteinGoal: Int,
+        carbsConsumed: Int,
+        carbsGoal: Int,
+        fatsConsumed: Int,
+        fatsGoal: Int,
+        waterConsumed: Int,
+        steps: Int,
+        stepsGoal: Int
+    ): Int {
+        if (caloriesGoal <= 0) return 0
+        
+        var score = 0f
+        
+        // Calorie adherence (max 3 points)
+        val calorieRatio = caloriesConsumed.toFloat() / caloriesGoal
+        score += when {
+            calorieRatio in 0.85f..1.15f -> 3f  // Within 15% of goal
+            calorieRatio in 0.70f..1.30f -> 2f  // Within 30% of goal
+            calorieRatio in 0.50f..1.50f -> 1f  // Within 50% of goal
+            else -> 0f
+        }
+        
+        // Macro balance (max 3 points - 1 per macro)
+        if (proteinGoal > 0) {
+            val proteinRatio = proteinConsumed.toFloat() / proteinGoal
+            if (proteinRatio in 0.70f..1.30f) score += 1f
+        }
+        if (carbsGoal > 0) {
+            val carbsRatio = carbsConsumed.toFloat() / carbsGoal
+            if (carbsRatio in 0.70f..1.30f) score += 1f
+        }
+        if (fatsGoal > 0) {
+            val fatsRatio = fatsConsumed.toFloat() / fatsGoal
+            if (fatsRatio in 0.70f..1.30f) score += 1f
+        }
+        
+        // Hydration (max 2 points) - 8 glasses target
+        val waterTarget = 8
+        score += when {
+            waterConsumed >= waterTarget -> 2f
+            waterConsumed >= waterTarget / 2 -> 1f
+            else -> 0f
+        }
+        
+        // Activity (max 2 points)
+        if (stepsGoal > 0) {
+            val stepsRatio = steps.toFloat() / stepsGoal
+            score += when {
+                stepsRatio >= 1f -> 2f
+                stepsRatio >= 0.5f -> 1f
+                else -> 0f
+            }
+        }
+        
+        return score.coerceIn(0f, 10f).toInt()
+    }
+    
+    /**
+     * Generate a personalized health recommendation based on current nutrition status.
+     */
+    private fun generateHealthRecommendation(
+        caloriesConsumed: Int,
+        caloriesGoal: Int,
+        proteinConsumed: Int,
+        proteinGoal: Int,
+        carbsConsumed: Int,
+        carbsGoal: Int,
+        fatsConsumed: Int,
+        fatsGoal: Int
+    ): String {
+        if (caloriesGoal <= 0 || caloriesConsumed == 0) {
+            return "Track your meals to get personalized health insights."
+        }
+        
+        val issues = mutableListOf<String>()
+        val onTrack = mutableListOf<String>()
+        
+        // Check calories
+        val caloriePercent = (caloriesConsumed.toFloat() / caloriesGoal * 100).toInt()
+        when {
+            caloriePercent < 70 -> issues.add("low in calories")
+            caloriePercent > 130 -> issues.add("over your calorie goal")
+            else -> onTrack.add("calories")
+        }
+        
+        // Check protein
+        if (proteinGoal > 0) {
+            val proteinPercent = (proteinConsumed.toFloat() / proteinGoal * 100).toInt()
+            when {
+                proteinPercent < 70 -> issues.add("low in protein")
+                proteinPercent > 130 -> issues.add("high in protein")
+                else -> onTrack.add("protein")
+            }
+        }
+        
+        // Check carbs
+        if (carbsGoal > 0) {
+            val carbsPercent = (carbsConsumed.toFloat() / carbsGoal * 100).toInt()
+            when {
+                carbsPercent < 70 -> issues.add("low in carbs")
+                carbsPercent > 130 -> issues.add("high in carbs")
+                else -> onTrack.add("carbs")
+            }
+        }
+        
+        // Check fats
+        if (fatsGoal > 0) {
+            val fatsPercent = (fatsConsumed.toFloat() / fatsGoal * 100).toInt()
+            when {
+                fatsPercent < 70 -> issues.add("low in fats")
+                fatsPercent > 130 -> issues.add("high in fats")
+                else -> onTrack.add("fats")
+            }
+        }
+        
+        // Build recommendation
+        return buildString {
+            if (onTrack.isNotEmpty()) {
+                append(onTrack.joinToString(" and ").replaceFirstChar { it.uppercase() })
+                append(" are on track. ")
+            }
+            if (issues.isNotEmpty()) {
+                append("You're ")
+                append(issues.joinToString(" and "))
+                append(", which can ")
+                // Add specific advice based on issues
+                when {
+                    issues.any { it.contains("low in calories") } && issues.any { it.contains("protein") } ->
+                        append("slow weight loss and impact muscle retention.")
+                    issues.any { it.contains("over your calorie") } ->
+                        append("lead to weight gain over time.")
+                    issues.any { it.contains("low in protein") } ->
+                        append("affect muscle recovery and satiety.")
+                    issues.any { it.contains("high in fats") } ->
+                        append("increase calorie intake quickly.")
+                    else ->
+                        append("affect your energy and progress.")
+                }
+            } else if (onTrack.size >= 3) {
+                append("Great job! Keep up the balanced nutrition.")
+            }
+        }.ifEmpty { "Keep tracking to see your nutrition insights." }
+    }
+
+    // Water Reminder Updates
+    fun setWaterReminderEnabled(enabled: Boolean) {
+        viewModelScope.launch { waterReminderRepository.setEnabled(enabled) }
+    }
+    
+    fun setWaterReminderInterval(hours: Int) {
+        viewModelScope.launch { waterReminderRepository.setInterval(hours) }
+    }
+    
+    fun setWaterReminderDailyGoal(ml: Int) {
+        viewModelScope.launch { waterReminderRepository.setDailyGoal(ml) }
+    }
 }
 
 // Internal data class for intermediate combine state
@@ -508,13 +781,15 @@ private data class IntermediateState(
     val sodium: Int
 )
 
-// Helper state for macro goals combine
 private data class MacroState(
     val intermediate: IntermediateState,
     val addCaloriesOn: Boolean,
     val proteinGoal: Int,
-    val carbsGoal: Int
+    val carbsGoal: Int,
+    val waterSettings: com.example.calview.core.data.local.WaterReminderSettingsEntity?
 )
+
+
 
 data class DashboardState(
     val consumedCalories: Int = 0,
@@ -550,5 +825,17 @@ data class DashboardState(
     // Streak tracking
     val streakLost: Boolean = false,
     val currentStreak: Int = 0,
-    val completedDays: List<Boolean> = listOf(false, false, false, false, false, false, false)
+    val completedDays: List<Boolean> = listOf(false, false, false, false, false, false, false),
+    // Health score and AI recommendation
+    val healthScore: Int = 0,
+    val healthRecommendation: String = "Track your meals to get personalized health insights.",
+    val coachTip: com.example.calview.core.data.coach.CoachMessageGenerator.CoachTip? = null,
+    // Water Reminder Settings
+    val waterReminderEnabled: Boolean = false,
+    val waterReminderIntervalHours: Int = 2,
+    val waterReminderStartHour: Int = 8,
+    val waterReminderEndHour: Int = 22,
+    val waterReminderDailyGoalMl: Int = 2500
 )
+
+

@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Desglose Avanzado de Macronutrientes</string>
     <string name="feature_trends_insights">Tendencias e Ideas Personalizadas</string>
     <string name="feature_no_ads">Sin Anuncios</string>
+    <string name="feature_voice_logging">Registro de Alimentos por Voz</string>
+    <string name="feature_ai_coach">Notificaciones del Entrenador IA</string>
+    <string name="feature_streak_freeze">Congelar Racha (3/mes)</string>
+    <string name="feature_water_reminders">Recordatorios de Agua Inteligentes</string>
+    <string name="feature_social_challenges">Desafíos Sociales y Tablas de Clasificación</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Cargando planes...</string>

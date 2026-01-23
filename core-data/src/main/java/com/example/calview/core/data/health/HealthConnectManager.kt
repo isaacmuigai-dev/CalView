@@ -198,71 +198,82 @@ class HealthConnectManager @Inject constructor(
             val estimatedDailyBMR = 1500.0 // Average BMR per day
             val caloriesPerStep = 0.04 // Average calories burned per step
             
+            // Calculate baseline estimate from steps (floor for calories burned)
+            val estimatedFromSteps = totalStepsForDate * caloriesPerStep
+            val estimatedFromWeeklySteps = totalStepsWeek * caloriesPerStep
+            
             val caloriesBurnedForDate = if (activeCaloriesForDate > 0) {
-                activeCaloriesForDate // Prefer actual active calories
+                // Prefer actual active calories, but ensure it's at least as much as steps would imply
+                maxOf(activeCaloriesForDate, estimatedFromSteps)
             } else if (totalCaloriesFromRecord > estimatedDailyBMR) {
                 // Fallback 1: Total minus estimated BMR = approximate activity
-                (totalCaloriesFromRecord - estimatedDailyBMR).coerceAtLeast(0.0)
-            } else if (totalStepsForDate > 0) {
-                // Fallback 2: Estimate calories from steps
-                totalStepsForDate * caloriesPerStep
+                val estimatedFromTotal = (totalCaloriesFromRecord - estimatedDailyBMR).coerceAtLeast(0.0)
+                maxOf(estimatedFromTotal, estimatedFromSteps)
             } else {
-                0.0
+                // Fallback 2: Estimate calories from steps
+                estimatedFromSteps
             }
             
             val weeklyCaloriesBurned = if (activeCaloriesWeek > 0) {
-                activeCaloriesWeek // Prefer actual active calories
+                maxOf(activeCaloriesWeek, estimatedFromWeeklySteps)
             } else if (totalCaloriesWeekFromRecord > estimatedDailyBMR * 7) {
-                // Fallback 1: Total minus estimated weekly BMR
-                (totalCaloriesWeekFromRecord - estimatedDailyBMR * 7).coerceAtLeast(0.0)
-            } else if (totalStepsWeek > 0) {
-                // Fallback 2: Estimate calories from weekly steps
-                totalStepsWeek * caloriesPerStep
+                val estimatedFromTotal = (totalCaloriesWeekFromRecord - estimatedDailyBMR * 7).coerceAtLeast(0.0)
+                maxOf(estimatedFromTotal, estimatedFromWeeklySteps)
             } else {
-                0.0
+                estimatedFromWeeklySteps
             }
             android.util.Log.d("HealthConnect", "=== FINAL CALORIES (with fallback) ===")
             android.util.Log.d("HealthConnect", "Activity calories for date: $caloriesBurnedForDate")
             android.util.Log.d("HealthConnect", "Activity calories for week: $weeklyCaloriesBurned")
             
             // Calculate Daily Record (Max ACTIVE calories burned in a single day within the last 7 days)
-            // Use active calories, or estimate from total minus BMR, or estimate from steps
-            val activeCaloriesByDay = activeCaloriesResponse.records
-                .filter { it.startTime >= startOfWeek } // Only last 7 days
-                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
-                .mapValues { (_, records) -> records.sumOf { it.energy.inKilocalories } }
-            
-            // Fallback 1: Estimate from total calories minus BMR
-            val totalCaloriesByDay = totalCaloriesResponse.records
-                .filter { it.startTime >= startOfWeek }
-                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
-                .mapValues { (_, records) -> 
-                    (records.sumOf { it.energy.inKilocalories } - estimatedDailyBMR).coerceAtLeast(0.0)
+            // We must calculate the best value for EACH day individually using the same fallback logic as today
+            val historicalDailyCalories = (0..6).map { daysAgo ->
+                val targetDate = date.minusDays(daysAgo.toLong())
+                
+                // Active Calories for this specific day
+                val dailyActive = activeCaloriesResponse.records
+                    .filter { it.startTime.atZone(zoneId).toLocalDate() == targetDate }
+                    .sumOf { it.energy.inKilocalories }
+                    
+                // Total Calories for this specific day
+                val dailyTotal = totalCaloriesResponse.records
+                    .filter { it.startTime.atZone(zoneId).toLocalDate() == targetDate }
+                    .sumOf { it.energy.inKilocalories }
+                    
+                // Steps for this specific day
+                val dailySteps = stepsResponse.records
+                    .filter { it.startTime.atZone(zoneId).toLocalDate() == targetDate }
+                    .sumOf { it.count }
+                
+                val dailyEstimatedFromSteps = dailySteps * caloriesPerStep
+                
+                if (dailyActive > 0) {
+                     maxOf(dailyActive, dailyEstimatedFromSteps)
+                } else if (dailyTotal > estimatedDailyBMR) {
+                     val dailyEstimatedFromTotal = (dailyTotal - estimatedDailyBMR).coerceAtLeast(0.0)
+                     maxOf(dailyEstimatedFromTotal, dailyEstimatedFromSteps)
+                } else {
+                     dailyEstimatedFromSteps
                 }
-            
-            // Fallback 2: Estimate from steps
-            val stepsByDayForCalories = stepsResponse.records
-                .filter { it.startTime >= startOfWeek }
-                .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
-                .mapValues { (_, records) -> records.sumOf { it.count } * caloriesPerStep }
-            
-            // Priority: Active > Total-BMR > Steps-based
-            val estimatedCaloriesByDay = when {
-                activeCaloriesByDay.isNotEmpty() -> activeCaloriesByDay
-                totalCaloriesByDay.any { it.value > 0 } -> totalCaloriesByDay
-                else -> stepsByDayForCalories
             }
             
-            val maxCaloriesRecord = estimatedCaloriesByDay.values.maxOrNull() ?: 0.0
+            // Ensure the record includes TODAY's fully calculated value
+            val historicalMaxCalories = historicalDailyCalories.maxOrNull() ?: 0.0
+            val maxCaloriesRecord = maxOf(historicalMaxCalories, caloriesBurnedForDate)
+            
             android.util.Log.d("HealthConnect", "Max calories record (activity only): $maxCaloriesRecord")
-            android.util.Log.d("HealthConnect", "Active calories by day count: ${activeCaloriesByDay.size}")
+            android.util.Log.d("HealthConnect", "Historical days calculated: ${historicalDailyCalories.size}")
             
             // Calculate max steps record (best daily steps in past 7 days)
             val stepsByDay = stepsResponse.records
                 .filter { it.startTime >= startOfWeek } // Only last 7 days
                 .groupBy { it.startTime.atZone(zoneId).toLocalDate() }
                 .mapValues { (_, records) -> records.sumOf { it.count } }
-            val maxStepsRecord = stepsByDay.values.maxOrNull() ?: 0L
+            
+            // Ensure record includes TODAY
+            val historicalMaxSteps = stepsByDay.values.maxOrNull() ?: 0L
+            val maxStepsRecord = maxOf(historicalMaxSteps, totalStepsForDate)
             android.util.Log.d("HealthConnect", "Max steps record (7d): $maxStepsRecord")
             android.util.Log.d("HealthConnect", "Steps by day count: ${stepsByDay.size}")
             

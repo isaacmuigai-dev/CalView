@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Detalhamento Avançado de Macronutrientes</string>
     <string name="feature_trends_insights">Tendências e Insights Personalizados</string>
     <string name="feature_no_ads">Sem Anúncios</string>
+    <string name="feature_voice_logging">Registro de Alimentos por Voz</string>
+    <string name="feature_ai_coach">Notificações do Treinador IA</string>
+    <string name="feature_streak_freeze">Congelar Sequência (3/mês)</string>
+    <string name="feature_water_reminders">Lembretes de Água Inteligentes</string>
+    <string name="feature_social_challenges">Desafios Sociais e Classificações</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Carregando planos...</string>

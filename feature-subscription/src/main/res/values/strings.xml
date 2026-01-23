@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Advanced Macronutrient Breakdown</string>
     <string name="feature_trends_insights">Personalized Trends &amp; Insights</string>
     <string name="feature_no_ads">No Ads</string>
+    <string name="feature_voice_logging">Voice Food Logging</string>
+    <string name="feature_ai_coach">AI Coach Notifications</string>
+    <string name="feature_streak_freeze">Streak Freeze (3/month)</string>
+    <string name="feature_water_reminders">Smart Water Reminders</string>
+    <string name="feature_social_challenges">Social Challenges &amp; Leaderboards</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Loading plans...</string>

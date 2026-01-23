@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">उन्नत मैक्रोन्यूट्रिएंट ब्रेकडाउन</string>
     <string name="feature_trends_insights">रुझान और वैयक्तिकृत अंतर्दृष्टि</string>
     <string name="feature_no_ads">कोई विज्ञापन नहीं</string>
+    <string name="feature_voice_logging">वॉयस फूड लॉगिंग</string>
+    <string name="feature_ai_coach">AI कोच सूचनाएं</string>
+    <string name="feature_streak_freeze">स्ट्रीक फ्रीज (3/माह)</string>
+    <string name="feature_water_reminders">स्मार्ट जल अनुस्मारक</string>
+    <string name="feature_social_challenges">सामाजिक चुनौतियां और लीडरबोर्ड</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">योजनाएं लोड हो रही हैं...</string>

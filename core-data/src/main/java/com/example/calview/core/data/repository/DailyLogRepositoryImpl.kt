@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.example.calview.core.data.local.SocialChallengeType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -20,7 +21,8 @@ import javax.inject.Singleton
 class DailyLogRepositoryImpl @Inject constructor(
     private val dailyLogDao: DailyLogDao,
     private val authRepository: AuthRepository,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val socialChallengeRepository: SocialChallengeRepository
 ) : DailyLogRepository {
     
     companion object {
@@ -58,6 +60,7 @@ class DailyLogRepositoryImpl @Inject constructor(
         if (existing != null) {
             dailyLogDao.updateSteps(date, steps)
             syncLogToCloud(existing.copy(steps = steps))
+            socialChallengeRepository.updateUserProgressForType(SocialChallengeType.STEPS, steps)
         } else {
             val newLog = DailyLogEntity(date = date, steps = steps)
             dailyLogDao.insertOrUpdate(newLog)
@@ -70,6 +73,7 @@ class DailyLogRepositoryImpl @Inject constructor(
         if (existing != null) {
             dailyLogDao.updateWater(date, water)
             syncLogToCloud(existing.copy(waterIntake = water))
+            socialChallengeRepository.updateUserProgressForType(SocialChallengeType.WATER, water)
         } else {
             val newLog = DailyLogEntity(date = date, waterIntake = water)
             dailyLogDao.insertOrUpdate(newLog)

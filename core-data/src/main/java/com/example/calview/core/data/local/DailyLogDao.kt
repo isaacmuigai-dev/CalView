@@ -33,6 +33,9 @@ interface DailyLogDao {
     @Query("UPDATE daily_logs SET waterIntake = :water WHERE date = :date")
     suspend fun updateWater(date: String, water: Int)
     
+    @Query("UPDATE daily_logs SET waterIntake = waterIntake + :amount WHERE date = :date")
+    suspend fun addWater(date: String, amount: Int)
+    
     @Query("UPDATE daily_logs SET weight = :weight WHERE date = :date")
     suspend fun updateWeight(date: String, weight: Float)
     

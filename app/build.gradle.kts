@@ -17,8 +17,8 @@ android {
         applicationId = "com.calviewai.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.3"
+        versionCode = 16
+        versionName = "1.9.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.material.icons.extended)
     
     // Window Size Class for adaptive layouts

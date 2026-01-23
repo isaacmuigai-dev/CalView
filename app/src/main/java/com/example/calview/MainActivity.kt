@@ -18,9 +18,14 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,6 +79,11 @@ import com.example.calview.feature.dashboard.FeatureRequestScreen
 import com.example.calview.feature.dashboard.LanguageSelectorScreen
 import com.example.calview.feature.dashboard.AutoGenerateGoalsNavHost
 import com.example.calview.feature.dashboard.NutritionGoals
+import com.example.calview.feature.dashboard.FastingScreen
+import com.example.calview.feature.dashboard.ChallengesScreen
+
+import com.example.calview.feature.dashboard.SocialChallengesScreen
+import com.example.calview.feature.dashboard.SocialChallengesViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -345,7 +355,7 @@ fun AppNavigation(
         }
         
         composable(
-            route = "main?tab={tab}&scrollToUploads={scrollToUploads}&showScanMenu={showScanMenu}",
+            route = "main?tab={tab}&scrollToUploads={scrollToUploads}&showScanMenu={showScanMenu}&scrollToMealId={scrollToMealId}",
             arguments = listOf(
                 androidx.navigation.navArgument("tab") {
                     type = androidx.navigation.NavType.IntType
@@ -358,17 +368,32 @@ fun AppNavigation(
                 androidx.navigation.navArgument("showScanMenu") {
                     type = androidx.navigation.NavType.BoolType
                     defaultValue = false
+                },
+                androidx.navigation.navArgument("scrollToMealId") {
+                    type = androidx.navigation.NavType.LongType
+                    defaultValue = -1L
                 }
             )
         ) { backStackEntry ->
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
             val scrollToUploads = backStackEntry.arguments?.getBoolean("scrollToUploads") ?: false
             val showScanMenuArg = backStackEntry.arguments?.getBoolean("showScanMenu") ?: false
+            val showScanMenuBackstack by backStackEntry.savedStateHandle.getLiveData<Boolean>("showScanMenu").observeAsState(false)
+            val scrollToMealId = backStackEntry.arguments?.getLong("scrollToMealId") ?: -1L
             val isPremium by (billingManager?.isPremium ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState()
+            
+            // Reset the backstack flag once handled to prevent re-triggering on tab switch
+            LaunchedEffect(showScanMenuBackstack) {
+                if (showScanMenuBackstack) {
+                    backStackEntry.savedStateHandle["showScanMenu"] = false
+                }
+            }
+            
             MainTabs(
                 initialTab = initialTab,
                 scrollToRecentUploads = scrollToUploads,
-                showScanMenuOnStart = showScanMenuArg,
+                scrollToMealId = scrollToMealId,
+                showScanMenuOnStart = showScanMenuArg || showScanMenuBackstack,
                 isPremium = isPremium,
                 onPaywallClick = { navController.navigate("paywall") },
                 onScanClick = { navController.navigate("scanner") },
@@ -384,6 +409,9 @@ fun AppNavigation(
                 onPrivacyClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/privacy_policy.html"))) },
                 onFeatureRequestClick = { navController.navigate("feature_request") },
                 onLicensesClick = { navController.navigate("open_source_licenses") },
+                onFastingClick = { navController.navigate("fasting") },
+                onChallengesClick = { navController.navigate("challenges") },
+                onAchievementsClick = { navController.navigate("achievements") },
                 onDeleteAccount = {
                     scope.launch {
                         // Get user ID before deletion (needed for Firestore cleanup)
@@ -499,9 +527,7 @@ fun AppNavigation(
         composable("how_to_add_widget") {
             HowToAddWidgetScreen(
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -512,9 +538,7 @@ fun AppNavigation(
             val feedbackHubViewModel: com.example.calview.feature.dashboard.FeedbackHubViewModel = hiltViewModel()
             FeatureRequestScreen(
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 },
                 viewModel = feedbackHubViewModel
             )
@@ -523,25 +547,28 @@ fun AppNavigation(
         composable("open_source_licenses") {
             OpenSourceLicensesScreen(
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
         
         composable("scanner") {
             val scannerViewModel: ScannerViewModel = hiltViewModel()
+            val isPremium by (billingManager?.isPremium ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState()
+            
             ScannerScreen(
                 viewModel = scannerViewModel,
+                isPremium = isPremium,
                 onClose = { navController.popBackStack() },
-                onFoodCaptured = {
+                onNavigateToDashboard = { mealId ->
                     // Navigate to dashboard (Home tab) after food capture
-                    // scrollToUploads=true triggers auto-scroll to Recent Uploads section
-                    navController.navigate("main?tab=0&scrollToUploads=true") {
+                    // Pass mealId to trigger auto-scroll
+                    val route = if (mealId != null) "main?tab=0&scrollToMealId=$mealId" else "main?tab=0"
+                    navController.navigate(route) {
                         popUpTo("main") { inclusive = true }
                     }
-                }
+                },
+                onUpgradeClick = { navController.navigate("paywall") }
             )
         }
         
@@ -571,7 +598,10 @@ fun AppNavigation(
             
             MyMealsScreen(
                 meals = meals,
-                onBack = { navController.popBackStack() },
+                onBack = { 
+                    navController.previousBackStackEntry?.savedStateHandle?.set("showScanMenu", true)
+                    navController.popBackStack("main", false)
+                },
                 onScanFood = { navController.navigate("scanner") },
                 onCreateMeal = { name, calories, protein, carbs, fats ->
                     scannerViewModel.createCustomMeal(name, calories, protein, carbs, fats)
@@ -601,9 +631,7 @@ fun AppNavigation(
             ReferYourFriendScreen(
                 referralCode = uiState.referralCode,
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -611,9 +639,7 @@ fun AppNavigation(
         composable("personal_details") {
             PersonalDetailsScreen(
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 },
                 onEditGoalWeight = { navController.navigate("edit_goal_weight") },
                 onEditHeightWeight = { navController.navigate("edit_height_weight") },
@@ -710,9 +736,7 @@ fun AppNavigation(
                 currentCarbs = currentCarbs,
                 currentFats = currentFats,
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 },
                 onSave = { calories, protein, carbs, fats, fiber, sugar, sodium ->
                     // Save nutrition goals to repository
@@ -724,9 +748,7 @@ fun AppNavigation(
                             fats = fats
                         )
                     }
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 },
                 onAutoGenerate = {
                     navController.navigate("auto_generate_goals")
@@ -771,9 +793,7 @@ fun AppNavigation(
             WeightHistoryScreen(
                 weightHistory = emptyList(), // TODO: Load from repository
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -782,9 +802,7 @@ fun AppNavigation(
             LanguageSelectorScreen(
                 currentLanguage = "en",
                 onBack = { 
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 },
                 onLanguageSelected = { languageCode ->
                     // Save language preference
@@ -793,9 +811,41 @@ fun AppNavigation(
                             repo.setLanguage(languageCode)
                         }
                     }
-                    navController.navigate("main?tab=2") {
-                        popUpTo("main?tab=2") { inclusive = true }
-                    }
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("challenges") {
+            val isPremium by (billingManager?.isPremium ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState()
+            val viewModel: SocialChallengesViewModel = hiltViewModel()
+            SocialChallengesScreen(
+                isPremium = isPremium,
+                onNavigateBack = { 
+                    navController.previousBackStackEntry?.savedStateHandle?.set("showScanMenu", true)
+                    navController.popBackStack("main", false)
+                },
+                onUpgradeClick = { navController.navigate("paywall") },
+                viewModel = viewModel
+            )
+        }
+        
+
+
+        composable("achievements") {
+            ChallengesScreen(
+                onNavigateBack = { 
+                    navController.previousBackStackEntry?.savedStateHandle?.set("showScanMenu", true)
+                    navController.popBackStack("main", false)
+                }
+            )
+        }
+        
+        composable("fasting") {
+            FastingScreen(
+                onNavigateBack = { 
+                    navController.previousBackStackEntry?.savedStateHandle?.set("showScanMenu", true)
+                    navController.popBackStack("main", false)
                 }
             )
         }
@@ -854,6 +904,7 @@ private fun handleSignInResult(
 fun MainTabs(
     initialTab: Int = 0,
     scrollToRecentUploads: Boolean = false,
+    scrollToMealId: Long = -1L,
     showScanMenuOnStart: Boolean = false,
     isPremium: Boolean = false,
     onPaywallClick: () -> Unit = {},
@@ -870,15 +921,31 @@ fun MainTabs(
     onPrivacyClick: () -> Unit = {},
     onFeatureRequestClick: () -> Unit = {},
     onLicensesClick: () -> Unit = {},
+
+    onFastingClick: () -> Unit = {},
+    onChallengesClick: () -> Unit = {},
+    onAchievementsClick: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableIntStateOf(initialTab) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(initialTab) }
     var showCameraMenu by remember { mutableStateOf(showScanMenuOnStart) }
+    
+    // Automatically show menu when signaled from navigation
+    LaunchedEffect(showScanMenuOnStart) {
+        if (showScanMenuOnStart) {
+            showCameraMenu = true
+        }
+    }
+    
+    // State to track if we should auto-scroll to uploads (reset after handled)
+    var shouldScrollToUploads by rememberSaveable(scrollToRecentUploads) { mutableStateOf(scrollToRecentUploads) }
+    var currentScrollToMealId by rememberSaveable(scrollToMealId) { mutableLongStateOf(scrollToMealId) }
     
     // Hoist scroll states at MainTabs level to survive navigation
     val settingsScrollState = androidx.compose.foundation.rememberScrollState()
     val dashboardLazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val scope = rememberCoroutineScope()
     
     // Handler for FAB click - checks premium status first
     val onFabClick: () -> Unit = {
@@ -900,33 +967,86 @@ fun MainTabs(
             containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Food Database option
-                CameraMenuItem(
-                    icon = Icons.Filled.Search,
-                    label = "Food Database",
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        showCameraMenu = false
-                        onFoodDatabaseClick()
-                    }
-                )
+                // Row 1: Food & Scan
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Food Database option
+                    CameraMenuItem(
+                        icon = Icons.Filled.Search,
+                        label = "Food Database",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onFoodDatabaseClick()
+                        }
+                    )
+                    
+                    // Scan Food option
+                    CameraMenuItem(
+                        icon = Icons.Filled.CameraAlt,
+                        label = "Scan Food",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onScanClick()
+                        }
+                    )
+                }
                 
-                // Scan Food option
-                CameraMenuItem(
-                    icon = Icons.Filled.CameraAlt,
-                    label = "Scan Food",
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        showCameraMenu = false
-                        onScanClick()
-                    }
-                )
+                // Row 2: Fasting & Challenges
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Fasting Timer
+                    CameraMenuItem(
+                        icon = Icons.Filled.Timer,
+                        label = "Fasting Timer",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onFastingClick()
+                        }
+                    )
+                    
+                    // Challenges
+                    CameraMenuItem(
+                        icon = Icons.Filled.EmojiEvents,
+                        label = "Challenges",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onChallengesClick()
+                        }
+                    )
+                }
+
+                // Row 3: Achievements
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Achievements (Badges)
+                    CameraMenuItem(
+                        icon = Icons.Filled.Star,
+                        label = "Achievements",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onAchievementsClick()
+                        }
+                    )
+                    // Spacer for grid balance
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -965,7 +1085,14 @@ fun MainTabs(
                 navigationItems.forEach { (icon, label, index) ->
                     NavigationRailItem(
                         selected = selectedTab == index,
-                        onClick = { selectedTab = index },
+                        onClick = { 
+                            if (selectedTab == index && index == 0) {
+                                scope.launch {
+                                    dashboardLazyListState.animateScrollToItem(0)
+                                }
+                            }
+                            selectedTab = index 
+                        },
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label) },
                         colors = NavigationRailItemDefaults.colors(
@@ -981,9 +1108,15 @@ fun MainTabs(
             
             // Main content area
             Box(modifier = Modifier.fillMaxSize()) {
+
                 MainTabsContent(
                     selectedTab = selectedTab,
-                    scrollToRecentUploads = scrollToRecentUploads,
+                    scrollToRecentUploads = shouldScrollToUploads,
+                    scrollToMealId = currentScrollToMealId,
+                    onScrollHandled = { 
+                        shouldScrollToUploads = false 
+                        currentScrollToMealId = -1L
+                    },
                     settingsScrollState = settingsScrollState,
                     dashboardLazyListState = dashboardLazyListState,
                     onEditNameClick = onEditNameClick,
@@ -997,6 +1130,8 @@ fun MainTabs(
                     onPrivacyClick = onPrivacyClick,
                     onFeatureRequestClick = onFeatureRequestClick,
                     onLicensesClick = onLicensesClick,
+                    onFastingClick = onFastingClick,
+                    onChallengesClick = onChallengesClick,
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -1024,7 +1159,16 @@ fun MainTabs(
                             icon = Icons.Filled.Home,
                             label = "Home",
                             isSelected = selectedTab == 0,
-                            onClick = { selectedTab = 0 }
+                            onClick = { 
+                                if (selectedTab == 0) {
+                                    // Already on Home, scroll to top
+                                    scope.launch {
+                                        dashboardLazyListState.animateScrollToItem(0)
+                                    }
+                                } else {
+                                    selectedTab = 0 
+                                }
+                            }
                         )
                         
                         // Progress
@@ -1064,7 +1208,12 @@ fun MainTabs(
             Box(modifier = Modifier.padding(padding)) {
                 MainTabsContent(
                     selectedTab = selectedTab,
-                    scrollToRecentUploads = scrollToRecentUploads,
+                    scrollToRecentUploads = shouldScrollToUploads,
+                    scrollToMealId = currentScrollToMealId,
+                    onScrollHandled = { 
+                        shouldScrollToUploads = false 
+                        currentScrollToMealId = -1L
+                    },
                     settingsScrollState = settingsScrollState,
                     dashboardLazyListState = dashboardLazyListState,
                     onEditNameClick = onEditNameClick,
@@ -1078,6 +1227,9 @@ fun MainTabs(
                     onPrivacyClick = onPrivacyClick,
                     onFeatureRequestClick = onFeatureRequestClick,
                     onLicensesClick = onLicensesClick,
+
+                    onFastingClick = onFastingClick,
+                    onChallengesClick = onChallengesClick,
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -1093,6 +1245,8 @@ fun MainTabs(
 private fun MainTabsContent(
     selectedTab: Int,
     scrollToRecentUploads: Boolean = false,
+    scrollToMealId: Long = -1L,
+    onScrollHandled: () -> Unit = {},
     settingsScrollState: androidx.compose.foundation.ScrollState,
     dashboardLazyListState: androidx.compose.foundation.lazy.LazyListState,
     onEditNameClick: (String) -> Unit,
@@ -1106,6 +1260,8 @@ private fun MainTabsContent(
     onPrivacyClick: () -> Unit,
     onFeatureRequestClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onFastingClick: () -> Unit,
+    onChallengesClick: () -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -1115,7 +1271,12 @@ private fun MainTabsContent(
             DashboardScreen(
                 viewModel = dashboardViewModel, 
                 lazyListState = dashboardLazyListState,
-                scrollToRecentUploads = scrollToRecentUploads
+                scrollToRecentUploads = scrollToRecentUploads,
+                scrollToMealId = scrollToMealId,
+                onScrollHandled = onScrollHandled,
+
+                onFastingClick = onFastingClick,
+                onChallengesClick = onChallengesClick
             )
         }
         1 -> ProgressScreen()

@@ -33,9 +33,6 @@ android {
     }
     
     // Enable asset file access
-    aaptOptions {
-        noCompress += "tflite"
-    }
 }
 
 dependencies {

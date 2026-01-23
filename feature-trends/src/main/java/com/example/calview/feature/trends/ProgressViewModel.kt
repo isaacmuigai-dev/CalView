@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.repository.StreakFreezeRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.state.SelectedDateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -91,9 +92,19 @@ data class ProgressUiState(
     // Weight history
     val weightHistory: List<WeightEntry> = emptyList(),
     
+    // Weight Prediction
+    val predictedWeight30Days: Float = 0f,
+    val predictedDate: String? = null,
+    val predictionTrend: com.example.calview.core.data.prediction.WeightPredictionEngine.Trend = com.example.calview.core.data.prediction.WeightPredictionEngine.Trend.INSUFFICIENT_DATA,
+    
     // Selected date display
     val selectedDate: LocalDate = LocalDate.now(),
     val isToday: Boolean = true,
+    
+    // Streak Freeze
+    val remainingFreezes: Int = 0,
+    val maxFreezes: Int = 2,
+    val yesterdayMissed: Boolean = false,
     
     // Loading state
     val isLoading: Boolean = true
@@ -105,7 +116,10 @@ class ProgressViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val mealRepository: MealRepository,
     private val healthConnectManager: HealthConnectManager,
-    private val selectedDateHolder: SelectedDateHolder
+    private val selectedDateHolder: SelectedDateHolder,
+    private val weightDao: com.example.calview.core.data.local.WeightHistoryDao,
+    private val predictionEngine: com.example.calview.core.data.prediction.WeightPredictionEngine,
+    private val streakFreezeRepository: StreakFreezeRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ProgressUiState())
@@ -203,6 +217,13 @@ class ProgressViewModel @Inject constructor(
         // Collect Health Connect data
         viewModelScope.launch {
             healthConnectManager.healthData.collect { healthData ->
+                // Sync to widget whenever we get fresh data
+                userPreferencesRepository.setActivityStats(
+                    caloriesBurned = healthData.caloriesBurned.toInt(),
+                    weeklyBurn = healthData.weeklyCaloriesBurned.toInt(),
+                    recordBurn = healthData.maxCaloriesBurnedRecord.toInt()
+                )
+                
                 _uiState.update { 
                     it.copy(
                         todaySteps = healthData.steps.toInt(),
@@ -329,16 +350,68 @@ class ProgressViewModel @Inject constructor(
             }
         }
         
-        // Generate sample weight history (in real app, this would come from a WeightHistory table)
+        // Load real weight history and generate prediction
         viewModelScope.launch {
-            userPreferencesRepository.weight.first().let { currentWeight ->
-                val history = (6 downTo 0).map { daysAgo ->
-                    WeightEntry(
-                        date = LocalDate.now().minusDays(daysAgo.toLong()),
-                        weight = currentWeight + (daysAgo * 0.3f) // Simulated weight loss
+            // Combine history and goal weight to generate prediction
+            combine(
+                weightDao.getAllWeightHistory(),
+                userPreferencesRepository.goalWeight
+            ) { historyEntities, goalWeight ->
+                // Convert entities to UI model
+                val uiHistory = historyEntities.map { entity ->
+                     WeightEntry(
+                         date = java.time.Instant.ofEpochMilli(entity.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+                         weight = entity.weight
+                     )
+                }.sortedByDescending { it.date }
+                
+                // Generate prediction
+                val prediction = predictionEngine.predictWeight(historyEntities, goalWeight)
+                val predDateStr = prediction.projectedDate?.let {
+                    java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(it)
+                }
+                
+                Triple(uiHistory, prediction, predDateStr)
+            }.collect { (history, prediction, dateStr) ->
+                _uiState.update { 
+                    it.copy(
+                        weightHistory = history,
+                        predictedWeight30Days = prediction.predictedWeight30Days,
+                        predictedDate = dateStr,
+                        predictionTrend = prediction.trend
                     )
                 }
-                _uiState.update { it.copy(weightHistory = history) }
+            }
+        }
+        
+        // Load streak freeze data
+        viewModelScope.launch {
+            streakFreezeRepository.ensureStreakFreezeInitialized()
+            streakFreezeRepository.observeCurrentMonthFreezes().collect { freeze ->
+                val remaining = freeze?.let { (it.maxFreezes - it.freezesUsed).coerceAtLeast(0) } ?: 2
+                val max = freeze?.maxFreezes ?: 2
+                
+                // Check if yesterday was missed (no meals logged) AND not already frozen
+                val yesterday = LocalDate.now().minusDays(1)
+                val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+                val yesterdayStr = yesterday.format(formatter)
+                
+                val isFrozen = freeze?.frozenDates?.split(",")?.contains(yesterdayStr) == true
+                
+                val yesterdayMeals = mealRepository.getMealsForDate(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(yesterday)
+                ).first()
+                
+                // Missed only if NO meals AND NOT frozen
+                val missedYesterday = yesterdayMeals.isEmpty() && !isFrozen
+                
+                _uiState.update { 
+                    it.copy(
+                        remainingFreezes = remaining,
+                        maxFreezes = max,
+                        yesterdayMissed = missedYesterday
+                    )
+                }
             }
         }
     }
@@ -351,6 +424,13 @@ class ProgressViewModel @Inject constructor(
             if (healthConnectManager.isAvailable()) {
                 healthConnectManager.readTodayData()
             }
+        }
+    }
+    
+    fun useStreakFreeze() {
+        viewModelScope.launch {
+            val yesterday = LocalDate.now().minusDays(1)
+            streakFreezeRepository.useFreeze(yesterday)
         }
     }
 }

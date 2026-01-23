@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -76,14 +77,16 @@ fun ProgressScreen(
     
     ProgressContent(
         uiState = uiState,
-        onRefresh = { viewModel.refreshData() }
+        onRefresh = { viewModel.refreshData() },
+        onUseStreakFreeze = { viewModel.useStreakFreeze() }
     )
 }
 
 @Composable
 fun ProgressContent(
     uiState: ProgressUiState,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onUseStreakFreeze: () -> Unit = {}
 ) {
     var animationTriggered by remember { mutableStateOf(false) }
     
@@ -146,11 +149,30 @@ fun ProgressContent(
             animationTriggered = animationTriggered
         )
         
+        // 1.6. Streak Freeze Card (New)
+        StreakFreezeCard(
+            remainingFreezes = uiState.remainingFreezes,
+            maxFreezes = uiState.maxFreezes,
+            canUseFreeze = uiState.remainingFreezes > 0, 
+            yesterdayMissed = uiState.yesterdayMissed,
+            currentStreak = uiState.dayStreak,
+            onUseFreeze = onUseStreakFreeze
+        )
+        
+        
         // 2. Weight Goal Card
         WeightProgressCard(
             currentWeight = uiState.currentWeight,
             goalWeight = uiState.goalWeight,
             progress = uiState.weightProgress,
+            animationTriggered = animationTriggered
+        )
+        
+        // 2.5. Weight Prediction (Premium)
+        WeightPredictionCard(
+            predictedWeight = uiState.predictedWeight30Days,
+            projectedDate = uiState.predictedDate,
+            trend = uiState.predictionTrend,
             animationTriggered = animationTriggered
         )
         
@@ -498,13 +520,14 @@ fun AnimatedStatCard(
                     }
                     
                     // Mini progress ring
+                    val trackColor = MaterialTheme.colorScheme.surfaceVariant
                     Box(
                         modifier = Modifier.size(36.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             drawArc(
-                                color = Color(0xFFE5E7EB),
+                                color = trackColor,
                                 startAngle = -90f,
                                 sweepAngle = 360f,
                                 useCenter = false,
@@ -1622,5 +1645,70 @@ private fun WeeklyStatItem(
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+fun StreakFreezeCard(
+    remainingFreezes: Int,
+    maxFreezes: Int,
+    canUseFreeze: Boolean,
+    yesterdayMissed: Boolean,
+    currentStreak: Int,
+    onUseFreeze: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.DateRange,
+                    contentDescription = null,
+                    tint = Color(0xFF00B0FF),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Streak Freeze",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "$remainingFreezes/$maxFreezes Available",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (yesterdayMissed && canUseFreeze) {
+               Text(
+                   text = "You missed a day! Use a freeze to keep your $currentStreak day streak.",
+                   style = MaterialTheme.typography.bodyMedium
+               )
+               Spacer(modifier = Modifier.height(8.dp))
+               Button(onClick = onUseFreeze, modifier = Modifier.fillMaxWidth()) {
+                   Text("Use Streak Freeze")
+               }
+            } else {
+                Text(
+                    text = "Your streak is safe. Freezes automatically protect your progress.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

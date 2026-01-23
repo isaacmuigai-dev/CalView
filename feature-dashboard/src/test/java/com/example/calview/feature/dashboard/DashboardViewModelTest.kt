@@ -39,8 +39,9 @@ class DashboardViewModelTest {
     private val userPreferencesRepository: UserPreferencesRepository = mockk()
     private val healthConnectManager: HealthConnectManager = mockk(relaxed = true)
     private val foodAnalysisService: FoodAnalysisService = mockk(relaxed = true)
-    // Add SelectedDateHolder mock
+    private val coachMessageGenerator: com.example.calview.core.data.coach.CoachMessageGenerator = mockk(relaxed = true)
     private val selectedDateHolder: com.example.calview.core.data.state.SelectedDateHolder = mockk(relaxed = true)
+    private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true)
     
     // Use UnconfinedTestDispatcher for immediate execution
@@ -75,6 +76,12 @@ class DashboardViewModelTest {
         coEvery { userPreferencesRepository.syncWidgetData() } returns Unit
         coEvery { userPreferencesRepository.setLastKnownSteps(any()) } returns Unit
         
+        // Water Reminder
+        val defaultWaterSettings = com.example.calview.core.data.local.WaterReminderSettingsEntity(
+            id = 1, enabled = false, intervalHours = 2, startHour = 8, endHour = 22, dailyGoalMl = 2000
+        )
+        coEvery { waterReminderRepository.observeSettings() } returns flowOf(defaultWaterSettings)
+        
         // Health Connect
         every { healthConnectManager.healthData } returns MutableStateFlow(HealthData())
         coEvery { healthConnectManager.isAvailable() } returns false
@@ -92,7 +99,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         
@@ -135,7 +144,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         
@@ -190,7 +201,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         
@@ -228,7 +241,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         
@@ -249,7 +264,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         
@@ -275,7 +292,9 @@ class DashboardViewModelTest {
             userPreferencesRepository, 
             healthConnectManager, 
             foodAnalysisService, 
+            coachMessageGenerator,
             selectedDateHolder,
+            waterReminderRepository,
             context
         )
         

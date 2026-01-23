@@ -196,6 +196,11 @@ fun PaywallScreen(
                 PremiumFeatureItem(stringResource(R.string.feature_unlimited_scans))
                 PremiumFeatureItem(stringResource(R.string.feature_advanced_macros))
                 PremiumFeatureItem(stringResource(R.string.feature_trends_insights))
+                PremiumFeatureItem(stringResource(R.string.feature_voice_logging))
+                PremiumFeatureItem(stringResource(R.string.feature_ai_coach))
+                PremiumFeatureItem(stringResource(R.string.feature_streak_freeze))
+                PremiumFeatureItem(stringResource(R.string.feature_water_reminders))
+                PremiumFeatureItem(stringResource(R.string.feature_social_challenges))
                 PremiumFeatureItem(stringResource(R.string.feature_no_ads))
             }
 

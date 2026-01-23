@@ -1,3 +1,5 @@
+int drawable app_logo_black 0x0
+int drawable app_logo_white 0x0
 int drawable ic_logo_black 0x0
 int drawable ic_logo_white 0x0
 int drawable ic_splash_icon_black 0x0

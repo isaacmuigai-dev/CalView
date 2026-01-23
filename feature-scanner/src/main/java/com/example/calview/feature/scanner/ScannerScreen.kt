@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +50,8 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import com.example.calview.feature.scanner.R
 import androidx.compose.ui.res.stringResource
+import com.example.calview.core.ui.util.rememberHapticsManager
+import com.example.calview.core.ai.voice.VoiceState
 
 // Color palette for premium design
 private val GradientStart = Color(0xFF1E3A5F)  // Darker navy blue
@@ -65,9 +69,27 @@ enum class ScanMode {
 fun ScannerScreen(
     viewModel: ScannerViewModel,
     onClose: () -> Unit,
-    onFoodCaptured: () -> Unit = onClose // Default to onClose for backwards compatibility
+    onNavigateToDashboard: (Long?) -> Unit = { onClose() },
+    isPremium: Boolean = false,
+    onUpgradeClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Handle navigation events
+    LaunchedEffect(uiState) {
+        if (uiState is ScannerUiState.Redirecting) {
+            val mealId = (uiState as ScannerUiState.Redirecting).mealId
+            kotlinx.coroutines.delay(1200) // 1.2s delay for "Redirecting..." visibility
+            onNavigateToDashboard(mealId)
+            viewModel.reset()
+        }
+        if (uiState is ScannerUiState.NavigateToDashboard) {
+            val mealId = (uiState as ScannerUiState.NavigateToDashboard).mealId
+            onNavigateToDashboard(mealId)
+            viewModel.reset()
+        }
+    }
     
     // Camera permission state
     var hasCameraPermission by remember {
@@ -89,43 +111,87 @@ fun ScannerScreen(
             showPermissionDenied = true
         }
     }
+
+    // Audio permission state
+    var hasAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // Audio permission launcher
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasAudioPermission = granted
+        if (granted) {
+            // If granted after request, auto-start listening
+             // We'll handle this via a side effect or just let the user click again for now to be safe,
+             // or check usage below.
+        }
+    }
     
     // Check permission state
-    when {
-        hasCameraPermission && !hasSeenTutorial -> {
-            // Permission granted but tutorial not seen - show best practices
-            CameraBestPracticesScreen(
-                onDismiss = {
-                    viewModel.markTutorialSeen()
-                }
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            hasCameraPermission && !hasSeenTutorial -> {
+                // Permission granted but tutorial not seen - show best practices
+                CameraBestPracticesScreen(
+                    onDismiss = {
+                        viewModel.markTutorialSeen()
+                    }
+                )
+            }
+            hasCameraPermission -> {
+                // Permission granted and tutorial seen - show camera
+                ScannerCameraContent(
+                    viewModel = viewModel,
+                    onClose = onClose,
+                    isPremium = isPremium,
+                    onUpgradeClick = onUpgradeClick
+                )
+            }
+            showPermissionDenied -> {
+                // Permission denied - show denied screen
+                CameraPermissionDeniedScreen(
+                    onGoBack = onClose,
+                    onRetry = {
+                        showPermissionDenied = false
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                )
+            }
+            else -> {
+                // Show permission onboarding screen
+                CameraPermissionScreen(
+                    onGoBack = onClose,
+                    onGrantPermission = {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                )
+            }
         }
-        hasCameraPermission -> {
-            // Permission granted and tutorial seen - show camera
-            ScannerCameraContent(
-                viewModel = viewModel,
-                onClose = onClose,
-                onFoodCaptured = onFoodCaptured
-            )
-        }
-        showPermissionDenied -> {
-            // Permission denied - show denied screen
-            CameraPermissionDeniedScreen(
-                onGoBack = onClose,
-                onRetry = {
-                    showPermissionDenied = false
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
+        
+        // Redirection Overlay
+        if (uiState is ScannerUiState.Redirecting) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) { }, // Prevent clicks
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = Color.White)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Redirecting...",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-            )
-        }
-        else -> {
-            // Show permission onboarding screen
-            CameraPermissionScreen(
-                onGoBack = onClose,
-                onGrantPermission = {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                }
-            )
+            }
         }
     }
 }
@@ -463,7 +529,7 @@ fun CameraBestPracticesScreen(
                 ) {
                     Icon(
                         Icons.Filled.Lightbulb,
-                        contentDescription = null,
+                        contentDescription = "Tip",
                         tint = Color(0xFFFCD34D), // Warm yellow
                         modifier = Modifier.size(24.dp)
                     )
@@ -491,7 +557,7 @@ fun CameraBestPracticesScreen(
             ) {
                 Icon(
                     Icons.Filled.CameraAlt,
-                    contentDescription = null,
+                    contentDescription = "Start camera",
                     tint = GradientStart,
                     modifier = Modifier.size(20.dp)
                 )
@@ -725,15 +791,17 @@ fun CameraPermissionDeniedScreen(
 fun ScannerCameraContent(
     viewModel: ScannerViewModel,
     onClose: () -> Unit,
-    onFoodCaptured: () -> Unit = onClose
+    isPremium: Boolean = false,
+    onUpgradeClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsState()
+    val haptics = rememberHapticsManager()
     
-    // Selected scan mode
-    var selectedMode by remember { mutableStateOf(ScanMode.SCAN_FOOD) }
-    var flashEnabled by remember { mutableStateOf(false) }
+    // Selected scan mode - preserved across configuration changes
+    var selectedMode by rememberSaveable { mutableStateOf(ScanMode.SCAN_FOOD) }
+    var flashEnabled by rememberSaveable { mutableStateOf(false) }
     
     val previewView = remember { PreviewView(context) }
     val imageCapture = remember { ImageCapture.Builder().build() }
@@ -759,6 +827,23 @@ fun ScannerCameraContent(
         }
         // Reset mode back to scan food after picker closes
         selectedMode = ScanMode.SCAN_FOOD
+    }
+
+    // Audio permission state
+    var hasAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // Audio permission launcher
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasAudioPermission = isGranted
     }
     
     // Launch photo picker when gallery mode is selected
@@ -792,96 +877,321 @@ fun ScannerCameraContent(
         }, ContextCompat.getMainExecutor(context))
     }
     
+    // Voice recognition state - preserved across configuration changes
+    var isListening by rememberSaveable { mutableStateOf(false) }
+    val speechRecognizer = remember { android.speech.SpeechRecognizer.createSpeechRecognizer(context) }
+    
+    // Voice state for dialog - not preserved (transient process state, reset on config change)
+    var voiceState by remember { mutableStateOf<VoiceState>(VoiceState.Idle) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            speechRecognizer.destroy()
+        }
+    }
+
     // Toggle flash
     LaunchedEffect(flashEnabled) {
         camera?.cameraControl?.enableTorch(flashEnabled)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-            // Camera preview
-            AndroidView(
-                factory = { previewView },
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Overlay with controls
-            ScannerOverlayWithModes(
-                uiState = uiState,
-                selectedMode = selectedMode,
-                flashEnabled = flashEnabled,
-                onModeSelected = { selectedMode = it },
-                onFlashToggle = { flashEnabled = !flashEnabled },
-                onClose = onClose,
-                onCapture = {
-                    // Different capture behavior based on mode
-                    when (selectedMode) {
-                        ScanMode.BARCODE -> {
-                            // Capture and scan barcode
-                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                                val image = InputImage.fromBitmap(bitmap, 0)
-                                val scanner = BarcodeScanning.getClient()
-                                scanner.process(image)
-                                    .addOnSuccessListener { barcodes ->
-                                        val barcode = barcodes.firstOrNull()?.rawValue
-                                        if (barcode != null) {
-                                            viewModel.lookupBarcode(barcode)
-                                        } else {
-                                            viewModel.reset()
-                                        }
-                                    }
-                                    .addOnFailureListener {
-                                        Log.e("ScannerScreen", "Barcode scan failed", it)
-                                    }
-                            }
-                        }
-                        ScanMode.FOOD_LABEL -> {
-                            // Capture and OCR
-                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                                val image = InputImage.fromBitmap(bitmap, 0)
-                                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                                recognizer.process(image)
-                                    .addOnSuccessListener { visionText ->
-                                        viewModel.parseNutritionFromText(visionText.text)
-                                    }
-                                    .addOnFailureListener {
-                                        Log.e("ScannerScreen", "OCR failed", it)
-                                    }
-                            }
-                        }
-                        else -> {
-                            // Default: AI food analysis
-                            captureImage(imageCapture, cameraExecutor, context) { bitmap ->
-                                viewModel.analyzeImage(bitmap)
-                            }
-                        }
-                    }
-                },
-                onLogMeal = { response ->
-                    viewModel.logMeal(response)
-                },
-                onLogBarcodeProduct = { product ->
-                    viewModel.logBarcodeProduct(product)
-                },
-                onLogOcrNutrition = { nutrition ->
-                    viewModel.logOcrNutrition(nutrition)
-                },
-                onReset = { viewModel.reset() }
-            )
-            
-            // Navigate to dashboard when analysis starts
-            if (uiState is ScannerUiState.NavigateToDashboard) {
-                LaunchedEffect(Unit) {
-                    onFoodCaptured()
-                }
+        // Camera Preview
+        AndroidView(
+            factory = { previewView },
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Gradient Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.3f),
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f)
+                        )
+                    )
+                )
+        )
+        
+        // Top bar - Close and Info buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(16.dp)
+                .align(Alignment.TopStart),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Close button (X)
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
             }
             
-            if (uiState is ScannerUiState.Logged) {
-                LaunchedEffect(Unit) {
-                    onFoodCaptured()
+            // Info button
+            IconButton(
+                onClick = { /* Show info */ },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Info",
+                    tint = Color.White
+                )
+            }
+        }
+        
+        // Center viewfinder - changes based on mode
+        Box(
+            modifier = Modifier.align(Alignment.Center),
+            contentAlignment = Alignment.Center
+        ) {
+            when (selectedMode) {
+                ScanMode.BARCODE -> {
+                    // Barcode viewfinder - rectangular with text above
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.barcode_scanner_title),
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(280.dp)
+                                .height(140.dp)
+                                .border(3.dp, Color.White, RoundedCornerShape(12.dp))
+                        )
+                    }
+                }
+                else -> {
+                    // Square corner brackets viewfinder for Scan Food and Food Label
+                    CornerBracketsViewfinder()
                 }
             }
         }
+        
+        // Bottom section
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Mode selector tabs
+            ModeTabsRow(
+                selectedMode = selectedMode,
+                onModeSelected = { mode ->
+                    haptics.tick()
+                    selectedMode = mode
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Bottom controls - Flash, Capture, Voice
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Flash toggle
+                IconButton(
+                    onClick = { flashEnabled = !flashEnabled },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                        contentDescription = "Toggle Flash",
+                        tint = if (flashEnabled) Color(0xFFFFD700) else Color.White
+                    )
+                }
+                
+                // Shutter button - center
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable {
+                            haptics.click()
+                            imageCapture.takePicture(
+                                ContextCompat.getMainExecutor(context),
+                                object : ImageCapture.OnImageCapturedCallback() {
+                                    override fun onCaptureSuccess(image: ImageProxy) {
+                                        val bitmap = image.toBitmap()
+                                        viewModel.analyzeImage(bitmap)
+                                        image.close()
+                                    }
+                                    
+                                    override fun onError(exception: ImageCaptureException) {
+                                        Log.e("ScannerScreen", "Photo capture failed", exception)
+                                    }
+                                }
+                            )
+                        }
+                        .border(3.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Inner circle with shutter icon pattern
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color.Gray.copy(alpha = 0.3f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Shutter aperture style icon
+                        Icon(
+                            imageVector = Icons.Default.Camera,
+                            contentDescription = "Capture",
+                            tint = Color.Black.copy(alpha = 0.6f),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+                
+                // Voice button - next to shutter
+                IconButton(
+                    onClick = {
+                        haptics.click()
+                        if (!isPremium) {
+                            onUpgradeClick()
+                        } else if (!hasAudioPermission) {
+                            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        } else if (isListening) {
+                            isListening = false
+                            speechRecognizer.stopListening()
+                            voiceState = VoiceState.Idle
+                        } else {
+                            isListening = true
+                            voiceState = VoiceState.Listening
+                            startListening(speechRecognizer, context, onResults = { text ->
+                                isListening = false
+                                voiceState = VoiceState.Processing
+                                viewModel.analyzeSpokenText(text)
+                            }, onPartialResults = { partialText ->
+                                // Update UI with partial text if needed, 
+                                // currently VoiceState doesn't hold text, so we might need to update that.
+                                // For now, we'll just use the final result, but the dialog can show "Listening..."
+                            }, onError = {
+                                isListening = false
+                                voiceState = VoiceState.Error("Didn't catch that. Try again.", 0)
+                            })
+                        }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            if (isListening) Color(0xFFE53935) else Color.Black.copy(alpha = 0.3f),
+                            CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                        contentDescription = if (isListening) "Stop listening" else "Voice log",
+                        tint = Color.White
+                    )
+                }
+            }
+            
+            // Status text
+            if (isListening) {
+                Text(
+                    text = "Listening...",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+        
+        // Voice dialog
+        if (isListening || voiceState !is VoiceState.Idle) {
+            VoiceLoggingDialog(
+                voiceState = voiceState,
+                isListening = isListening,
+                onStopListening = {
+                    isListening = false
+                    speechRecognizer.stopListening()
+                    voiceState = VoiceState.Idle
+                },
+                onDismiss = {
+                    isListening = false
+                    speechRecognizer.stopListening()
+                    voiceState = VoiceState.Idle
+                }
+            )
+        }
     }
+}
+
+private fun startListening(
+    speechRecognizer: android.speech.SpeechRecognizer,
+    context: Context,
+    onResults: (String) -> Unit,
+    onPartialResults: (String) -> Unit = {},
+    onError: () -> Unit
+) {
+    val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(android.speech.RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+    }
+    
+    speechRecognizer.setRecognitionListener(object : android.speech.RecognitionListener {
+        override fun onReadyForSpeech(params: android.os.Bundle?) {}
+        override fun onBeginningOfSpeech() {}
+        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onBufferReceived(buffer: ByteArray?) {}
+        override fun onEndOfSpeech() {}
+        override fun onError(error: Int) { 
+             // Common errors: 7 (No match), 6 (No speech)
+            Log.e("ScannerScreen", "Speech error: $error")
+            onError() 
+        }
+        override fun onResults(results: android.os.Bundle?) {
+            val matches = results?.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION)
+            if (!matches.isNullOrEmpty()) {
+                onResults(matches[0])
+            }
+        }
+        override fun onPartialResults(partialResults: android.os.Bundle?) {
+            val matches = partialResults?.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION)
+            if (!matches.isNullOrEmpty()) {
+                onPartialResults(matches[0])
+            }
+        }
+        override fun onEvent(eventType: Int, params: android.os.Bundle?) {}
+    })
+    
+    speechRecognizer.startListening(intent)
+}
+
+
 
 
 @Composable
@@ -896,8 +1206,10 @@ fun ScannerOverlayWithModes(
     onLogMeal: (com.example.calview.core.ai.model.FoodAnalysisResponse) -> Unit,
     onLogBarcodeProduct: (ProductInfo) -> Unit,
     onLogOcrNutrition: (ParsedNutrition) -> Unit,
-    onReset: () -> Unit
+    onReset: () -> Unit,
+    onMicClick: () -> Unit
 ) {
+    val haptics = rememberHapticsManager()
     Box(modifier = Modifier.fillMaxSize()) {
         // Top bar - Close and Info buttons
         Row(
@@ -1009,10 +1321,27 @@ fun ScannerOverlayWithModes(
                         }
                         
                         // Capture button - shutter style
-                        ShutterButton(onClick = onCapture)
+                        ShutterButton(onClick = {
+                            haptics.click()
+                            onCapture()
+                        })
                         
-                        // Empty space for balance
-                        Spacer(modifier = Modifier.size(48.dp))
+                        // Mic button for Voice Logging
+                        IconButton(
+                            onClick = {
+                                haptics.click()
+                                onMicClick()
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Mic,
+                                contentDescription = "Voice Log",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
                 is ScannerUiState.Loading -> {
@@ -1508,6 +1837,144 @@ private fun NutritionBadge(
             fontSize = 11.sp,
             color = MutedText
         )
+    }
+}
+
+@Composable
+fun VoiceLoggingDialog(
+    voiceState: VoiceState,
+    isListening: Boolean,
+    onStopListening: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .clickable(onClick = onDismiss) // Click outside to dismiss
+    ) {
+        Card(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+                .clickable(enabled = false) {}, // Prevent clicks from passing through
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isListening) "Listening..." else "Processing...",
+                        fontSize = 20.sp, // MaterialTheme.typography.titleLarge
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close", tint = Color.Gray)
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // Visualizer
+                if (isListening) {
+                    VoiceWaveform()
+                } else if (voiceState is VoiceState.Processing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(64.dp),
+                        color = AccentCyan
+                    )
+                } else if (voiceState is VoiceState.Error) {
+                    Icon(
+                        Icons.Filled.ErrorOutline, 
+                        contentDescription = "Error",
+                        tint = Color.Red,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = (voiceState as VoiceState.Error).message,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // Description/Hint
+                Text(
+                    text = if (isListening) "Say something like \"2 eggs and toast\"" else "Please wait while we analyze...",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Stop Button
+                if (isListening) {
+                    Button(
+                        onClick = onStopListening,
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                        modifier = Modifier.size(64.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Stop,
+                            contentDescription = "Stop Listening",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VoiceWaveform() {
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "waveform")
+    val bars = 5
+    val barHeightVars = (0 until bars).map { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 20f,
+            targetValue = 60f,
+            animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                animation = androidx.compose.animation.core.tween<Float>(
+                    durationMillis = 300 + (index * 50),
+                    easing = androidx.compose.animation.core.FastOutLinearInEasing
+                ),
+                repeatMode = androidx.compose.animation.core.RepeatMode.Reverse,
+                initialStartOffset = androidx.compose.animation.core.StartOffset(index * 100)
+            ),
+            label = "bar_$index"
+        )
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.height(80.dp)
+    ) {
+        barHeightVars.forEach { height: androidx.compose.runtime.State<Float> ->
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(height.value.dp)
+                    .background(AccentCyan, CircleShape)
+            )
+        }
     }
 }
 

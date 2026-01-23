@@ -2,10 +2,7 @@ package com.example.calview.core.data.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.calview.core.data.local.AppDatabase
-import com.example.calview.core.data.local.DailyLogDao
-import com.example.calview.core.data.local.MealDao
-import com.example.calview.core.data.local.WeightHistoryDao
+import com.example.calview.core.data.local.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,5 +39,31 @@ object DatabaseModule {
     @Provides
     fun provideWeightHistoryDao(database: AppDatabase): WeightHistoryDao {
         return database.weightHistoryDao()
+    }
+    
+    @Provides
+    fun provideFastingDao(database: AppDatabase): FastingDao {
+        return database.fastingDao()
+    }
+
+    @Provides
+    fun provideGamificationDao(database: AppDatabase): GamificationDao {
+        return database.gamificationDao()
+    }
+    
+    // Premium feature DAOs
+    @Provides
+    fun provideStreakFreezeDao(database: AppDatabase): StreakFreezeDao {
+        return database.streakFreezeDao()
+    }
+    
+    @Provides
+    fun provideWaterReminderDao(database: AppDatabase): WaterReminderDao {
+        return database.waterReminderDao()
+    }
+    
+    @Provides
+    fun provideSocialChallengeDao(database: AppDatabase): SocialChallengeDao {
+        return database.socialChallengeDao()
     }
 }

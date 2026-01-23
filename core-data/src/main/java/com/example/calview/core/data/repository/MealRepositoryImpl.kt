@@ -2,7 +2,9 @@ package com.example.calview.core.data.repository
 
 import com.example.calview.core.data.local.MealDao
 import com.example.calview.core.data.local.MealEntity
+import com.example.calview.core.data.local.SocialChallengeType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import java.util.Calendar
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -11,7 +13,8 @@ class MealRepositoryImpl @Inject constructor(
     private val mealDao: MealDao,
     private val firestoreRepository: FirestoreRepository,
     private val authRepository: AuthRepository,
-    private val storageRepository: StorageRepository
+    private val storageRepository: StorageRepository,
+    private val socialChallengeRepository: SocialChallengeRepository
 ) : MealRepository {
     
     // Scope for background sync operations
@@ -100,6 +103,13 @@ class MealRepositoryImpl @Inject constructor(
                     e.printStackTrace()
                 }
             }
+        }
+        
+        
+        // Update Social Challenge progress (Logging)
+        scope.launch {
+            val todayMeals = getMealsForToday().firstOrNull() ?: emptyList()
+            socialChallengeRepository.updateUserProgressForType(SocialChallengeType.LOGGING, todayMeals.size + 1)
         }
         
         return id

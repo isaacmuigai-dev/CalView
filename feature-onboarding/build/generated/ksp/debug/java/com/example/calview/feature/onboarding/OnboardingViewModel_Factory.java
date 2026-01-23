@@ -4,10 +4,10 @@ import com.example.calview.core.ai.NutritionRecommendationService;
 import com.example.calview.core.data.repository.UserPreferencesRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
+import dagger.internal.Provider;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
 import javax.annotation.processing.Generated;
-import javax.inject.Provider;
 
 @ScopeMetadata
 @QualifierMetadata
@@ -22,7 +22,8 @@ import javax.inject.Provider;
     "KotlinInternal",
     "KotlinInternalInJava",
     "cast",
-    "deprecation"
+    "deprecation",
+    "nullness:initialization.field.uninitialized"
 })
 public final class OnboardingViewModel_Factory implements Factory<OnboardingViewModel> {
   private final Provider<UserPreferencesRepository> userPreferencesRepositoryProvider;

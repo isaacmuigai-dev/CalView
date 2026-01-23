@@ -53,7 +53,7 @@ fun EditNutritionGoalsScreen(
     var sugar by remember { mutableIntStateOf(currentSugar) }
     var sodium by remember { mutableIntStateOf(currentSodium) }
     
-    var showMicronutrients by remember { mutableStateOf(false) }
+
     var editingField by remember { mutableStateOf<String?>(null) }
     var editValue by remember { mutableStateOf("") }
     
@@ -154,72 +154,7 @@ fun EditNutritionGoalsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // View micronutrients toggle
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showMicronutrients = !showMicronutrients }
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.view_micronutrients),
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = if (showMicronutrients) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
-            // Micronutrients section (expandable)
-            if (showMicronutrients) {
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                NutrientGoalCard(
-                    icon = Icons.Default.Grain,
-                    iconTint = Color(0xFF9575CD),
-                    progressColor = Color(0xFF9575CD),
-                    label = stringResource(R.string.fiber_goal),
-                    value = fiber,
-                    unit = "g",
-                    progress = 0.5f,
-                    onValueChange = { fiber = it }
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                NutrientGoalCard(
-                    icon = Icons.Default.Cake,
-                    iconTint = Color(0xFFEC407A),
-                    progressColor = Color(0xFFEC407A),
-                    label = stringResource(R.string.sugar_goal),
-                    value = sugar,
-                    unit = "g",
-                    progress = 0.4f,
-                    onValueChange = { sugar = it }
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                NutrientGoalCard(
-                    icon = Icons.Default.WaterDrop,
-                    iconTint = Color(0xFFFFB74D),
-                    progressColor = Color(0xFFFFB74D),
-                    label = stringResource(R.string.sodium_goal),
-                    value = sodium,
-                    unit = "mg",
-                    progress = 0.3f,
-                    onValueChange = { sodium = it }
-                )
-            }
+
             
             Spacer(modifier = Modifier.weight(1f))
             

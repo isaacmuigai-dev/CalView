@@ -10,6 +10,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.graphics.Typeface
+import android.graphics.RectF
+import android.graphics.BlurMaskFilter
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -301,8 +307,9 @@ fun FoodDetailScreen(
                 ) {
                     Text(
                         text = meal.name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                         color = onSurfaceColor,
                         modifier = Modifier.weight(1f)
                     )
@@ -1090,125 +1097,83 @@ private fun ShareFoodSheet(
                         }
                     }
                     
-                    // Branding Overlay at TOP - Floating WHITE transparent card
+                    // Compact branding overlay at BOTTOM - Glassmorphism style
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopCenter) // TOP position
+                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .padding(horizontal = 12.dp, vertical = 12.dp)
                     ) {
-                        // Gradient background with transparency using light theme colors
+                        // Frosted glass background
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color(0xFFFFFFFF).copy(alpha = 0.75f),  // Pure white with transparency
-                                            Color(0xFFFFF0EB).copy(alpha = 0.75f),  // White with soft coral tint
-                                            Color(0xFFF5EEF8).copy(alpha = 0.75f)   // White with soft purple tint
-                                        )
-                                    )
+                                    Color.White.copy(alpha = 0.85f)
                                 )
-                                .padding(horizontal = 12.dp, vertical = 16.dp)
+                                .padding(12.dp)
                         ) {
-                            Column {
-                                // Top row: Logo + App name + Food name
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // App Logo - 50dp for visibility and branding
-                                    Image(
-                                        painter = androidx.compose.ui.res.painterResource(
-                                            id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
-                                        ),
-                                        contentDescription = "CalViewAI Logo",
-                                        modifier = Modifier.size(50.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // App Logo - compact 36dp
+                                Image(
+                                    painter = androidx.compose.ui.res.painterResource(
+                                        id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
+                                    ),
+                                    contentDescription = "CalViewAI Logo",
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                
+                                Spacer(modifier = Modifier.width(10.dp))
+                                
+                                // Food name and app branding
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = meal.name,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.Black
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "CalViewAI",
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
-                                        )
-                                        Text(
-                                            text = meal.name,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = Color.Black.copy(alpha = 0.7f),
-                                            maxLines = 1
-                                        )
-                                    }
+                                    Text(
+                                        text = "CalViewAI",
+                                        fontSize = 10.sp,
+                                        color = Color.Black.copy(alpha = 0.5f)
+                                    )
                                 }
                                 
-                                Spacer(modifier = Modifier.height(10.dp))
-                                
-                                // Bottom row: Macros
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                // Compact nutrition pill
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color.Black.copy(alpha = 0.9f)
                                 ) {
-                                    // Calories
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(text = "🔥", fontSize = 18.sp)
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(
-                                            text = "${meal.calories * servingCount}",
-                                            fontSize = 14.sp,
+                                            text = "🔥${meal.calories * servingCount}",
+                                            fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.Black
+                                            color = Color.White
                                         )
                                         Text(
-                                            text = "cal",
+                                            text = "P${meal.protein * servingCount}",
                                             fontSize = 10.sp,
-                                            color = Color.Black.copy(alpha = 0.6f)
-                                        )
-                                    }
-                                    // Protein
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(text = "💪", fontSize = 18.sp)
-                                        Text(
-                                            text = "${meal.protein * servingCount}g",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
+                                            color = Color(0xFFEF5350)
                                         )
                                         Text(
-                                            text = "protein",
+                                            text = "C${meal.carbs * servingCount}",
                                             fontSize = 10.sp,
-                                            color = Color.Black.copy(alpha = 0.6f)
-                                        )
-                                    }
-                                    // Carbs
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(text = "🌾", fontSize = 18.sp)
-                                        Text(
-                                            text = "${meal.carbs * servingCount}g",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
+                                            color = Color(0xFFFFA726)
                                         )
                                         Text(
-                                            text = "carbs",
+                                            text = "F${meal.fats * servingCount}",
                                             fontSize = 10.sp,
-                                            color = Color.Black.copy(alpha = 0.6f)
-                                        )
-                                    }
-                                    // Fats
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(text = "💧", fontSize = 18.sp)
-                                        Text(
-                                            text = "${meal.fats * servingCount}g",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
-                                        )
-                                        Text(
-                                            text = "fats",
-                                            fontSize = 10.sp,
-                                            color = Color.Black.copy(alpha = 0.6f)
+                                            color = Color(0xFF42A5F5)
                                         )
                                     }
                                 }
@@ -1609,51 +1574,74 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         val width = foodBitmap.width.toFloat()
         val height = foodBitmap.height.toFloat()
         
-        // Improved margins - larger for better visibility
-        val horizontalMargin = width * 0.04f
-        val topMargin = height * 0.02f
+        // Compact bottom overlay - smaller margins
+        val horizontalMargin = width * 0.03f
+        val bottomMargin = height * 0.03f
+        val padding = width * 0.025f
         
-        // Card dimensions - much taller for better readability
-        val cardWidth = width - (horizontalMargin * 2)
-        val cardHeight = height * 0.55f // Significantly increased height
-        val cardRadius = width * 0.035f
-        
-        val cardRect = android.graphics.RectF(horizontalMargin, topMargin, horizontalMargin + cardWidth, topMargin + cardHeight)
-        
-        // Draw gradient background with transparency using light theme colors
-        val gradientPaint = android.graphics.Paint().apply {
+        // Content and paints
+        val foodNamePaint = TextPaint().apply {
+            color = android.graphics.Color.BLACK
+            textSize = width * 0.03f // Reduced text size
             isAntiAlias = true
-            shader = android.graphics.LinearGradient(
-                cardRect.left, cardRect.top,
-                cardRect.left, cardRect.bottom,
-                intArrayOf(
-                    android.graphics.Color.argb(191, 255, 255, 255),  // Pure white 75% opacity
-                    android.graphics.Color.argb(191, 255, 240, 235),  // Soft coral tint 75% opacity
-                    android.graphics.Color.argb(191, 245, 238, 248)   // Soft purple tint 75% opacity
-                ),
-                floatArrayOf(0f, 0.5f, 1f),
-                android.graphics.Shader.TileMode.CLAMP
-            )
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
         
-        // Add shadow effect
+        val appBrandPaint = TextPaint().apply {
+            color = android.graphics.Color.argb(128, 0, 0, 0)
+            textSize = width * 0.022f
+            isAntiAlias = true
+        }
+
+        // Layout measurements
+        val density = context.resources.displayMetrics.density
+        val logoSize = (36 * density).toInt().coerceAtLeast(60)
+        val pillPadding = width * 0.02f
+        val pillWidth = width * 0.32f
+        
+        // Available width for text between logo and pill
+        val textLeft = horizontalMargin + padding + logoSize + padding * 0.8f
+        val textRight = (width - horizontalMargin) - pillPadding - pillWidth - padding
+        val availableTextWidth = (textRight - textLeft).toInt().coerceAtLeast(100)
+        
+        // Use StaticLayout for multi-line text wrapping
+        val builder = StaticLayout.Builder.obtain(meal.name, 0, meal.name.length, foodNamePaint, availableTextWidth)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(0f, 1f)
+            .setIncludePad(false)
+        val staticLayout = builder.build()
+        
+        val textHeight = staticLayout.height.toFloat()
+        val brandHeight = appBrandPaint.textSize * 1.2f
+        
+        // Dynamic card height - expands based on text
+        val minCardHeight = height * 0.12f
+        val cardHeight = (padding * 2 + textHeight + brandHeight).coerceAtLeast(minCardHeight)
+        val cardRadius = width * 0.025f
+        
+        // UPWARD GROWTH: Calculate top based on height so bottom is fixed
+        val cardTop = height - bottomMargin - cardHeight
+        val cardRect = RectF(horizontalMargin, cardTop, width - horizontalMargin, height - bottomMargin)
+        
+        // Frosted glass background - white 85% opacity
+        val glassPaint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.argb(217, 255, 255, 255) // 85% opacity
+        }
+        
+        // Add subtle shadow
         val shadowPaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(40, 0, 0, 0)
+            color = android.graphics.Color.argb(30, 0, 0, 0)
             isAntiAlias = true
-            maskFilter = android.graphics.BlurMaskFilter(8f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+            maskFilter = android.graphics.BlurMaskFilter(6f, android.graphics.BlurMaskFilter.Blur.NORMAL)
         }
-        
-        // Draw shadow slightly offset
         canvas.drawRoundRect(
-            android.graphics.RectF(cardRect.left + 4, cardRect.top + 4, cardRect.right + 4, cardRect.bottom + 4),
+            RectF(cardRect.left + 2, cardRect.top + 2, cardRect.right + 2, cardRect.bottom + 2),
             cardRadius, cardRadius, shadowPaint
         )
-        // Draw gradient card
-        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, gradientPaint)
+        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, glassPaint)
         
-        // Load app logo - 50dp equivalent for branding
-        val density = context.resources.displayMetrics.density
-        val logoSize = (50 * density).toInt().coerceAtLeast(80)
+        // Draw Logo
         val logoBitmap = try {
             val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.ic_calview_logo)
             if (drawable != null) {
@@ -1665,93 +1653,78 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
             } else null
         } catch (e: Exception) { null }
         
-        // Text paints matching preview
-        val appNamePaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.BLACK
-            textSize = width * 0.04f
-            isAntiAlias = true
-            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-        }
-        
-        val foodNamePaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(180, 0, 0, 0)
-            textSize = width * 0.025f
-            isAntiAlias = true
-        }
-        
-        val macroValuePaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.BLACK
-            textSize = width * 0.038f
-            isAntiAlias = true
-            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-            textAlign = android.graphics.Paint.Align.CENTER
-        }
-        
-        val macroLabelPaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(150, 0, 0, 0)
-            textSize = width * 0.02f
-            isAntiAlias = true
-            textAlign = android.graphics.Paint.Align.CENTER
-        }
-        
-        val emojiPaint = android.graphics.Paint().apply {
-            textSize = width * 0.04f
-            isAntiAlias = true
-            textAlign = android.graphics.Paint.Align.CENTER
-        }
-        
-        // Content layout - matching preview padding
-        val contentPadding = width * 0.03f
-        val contentLeft = horizontalMargin + contentPadding
-        
-        // Row 1: Logo + CalViewAI + Meal name (positioned at top of card)
-        val logoY = topMargin + contentPadding
-        val textBaseY = logoY + (logoSize * 0.45f)
-        
         if (logoBitmap != null) {
-            canvas.drawBitmap(logoBitmap, contentLeft, logoY, null)
-            
-            val textLeft = contentLeft + logoSize + (contentPadding * 0.6f)
-            canvas.drawText("CalViewAI", textLeft, textBaseY, appNamePaint)
-            canvas.drawText(meal.name.take(30), textLeft, textBaseY + appNamePaint.textSize + 4, foodNamePaint)
-            
+            val logoY = cardTop + (cardHeight - logoSize) / 2
+            canvas.drawBitmap(logoBitmap, horizontalMargin + padding, logoY, null)
             logoBitmap.recycle()
-        } else {
-            canvas.drawText("CalViewAI", contentLeft, textBaseY, appNamePaint)
-            canvas.drawText(meal.name.take(30), contentLeft, textBaseY + appNamePaint.textSize + 4, foodNamePaint)
         }
         
-        // Row 2: Macros - emoji ABOVE value, then label below (matching preview Column layout)
-        val macroRowY = logoY + logoSize + (contentPadding * 1.5f)
-        val macroSpacing = cardWidth / 4f
-        val macroStartX = horizontalMargin + (macroSpacing / 2f)
+        // Draw Wrapped Text
+        canvas.save()
+        canvas.translate(textLeft, cardTop + padding)
+        staticLayout.draw(canvas)
+        canvas.restore()
         
+        // Draw Branding Text below wrapped food name
+        canvas.drawText("CalViewAI", textLeft, cardTop + padding + textHeight + appBrandPaint.textSize, appBrandPaint)
+        
+        // Nutrition pill - positioned relative to new dynamic height
+        val pillHeight = minCardHeight * 0.55f // Keep pill height based on standard height for consistency
+        val pillRadius = pillHeight / 2
+        val pillRect = RectF(
+            cardRect.right - pillPadding - pillWidth,
+            cardTop + (cardHeight - pillHeight) / 2,
+            cardRect.right - pillPadding,
+            cardTop + (cardHeight + pillHeight) / 2
+        )
+        
+        // Draw pill background - dark
+        val pillPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(230, 0, 0, 0) // 90% opacity black
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(pillRect, pillRadius, pillRadius, pillPaint)
+        
+        // Nutrition text inside pill
         val calories = meal.calories * servingCount
         val protein = meal.protein * servingCount
         val carbs = meal.carbs * servingCount
         val fats = meal.fats * servingCount
         
-        // Draw each macro column: emoji, then value, then label
-        val macros = listOf(
-            Triple("🔥", "$calories", "cal"),
-            Triple("💪", "${protein}g", "protein"),
-            Triple("🌾", "${carbs}g", "carbs"),
-            Triple("💧", "${fats}g", "fats")
-        )
-        
-        val emojiLineHeight = emojiPaint.textSize
-        val valueLineHeight = macroValuePaint.textSize
-        val labelLineHeight = macroLabelPaint.textSize
-        
-        macros.forEachIndexed { index, (emoji, value, label) ->
-            val x = macroStartX + (index * macroSpacing)
-            // Emoji at top
-            canvas.drawText(emoji, x, macroRowY + emojiLineHeight, emojiPaint)
-            // Value below emoji
-            canvas.drawText(value, x, macroRowY + emojiLineHeight + valueLineHeight + 4, macroValuePaint)
-            // Label below value
-            canvas.drawText(label, x, macroRowY + emojiLineHeight + valueLineHeight + labelLineHeight + 8, macroLabelPaint)
+        val pillTextSize = width * 0.022f
+        val pillBoldPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.WHITE
+            textSize = pillTextSize
+            isAntiAlias = true
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
         }
+        val proteinPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.rgb(239, 83, 80) // Red
+            textSize = pillTextSize * 0.9f
+            isAntiAlias = true
+        }
+        val carbsPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.rgb(255, 167, 38) // Orange
+            textSize = pillTextSize * 0.9f
+            isAntiAlias = true
+        }
+        val fatsPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.rgb(66, 165, 245) // Blue
+            textSize = pillTextSize * 0.9f
+            isAntiAlias = true
+        }
+        
+        val pillCenterY = pillRect.centerY() + pillTextSize * 0.35f
+        var textX = pillRect.left + pillPadding
+        
+        // Draw: 🔥calories P## C## F##
+        canvas.drawText("🔥$calories", textX, pillCenterY, pillBoldPaint)
+        textX += pillBoldPaint.measureText("🔥$calories") + pillPadding * 0.5f
+        canvas.drawText("P$protein", textX, pillCenterY, proteinPaint)
+        textX += proteinPaint.measureText("P$protein") + pillPadding * 0.4f
+        canvas.drawText("C$carbs", textX, pillCenterY, carbsPaint)
+        textX += carbsPaint.measureText("C$carbs") + pillPadding * 0.4f
+        canvas.drawText("F$fats", textX, pillCenterY, fatsPaint)
         
         foodBitmap.recycle()
         android.util.Log.d("ShareFood", "Branded image generated successfully")

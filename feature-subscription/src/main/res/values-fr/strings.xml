@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Répartition avancée des macronutriments</string>
     <string name="feature_trends_insights">Tendances et informations personnalisées</string>
     <string name="feature_no_ads">Pas de publicités</string>
+    <string name="feature_voice_logging">Journal Alimentaire Vocal</string>
+    <string name="feature_ai_coach">Notifications du Coach IA</string>
+    <string name="feature_streak_freeze">Gel de Série (3/mois)</string>
+    <string name="feature_water_reminders">Rappels d\'Eau Intelligents</string>
+    <string name="feature_social_challenges">Défis Sociaux et Classements</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Chargement des plans...</string>

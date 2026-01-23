@@ -1,5 +1,7 @@
 R_DEF: Internal format may change without notice
 local
+drawable app_logo_black
+drawable app_logo_white
 drawable ic_logo_black
 drawable ic_logo_white
 drawable ic_splash_icon_black

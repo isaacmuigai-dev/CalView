@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Erweiterte Makronährstoffaufschlüsselung</string>
     <string name="feature_trends_insights">Personalisierte Trends &amp; Einblicke</string>
     <string name="feature_no_ads">Keine Werbung</string>
+    <string name="feature_voice_logging">Sprachgesteuerte Essensprotokollierung</string>
+    <string name="feature_ai_coach">KI-Coach-Benachrichtigungen</string>
+    <string name="feature_streak_freeze">Streak-Freeze (3/Monat)</string>
+    <string name="feature_water_reminders">Intelligente Wassererinnerungen</string>
+    <string name="feature_social_challenges">Soziale Challenges &amp; Bestenlisten</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Pläne laden...</string>

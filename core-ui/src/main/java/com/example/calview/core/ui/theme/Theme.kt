@@ -34,24 +34,26 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = IndigoPrimaryLight,         // Bright indigo for primary actions
-    onPrimary = DarkBackground,
-    secondary = VioletAccent,             // Violet accent
-    onSecondary = DarkBackground,
-    tertiary = VioletGlow,                // Soft violet accent
-    onTertiary = DarkBackground,
-    surface = DarkSurface,                // Elevated dark slate
-    onSurface = DarkOnSurface,            // Near white text
-    background = DarkBackground,          // Deep space black
-    onBackground = DarkOnBackground,
+    primary = VibrantHealthGreen,         // HEALTH: Vibrant Green (#00FF85)
+    onPrimary = Color.Black,              // Black text on bright green for accessibility
+    secondary = EnergyOrange,             // ALERT: Muted Orange (#FF9800)
+    onSecondary = Color.Black,            // Black text on orange
+    tertiary = CalmingBlue,               // INFO: Calming Blue
+    onTertiary = Color.Black,
+    surface = DarkGraySurface,            // Elevated Gray (#1C1C1C)
+    onSurface = DarkOffWhite,             // Off-White text (#E0E0E0)
+    background = DarkGrayBackground,      // Base Dark Gray (#121212)
+    onBackground = DarkOffWhite,
     surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = DarkMutedGrey,
+    onSurfaceVariant = DarkMutedText,
     outline = DarkBorder,
     outlineVariant = DarkDivider,
-    inverseSurface = PureWhite,
-    inverseOnSurface = DarkBackground,
-    primaryContainer = Color(0xFF312E81), // Indigo-900 for dark mode containers
-    onPrimaryContainer = IndigoPrimaryLight
+    inverseSurface = DarkOffWhite,
+    inverseOnSurface = DarkGrayBackground,
+    primaryContainer = Color(0xFF004D25), // Dark green container
+    onPrimaryContainer = VibrantHealthGreen,
+    error = DarkError,
+    onError = Color.Black
 )
 
 // Theme Gradient CompositionLocal

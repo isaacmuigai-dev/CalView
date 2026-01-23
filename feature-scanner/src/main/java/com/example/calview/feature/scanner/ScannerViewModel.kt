@@ -26,6 +26,7 @@ import java.io.FileOutputStream
 import java.util.UUID
 import javax.inject.Inject
 
+
 @HiltViewModel
 class ScannerViewModel @Inject constructor(
     private val foodAnalysisService: FoodAnalysisService,
@@ -74,8 +75,10 @@ class ScannerViewModel @Inject constructor(
     fun analyzeImage(bitmap: Bitmap) {
         viewModelScope.launch {
             try {
-                // 1. Save image to internal storage
-                val imagePath = saveImageToStorage(bitmap)
+                // 1. Save image to internal storage (on IO thread to avoid blocking UI)
+                val imagePath = withContext(Dispatchers.IO) {
+                    saveImageToStorage(bitmap)
+                }
                 
                 // 2. Create meal with ANALYZING status
                 val placeholderMeal = MealEntity(
@@ -89,21 +92,32 @@ class ScannerViewModel @Inject constructor(
                     analysisProgress = 0f,
                     analysisStatusMessage = "Starting analysis..."
                 )
-                currentMealId = mealRepository.logMeal(placeholderMeal)
                 
-                // 3. Signal that we should navigate to dashboard
-                _uiState.value = ScannerUiState.NavigateToDashboard
+                // Capture ID in local variable to survive reset()
+                val activeMealId = mealRepository.logMeal(placeholderMeal)
+                currentMealId = activeMealId
+                updateWidget()
                 
-                // 4. Start progress animation in parallel with AI analysis
-                progressAnimationJob = launch {
-                    animateProgressStages()
-                }
+                // 3. Signal that we should show redirection message
+                _uiState.value = ScannerUiState.Redirecting(activeMealId)
                 
                 // 5. Run the AI analysis in a non-cancellable context
                 // This ensures the analysis completes even if the user navigates away
                 withContext(NonCancellable + Dispatchers.IO) {
+                    // Start progress animation using a proper CoroutineScope
+                    progressAnimationJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            animateProgressStages(activeMealId)
+                        } catch (e: Exception) {
+                            android.util.Log.e("ScannerVM", "Progress animation failed", e)
+                        }
+                    }
+
                     try {
-                        android.util.Log.d("ScannerVM", "Starting AI analysis...")
+                        android.util.Log.d("ScannerVM", "Starting AI analysis in background...")
+                        
+                        // Force initial progress update
+                        updateProgressWithMessage(activeMealId, 0f, "Preparing analysis...")
                         
                         val result = try {
                             kotlinx.coroutines.withTimeout(60000L) { // 60 second timeout
@@ -117,72 +131,70 @@ class ScannerViewModel @Inject constructor(
                         // Stop progress animation
                         progressAnimationJob?.cancel()
                         
-                        android.util.Log.d("ScannerVM", "AI analysis completed, processing results...")
+                        android.util.Log.d("ScannerVM", "AI analysis completed (result received), processing results...")
                         
                         result.onSuccess { response ->
                             android.util.Log.d("ScannerVM", "AI analysis successful: ${response.detected_items.size} items detected")
                             // Update meal with analysis results
-                            currentMealId?.let { id ->
-                                // Combine all detected item names into a single descriptive name
-                                val combinedName = when (response.detected_items.size) {
-                                    0 -> "Unknown Food"
-                                    1 -> response.detected_items.first().name
-                                    2 -> "${response.detected_items[0].name} & ${response.detected_items[1].name}"
-                                    else -> {
-                                        val allButLast = response.detected_items.dropLast(1).joinToString(", ") { it.name }
-                                        val last = response.detected_items.last().name
-                                        "$allButLast & $last"
-                                    }
+                            // Combine all detected item names into a single descriptive name
+                            val combinedName = when (response.detected_items.size) {
+                                0 -> "Unknown Food"
+                                1 -> response.detected_items.first().name
+                                2 -> "${response.detected_items[0].name} & ${response.detected_items[1].name}"
+                                else -> {
+                                    val allButLast = response.detected_items.dropLast(1).joinToString(", ") { it.name }
+                                    val last = response.detected_items.last().name
+                                    "$allButLast & $last"
                                 }
-                                // Create JSON of detected items for UI display
-                                val detectedItemsJsonStr = try {
-                                    kotlinx.serialization.json.Json.encodeToString(
-                                        kotlinx.serialization.builtins.ListSerializer(
-                                            com.example.calview.core.ai.model.FoodItem.serializer()
-                                        ),
-                                        response.detected_items
-                                    )
-                                } catch (e: Exception) { null }
-                                
-                                // Progress is already at 100%, just show completion briefly
-                                // Small delay to let user see "Complete!" message
-                                delay(300)
-                                
-                                val updatedMeal = MealEntity(
-                                    id = id,
-                                    name = combinedName,
-                                    calories = response.total.calories,
-                                    protein = response.total.protein,
-                                    carbs = response.total.carbs,
-                                    fats = response.total.fats,
-                                    fiber = response.total.fiber,
-                                    sugar = response.total.sugar,
-                                    sodium = response.total.sodium,
-                                    imagePath = imagePath,
-                                    analysisStatus = AnalysisStatus.COMPLETED,
-                                    analysisProgress = 100f,
-                                    analysisStatusMessage = "Complete!",
-                                    healthInsight = response.health_insight,
-                                    confidenceScore = (response.confidence_score * 100).toFloat(),
-                                    detectedItemsJson = detectedItemsJsonStr
-                                )
-                                mealRepository.updateMeal(updatedMeal)
                             }
-                            _uiState.value = ScannerUiState.Success(response)
+                            // Create JSON of detected items for UI display
+                            val detectedItemsJsonStr = try {
+                                kotlinx.serialization.json.Json.encodeToString(
+                                    kotlinx.serialization.builtins.ListSerializer(
+                                        com.example.calview.core.ai.model.FoodItem.serializer()
+                                    ),
+                                    response.detected_items
+                                )
+                            } catch (e: Exception) { null }
+                            
+                            // Progress is already at 100%, just show completion briefly
+                            // Small delay to let user see "Complete!" message
+                            delay(300)
+                            
+                            val updatedMeal = MealEntity(
+                                id = activeMealId,
+                                name = combinedName,
+                                calories = response.total.calories,
+                                protein = response.total.protein,
+                                carbs = response.total.carbs,
+                                fats = response.total.fats,
+                                fiber = response.total.fiber,
+                                sugar = response.total.sugar,
+                                sodium = response.total.sodium,
+                                imagePath = imagePath,
+                                analysisStatus = AnalysisStatus.COMPLETED,
+                                analysisProgress = 100f,
+                                analysisStatusMessage = "Complete!",
+                                healthInsight = response.health_insight,
+                                confidenceScore = (response.confidence_score * 100).toFloat(),
+                                detectedItemsJson = detectedItemsJsonStr
+                            )
+                            mealRepository.updateMeal(updatedMeal)
+                            updateWidget()
+                            
+                            _uiState.value = ScannerUiState.Redirecting(activeMealId)
                         }.onFailure { error ->
                             android.util.Log.e("ScannerVM", "AI analysis failed: ${error.message}", error)
                             // Mark analysis as failed
-                            currentMealId?.let { id ->
-                                mealRepository.getMealById(id)?.let { meal ->
-                                    mealRepository.updateMeal(
-                                        meal.copy(
-                                            analysisStatus = AnalysisStatus.FAILED,
-                                            name = "Analysis Failed",
-                                            analysisProgress = 0f,
-                                            analysisStatusMessage = "Failed"
-                                        )
+                            mealRepository.getMealById(activeMealId)?.let { meal ->
+                                mealRepository.updateMeal(
+                                    meal.copy(
+                                        analysisStatus = AnalysisStatus.FAILED,
+                                        name = "Analysis Failed",
+                                        analysisProgress = 0f,
+                                        analysisStatusMessage = "Failed"
                                     )
-                                }
+                                )
                             }
                             _uiState.value = ScannerUiState.Error(error.message ?: "Food analysis failed. Please try again.")
                         }
@@ -190,20 +202,18 @@ class ScannerViewModel @Inject constructor(
                         android.util.Log.e("ScannerVM", "Error during AI analysis: ${e.message}", e)
                         progressAnimationJob?.cancel()
                         // Mark analysis as failed
-                        currentMealId?.let { id ->
-                            try {
-                                mealRepository.getMealById(id)?.let { meal ->
-                                    mealRepository.updateMeal(
-                                        meal.copy(
-                                            analysisStatus = AnalysisStatus.FAILED,
-                                            name = "Analysis Failed",
-                                            analysisProgress = 0f,
-                                            analysisStatusMessage = "Failed"
-                                        )
+                        try {
+                            mealRepository.getMealById(activeMealId)?.let { meal ->
+                                mealRepository.updateMeal(
+                                    meal.copy(
+                                        analysisStatus = AnalysisStatus.FAILED,
+                                        name = "Analysis Failed",
+                                        analysisProgress = 0f,
+                                        analysisStatusMessage = "Failed"
                                     )
-                                }
-                            } catch (_: Exception) { /* Ignore nested errors */ }
-                        }
+                                )
+                            }
+                        } catch (_: Exception) { /* Ignore nested errors */ }
                         _uiState.value = ScannerUiState.Error(e.message ?: "Food analysis failed. Please try again.")
                     }
                 }
@@ -211,20 +221,145 @@ class ScannerViewModel @Inject constructor(
                 android.util.Log.e("ScannerVM", "Unexpected error in analyzeImage: ${e.message}", e)
                 progressAnimationJob?.cancel()
                 // Handle any unexpected exceptions
-                currentMealId?.let { id ->
+                // We don't have activeMealId guaranteed here if it failed before logging
+                _uiState.value = ScannerUiState.Error(e.message ?: "An unexpected error occurred")
+            }
+        }
+    }
+    fun analyzeSpokenText(text: String) {
+        viewModelScope.launch {
+            try {
+                // 1. Create a placeholder meal first
+                val placeholderMeal = MealEntity(
+                    name = "Processing Voice...",
+                    calories = 0,
+                    protein = 0,
+                    carbs = 0,
+                    fats = 0,
+                    imagePath = null,
+                    analysisStatus = AnalysisStatus.ANALYZING,
+                    analysisProgress = 0f,
+                    analysisStatusMessage = "Analyzing voice input..."
+                )
+                // Capture ID to local variable to survive reset()
+                val activeMealId = mealRepository.logMeal(placeholderMeal)
+                currentMealId = activeMealId
+                updateWidget()
+                
+                // 2. Show redirection message
+                _uiState.value = ScannerUiState.Redirecting(activeMealId)
+                
+                withContext(NonCancellable + Dispatchers.IO) {
+                    // Start progress animation using a proper CoroutineScope
+                    progressAnimationJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { animateProgressStages(activeMealId) }
+                    
                     try {
-                        mealRepository.getMealById(id)?.let { meal ->
-                            mealRepository.updateMeal(
-                                meal.copy(
-                                    analysisStatus = AnalysisStatus.FAILED,
-                                    name = "Analysis Failed",
-                                    analysisProgress = 0f,
-                                    analysisStatusMessage = "Failed"
-                                )
-                            )
+                        android.util.Log.d("ScannerVM", "Starting voice analysis...")
+                        
+                        val result = try {
+                            kotlinx.coroutines.withTimeout(60000L) { // 60 second timeout like image analysis
+                                foodAnalysisService.analyzeFoodText(text)
+                            }
+                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                            android.util.Log.e("ScannerVM", "Voice analysis timed out after 60 seconds")
+                            Result.failure(Exception("Analysis timed out. Please try again."))
                         }
-                    } catch (_: Exception) { /* Ignore nested errors */ }
+                        
+                        progressAnimationJob?.cancel()
+                        
+                        android.util.Log.d("ScannerVM", "Voice analysis completed, processing results...")
+                        
+                        result.onSuccess { response ->
+                            android.util.Log.d("ScannerVM", "Voice analysis successful: ${response.detected_items.size} items detected")
+                            
+                            // Formulate name
+                            val combinedName = when (response.detected_items.size) {
+                                0 -> "Voice Entry"
+                                1 -> response.detected_items.first().name
+                                else -> {
+                                    val allButLast = response.detected_items.dropLast(1).joinToString(", ") { it.name }
+                                    "${allButLast} & ${response.detected_items.last().name}"
+                                }
+                            }
+                            
+                            val detectedItemsJsonStr = try {
+                                kotlinx.serialization.json.Json.encodeToString(
+                                    kotlinx.serialization.builtins.ListSerializer(
+                                        com.example.calview.core.ai.model.FoodItem.serializer()
+                                    ),
+                                    response.detected_items
+                                )
+                            } catch (e: Exception) { null }
+                            
+                            // Small delay to let user see completion
+                            delay(300)
+
+                            // Generate AI Image for the food
+                            val generatedImageUrl = foodAnalysisService.generateFoodImage(combinedName)
+
+                            val updatedMeal = MealEntity(
+                                id = activeMealId,
+                                name = combinedName,
+                                calories = response.total.calories,
+                                protein = response.total.protein,
+                                carbs = response.total.carbs,
+                                fats = response.total.fats,
+                                fiber = response.total.fiber,
+                                sugar = response.total.sugar,
+                                sodium = response.total.sodium,
+                                // Use generated image URL (via imagePath field which handles strings)
+                                // We store it in imagePath. The UI (AsyncImage) should handle it.
+                                imagePath = generatedImageUrl, 
+                                analysisStatus = AnalysisStatus.COMPLETED,
+                                analysisProgress = 100f,
+                                analysisStatusMessage = "Complete!",
+                                healthInsight = response.health_insight,
+                                confidenceScore = 100f,
+                                detectedItemsJson = detectedItemsJsonStr
+                            )
+                            mealRepository.updateMeal(updatedMeal)
+                            updateWidget()
+                            
+                            _uiState.value = ScannerUiState.Redirecting(activeMealId)
+                            
+                        }.onFailure { error ->
+                            android.util.Log.e("ScannerVM", "Voice analysis failed: ${error.message}", error)
+                            // Mark analysis as failed (like image analysis)
+                            mealRepository.getMealById(activeMealId)?.let { meal ->
+                                mealRepository.updateMeal(
+                                    meal.copy(
+                                        analysisStatus = AnalysisStatus.FAILED,
+                                        name = "Analysis Failed",
+                                        analysisProgress = 0f,
+                                        analysisStatusMessage = "Failed"
+                                    )
+                                )
+                            }
+                            _uiState.value = ScannerUiState.Error(error.message ?: "Analysis failed")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("ScannerVM", "Error during voice analysis: ${e.message}", e)
+                        progressAnimationJob?.cancel()
+                        // Mark analysis as failed
+                        try {
+                            mealRepository.getMealById(activeMealId)?.let { meal ->
+                                mealRepository.updateMeal(
+                                    meal.copy(
+                                        analysisStatus = AnalysisStatus.FAILED,
+                                        name = "Analysis Failed",
+                                        analysisProgress = 0f,
+                                        analysisStatusMessage = "Failed"
+                                    )
+                                )
+                            }
+                        } catch (_: Exception) { /* Ignore nested errors */ }
+                        _uiState.value = ScannerUiState.Error(e.message ?: "Voice analysis failed. Please try again.")
+                    }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("ScannerVM", "Unexpected error in analyzeSpokenText: ${e.message}", e)
+                progressAnimationJob?.cancel()
+                // Use default error reporting if we can't update meal
                 _uiState.value = ScannerUiState.Error(e.message ?: "An unexpected error occurred")
             }
         }
@@ -235,33 +370,35 @@ class ScannerViewModel @Inject constructor(
      * Each stage has a message and progress range.
      * Progress animates to 100% and then holds there while waiting for AI results.
      */
-    private suspend fun animateProgressStages() {
+    private suspend fun animateProgressStages(mealId: Long) {
+        android.util.Log.d("ScannerVM", "Starting progress animation")
         for (stage in analysisStages) {
             val steps = 15 // More increments for smoother animation
             val stepDuration = 200L // Faster updates (200ms) for responsive feel
             val progressPerStep = (stage.endProgress - stage.startProgress) / steps
             
             // Update message at stage start
-            updateProgressWithMessage(stage.startProgress, stage.message)
+            updateProgressWithMessage(mealId, stage.startProgress, stage.message)
             
             for (i in 1..steps) {
                 delay(stepDuration)
                 val progress = stage.startProgress + (progressPerStep * i)
-                updateProgressWithMessage(progress, stage.message)
+                updateProgressWithMessage(mealId, progress, stage.message)
             }
         }
         
         // Hold at 100% while waiting for AI to complete
         // This is the expected behavior - user sees 100% and waits for results
+        android.util.Log.d("ScannerVM", "Reached 100% progress, waiting for results")
         while (true) {
             delay(500)
-            updateProgressWithMessage(100f, "Waiting for results...")
+            updateProgressWithMessage(mealId, 100f, "Waiting for results...")
         }
     }
     
-    private suspend fun updateProgressWithMessage(progress: Float, message: String) {
-        currentMealId?.let { id ->
-            mealRepository.getMealById(id)?.let { meal ->
+    private suspend fun updateProgressWithMessage(mealId: Long, progress: Float, message: String) {
+        try {
+            mealRepository.getMealById(mealId)?.let { meal ->
                 if (meal.analysisStatus == AnalysisStatus.ANALYZING) {
                     mealRepository.updateMeal(
                         meal.copy(
@@ -271,6 +408,8 @@ class ScannerViewModel @Inject constructor(
                     )
                 }
             }
+        } catch (e: Exception) {
+            android.util.Log.e("ScannerVM", "Error updating progress: ${e.message}")
         }
     }
     
@@ -344,7 +483,9 @@ class ScannerViewModel @Inject constructor(
      * Used for manual food logging from the My Meals screen.
      */
     suspend fun logMealDirectly(meal: MealEntity): Long {
-        return mealRepository.logMeal(meal)
+        val id = mealRepository.logMeal(meal)
+        updateWidget()
+        return id
     }
     
     /**
@@ -376,6 +517,7 @@ class ScannerViewModel @Inject constructor(
                 analysisProgress = 100f
             )
             mealRepository.logMeal(meal)
+            updateWidget()
         }
     }
     
@@ -401,8 +543,9 @@ class ScannerViewModel @Inject constructor(
                 analysisProgress = 100f,
                 confidenceScore = 60f // Lower confidence for quick AR detection
             )
-            mealRepository.logMeal(meal)
-            _uiState.value = ScannerUiState.NavigateToDashboard
+            val id = mealRepository.logMeal(meal)
+            updateWidget()
+            _uiState.value = ScannerUiState.Redirecting(id)
         }
     }
     
@@ -437,8 +580,9 @@ class ScannerViewModel @Inject constructor(
                 analysisStatus = AnalysisStatus.COMPLETED,
                 analysisProgress = 100f
             )
-            mealRepository.logMeal(meal)
-            _uiState.value = ScannerUiState.Logged
+            val id = mealRepository.logMeal(meal)
+            updateWidget()
+            _uiState.value = ScannerUiState.Redirecting(id)
         }
     }
     
@@ -469,8 +613,46 @@ class ScannerViewModel @Inject constructor(
                 analysisStatus = AnalysisStatus.COMPLETED,
                 analysisProgress = 100f
             )
-            mealRepository.logMeal(meal)
-            _uiState.value = ScannerUiState.Logged
+            val id = mealRepository.logMeal(meal)
+            updateWidget()
+            _uiState.value = ScannerUiState.Redirecting(id)
+        }
+    }
+    
+    /**
+     * Trigger widget update using reflection to avoid circular dependency
+     * app (Widget) -> feature-scanner (ViewModel) -> app (Widget)
+     */
+    private fun updateWidget() {
+        try {
+            // First ensure data is synced to SharedPreferences
+            viewModelScope.launch {
+                try {
+                    userPreferencesRepository.syncWidgetData()
+                } catch (e: Exception) {
+                    android.util.Log.e("ScannerViewModel", "Error syncing widget data", e)
+                }
+                
+                // Then trigger the update broadcast
+                try {
+                    val widgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+                    val widgetClass = Class.forName("com.example.calview.widget.CaloriesWidgetProvider")
+                    val widgetComponent = android.content.ComponentName(context, widgetClass)
+                    val widgetIds = widgetManager.getAppWidgetIds(widgetComponent)
+                    
+                    if (widgetIds.isNotEmpty()) {
+                        val intent = android.content.Intent(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+                            component = widgetComponent
+                            putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+                        }
+                        context.sendBroadcast(intent)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ScannerViewModel", "Error updating widget via reflection", e)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ScannerViewModel", "Error launching widget update coroutine", e)
         }
     }
 }
@@ -478,7 +660,8 @@ class ScannerViewModel @Inject constructor(
 sealed class ScannerUiState {
     object Idle : ScannerUiState()
     object Loading : ScannerUiState()
-    object NavigateToDashboard : ScannerUiState()
+    data class NavigateToDashboard(val mealId: Long? = null) : ScannerUiState()
+    data class Redirecting(val mealId: Long? = null) : ScannerUiState()
     data class Success(val response: FoodAnalysisResponse) : ScannerUiState()
     data class BarcodeResult(val product: ProductInfo) : ScannerUiState()
     data class OcrResult(val nutrition: ParsedNutrition) : ScannerUiState()

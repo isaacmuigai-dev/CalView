@@ -2,4 +2,6 @@
     <string name="app_name">CalViewAI - Calorie Tracker</string>
     <string name="widget_calories_description">Track your remaining calories and macros at a glance</string>
     <string name="widget_calories_name">Calories Widget</string>
+    <string name="widget_control_center_name">Control Center</string>
+    <string name="widget_control_center_description">Quick actions: Water, Fasting, Scan, and more</string>
 </resources>

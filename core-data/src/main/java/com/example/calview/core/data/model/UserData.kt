@@ -47,5 +47,6 @@ data class UserData(
     val birthYear: Int = 2000,
     
     // Localization
-    val language: String = "en"
+    val language: String = "en",
+    val lastRolloverDate: Long = 0L // Timestamp of last successful rollover calculation
 )

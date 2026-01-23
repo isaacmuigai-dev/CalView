@@ -8,6 +8,8 @@ import com.example.calview.core.ai.model.NutritionalData
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.content
 import kotlinx.serialization.json.Json
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
 class GeminiFoodAnalysisService @Inject constructor(
@@ -69,36 +71,110 @@ class GeminiFoodAnalysisService @Inject constructor(
 
             android.util.Log.d("GeminiAI", "Received response from Gemini API")
             
-            val responseText = response.text?.trim()
-            if (responseText.isNullOrEmpty()) {
-                android.util.Log.e("GeminiAI", "Empty response from AI")
-                throw Exception("Empty response from AI")
-            }
-            
-            android.util.Log.d("GeminiAI", "Response text (first 200 chars): ${responseText.take(200)}")
-            
-            // Extract JSON if AI surrounds it with markdown blocks
-            val cleanedJson = responseText
-                .removePrefix("```json")
-                .removePrefix("```")
-                .removeSuffix("```")
-                .trim()
-            
-            android.util.Log.d("GeminiAI", "Parsing JSON response...")
-            
-            val result = json.decodeFromString<FoodAnalysisResponse>(cleanedJson)
-            android.util.Log.d("GeminiAI", "Successfully parsed response: ${result.detected_items.size} items detected")
-            
-            Result.success(result)
+            parseResponse(response.text)
         } catch (e: Exception) {
-            // Log the actual error for debugging
-            android.util.Log.e("GeminiAI", "Food analysis failed: ${e.message}", e)
-            android.util.Log.e("GeminiAI", "Exception type: ${e::class.java.simpleName}")
-            
-            // Return the actual error instead of mock data
-            // This allows the UI to show proper error messages and retry options
-            Result.failure(e)
+            handleError(e)
         }
+    }
+
+    override suspend fun analyzeFoodText(text: String): Result<FoodAnalysisResponse> {
+        return try {
+            android.util.Log.d("GeminiAI", "Starting food text analysis...")
+            
+            val prompt = """
+                Analyze the following food description and provide nutritional estimates:
+                
+                "$text"
+                
+                Estimate standard serving sizes if not specified.
+                
+                List all food items specifically.
+                Calculate Calories, Protein (p), Carbohydrates (c), Fats (f), Fiber (fi), Sugar (s), and Sodium (na in mg).
+                
+                IMPORTANT: Return all nutritional amounts (weight, calories, macros) as INTEGERS.
+                
+                Return ONLY a valid JSON object with this structure:
+                {
+                  "detected_items": [
+                    {
+                      "name": "string with quantity",
+                      "estimated_weight_g": integer,
+                      "calories": integer,
+                      "macros": { "p": integer, "c": integer, "f": integer, "fi": integer, "s": integer, "na": integer },
+                      "confidence": 1.0,
+                      "detection_note": null
+                    }
+                  ],
+                  "total": { "calories": integer, "protein": integer, "carbs": integer, "fats": integer, "fiber": integer, "sugar": integer, "sodium": integer },
+                  "confidence_score": 1.0,
+                  "health_insight": "string"
+                }
+            """.trimIndent()
+
+            android.util.Log.d("GeminiAI", "Sending text request to Gemini API...")
+            
+            val response = generativeModel.generateContent(prompt)
+
+            android.util.Log.d("GeminiAI", "Received text response from Gemini API")
+            
+            parseResponse(response.text)
+        } catch (e: Exception) {
+            handleError(e)
+        }
+    }
+
+    override suspend fun generateFoodImage(description: String): String? {
+        return try {
+            val encodedDescription = URLEncoder.encode(description, StandardCharsets.UTF_8.toString())
+            // Using polinations.ai for AI image generation (no API key required)
+            // Added explicit food photography keywords for better quality
+            val enhancedPrompt = URLEncoder.encode("professional food photography of $description, studio lighting, 4k, delicious, appetizing", StandardCharsets.UTF_8.toString())
+            "https://image.pollinations.ai/prompt/$enhancedPrompt?nologo=true"
+        } catch (e: Exception) {
+            android.util.Log.e("GeminiAI", "Failed to generate image URL", e)
+            null
+        }
+    }
+
+    private fun parseResponse(responseText: String?): Result<FoodAnalysisResponse> {
+        val text = responseText?.trim()
+        if (text.isNullOrEmpty()) {
+            throw Exception("Empty response from AI")
+        }
+        
+        android.util.Log.d("GeminiAI", "Response text (first 200 chars): ${text.take(200)}")
+        
+        val cleanedJson = text
+            .removePrefix("```json")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+        
+        android.util.Log.d("GeminiAI", "Parsing JSON response...")
+        
+        try {
+            // More robust JSON cleaning
+            val firstBrace = text.indexOf('{')
+            val lastBrace = text.lastIndexOf('}')
+            
+            val jsonString = if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+                text.substring(firstBrace, lastBrace + 1)
+            } else {
+                cleanedJson // Fallback to previous cleaning if braces not found
+            }
+
+            val result = json.decodeFromString<FoodAnalysisResponse>(jsonString)
+            return Result.success(result)
+        } catch (e: Throwable) {
+            android.util.Log.e("GeminiAI", "JSON Parsing failed", e)
+            android.util.Log.e("GeminiAI", "Failed JSON content: $cleanedJson")
+            throw Exception("Failed to parse AI response: ${e.message}")
+        }
+    }
+
+    private fun handleError(e: Exception): Result<FoodAnalysisResponse> {
+        android.util.Log.e("GeminiAI", "Analysis failed: ${e.message}", e)
+        return Result.failure(e)
     }
 
     private fun createMockResponse(): FoodAnalysisResponse {

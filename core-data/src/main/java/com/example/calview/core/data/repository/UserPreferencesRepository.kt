@@ -49,6 +49,9 @@ interface UserPreferencesRepository {
     
     // Camera Tutorial
     val hasSeenCameraTutorial: Flow<Boolean> // True if user has seen camera best practices
+    
+    // Widget Theme
+    val widgetDarkTheme: Flow<Boolean> // True if widget should use dark theme
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -73,6 +76,10 @@ interface UserPreferencesRepository {
     suspend fun setRolloverExtraCalories(enabled: Boolean)
     suspend fun setRolloverCaloriesAmount(amount: Int)
     
+    // Rollover date tracking
+    val lastRolloverDate: Flow<Long>
+    suspend fun setLastRolloverDate(timestamp: Long)
+    
     // Language settings method
     suspend fun setLanguage(code: String)
     
@@ -91,9 +98,13 @@ interface UserPreferencesRepository {
     // Widget Data methods
     suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long)
     suspend fun setLastKnownSteps(steps: Int)
+    suspend fun setActivityStats(caloriesBurned: Int, weeklyBurn: Int, recordBurn: Int)
     
     // Camera Tutorial methods
     suspend fun setHasSeenCameraTutorial(seen: Boolean)
+    
+    // Widget Theme methods
+    suspend fun setWidgetDarkTheme(isDark: Boolean)
     
     /**
      * Restore user data from Firestore cloud storage

@@ -4,10 +4,16 @@ import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.health.HealthConnectManager
+import com.example.calview.core.data.state.SelectedDateHolder
+import com.example.calview.core.data.local.WeightHistoryDao
+import com.example.calview.core.data.prediction.WeightPredictionEngine
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -20,13 +26,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
+import com.example.calview.feature.trends.R
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProgressViewModelTest {
 
     private lateinit var viewModel: ProgressViewModel
-    private val mealRepository: MealRepository = mockk()
-    private val userPreferencesRepository: UserPreferencesRepository = mockk()
+    private val mealRepository: MealRepository = mockk(relaxed = true)
+    private val userPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
+    private val healthConnectManager: HealthConnectManager = mockk(relaxed = true)
+    private val selectedDateHolder: SelectedDateHolder = mockk(relaxed = true)
+    private val weightDao: WeightHistoryDao = mockk(relaxed = true)
+    private val predictionEngine: WeightPredictionEngine = mockk(relaxed = true)
+    
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
@@ -34,18 +46,27 @@ class ProgressViewModelTest {
         Dispatchers.setMain(testDispatcher)
         
         // Mock user preferences flows
-        coEvery { userPreferencesRepository.weight } returns flowOf(75f)
-        coEvery { userPreferencesRepository.goalWeight } returns flowOf(70f)
-        coEvery { userPreferencesRepository.height } returns flowOf(175)
-        coEvery { userPreferencesRepository.recommendedCalories } returns flowOf(2000)
-        coEvery { userPreferencesRepository.recommendedProtein } returns flowOf(125)
-        coEvery { userPreferencesRepository.recommendedCarbs } returns flowOf(250)
-        coEvery { userPreferencesRepository.recommendedFats } returns flowOf(56)
-        coEvery { userPreferencesRepository.dailyStepsGoal } returns flowOf(10000)
+        every { userPreferencesRepository.weight } returns flowOf(75f)
+        every { userPreferencesRepository.goalWeight } returns flowOf(70f)
+        every { userPreferencesRepository.height } returns flowOf(175)
+        every { userPreferencesRepository.recommendedCalories } returns flowOf(2000)
+        every { userPreferencesRepository.recommendedProtein } returns flowOf(125)
+        every { userPreferencesRepository.recommendedCarbs } returns flowOf(250)
+        every { userPreferencesRepository.recommendedFats } returns flowOf(56)
+        every { userPreferencesRepository.dailyStepsGoal } returns flowOf(10000)
+        every { userPreferencesRepository.startWeight } returns flowOf(80f)
         
         // Mock meal repository flows
-        coEvery { mealRepository.getMealsForToday() } returns flowOf(emptyList())
-        coEvery { mealRepository.getAllMeals() } returns flowOf(emptyList())
+        every { mealRepository.getMealsForToday() } returns flowOf(emptyList())
+        every { mealRepository.getAllMeals() } returns flowOf(emptyList())
+        every { mealRepository.getMealsForDate(any()) } returns flowOf(emptyList())
+        
+        // Mock other dependencies
+        every { selectedDateHolder.selectedDate } returns MutableStateFlow(LocalDate.now())
+        every { healthConnectManager.healthData } returns MutableStateFlow(com.example.calview.core.data.health.HealthData())
+        every { healthConnectManager.isAvailable() } returns false
+        every { weightDao.getAllWeightHistory() } returns flowOf(emptyList())
+        every { predictionEngine.predictWeight(any(), any()) } returns com.example.calview.core.data.prediction.WeightPredictionEngine.PredictionResult(0f, 0f, null, null, com.example.calview.core.data.prediction.WeightPredictionEngine.Trend.INSUFFICIENT_DATA)
     }
 
     @After
@@ -58,7 +79,14 @@ class ProgressViewModelTest {
     @Test
     fun `user metrics flow correctly from repository to UI state`() = runTest {
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert - verify user metrics are wired correctly
@@ -78,51 +106,79 @@ class ProgressViewModelTest {
         // BMI = 75 / (1.75)^2 = 75 / 3.0625 = 24.49
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
         assertEquals(24.49f, state.bmi, 0.5f) // Allow some tolerance
-        assertEquals("Healthy", state.bmiCategory)
+        assertEquals(R.string.bmi_healthy, state.bmiCategory)
     }
 
     @Test
     fun `BMI category is Underweight when BMI below 18_5`() = runTest {
         // Arrange - weight 50kg, height 175cm = BMI 16.3
-        coEvery { userPreferencesRepository.weight } returns flowOf(50f)
+        every { userPreferencesRepository.weight } returns flowOf(50f)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
-        assertEquals("Underweight", state.bmiCategory)
+        assertEquals(R.string.bmi_underweight, state.bmiCategory)
     }
 
     @Test
     fun `BMI category is Overweight when BMI 25 to 30`() = runTest {
         // Arrange - weight 90kg, height 175cm = BMI 29.4
-        coEvery { userPreferencesRepository.weight } returns flowOf(90f)
+        every { userPreferencesRepository.weight } returns flowOf(90f)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
-        assertEquals("Overweight", state.bmiCategory)
+        assertEquals(R.string.bmi_overweight, state.bmiCategory)
     }
 
     @Test
     fun `BMI category is Obese when BMI above 30`() = runTest {
         // Arrange - weight 100kg, height 175cm = BMI 32.7
-        coEvery { userPreferencesRepository.weight } returns flowOf(100f)
+        every { userPreferencesRepository.weight } returns flowOf(100f)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
-        assertEquals("Obese", state.bmiCategory)
+        assertEquals(R.string.bmi_obese, state.bmiCategory)
     }
 
     // ==================== MEAL DATA FLOW TESTS ====================
@@ -150,10 +206,18 @@ class ProgressViewModelTest {
                 analysisStatus = AnalysisStatus.COMPLETED
             )
         )
-        coEvery { mealRepository.getMealsForToday() } returns flowOf(todayMeals)
+        // ViewModel uses getMealsForDate via flatMapLatest on selectedDate
+        every { mealRepository.getMealsForDate(any()) } returns flowOf(todayMeals)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { it.todayCalories > 0 }
 
         // Assert
@@ -179,10 +243,17 @@ class ProgressViewModelTest {
             MealEntity(name = "2 Days Ago", calories = 500, protein = 20, carbs = 50, fats = 15, 
                 timestamp = today - 2 * oneDayMs, analysisStatus = AnalysisStatus.COMPLETED)
         )
-        coEvery { mealRepository.getAllMeals() } returns flowOf(meals)
+        every { mealRepository.getAllMeals() } returns flowOf(meals)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { it.dayStreak > 0 }
 
         // Assert - should have at least 3 day streak
@@ -199,10 +270,17 @@ class ProgressViewModelTest {
             MealEntity(name = "Today", calories = 500, protein = 20, carbs = 50, fats = 15, 
                 timestamp = today, analysisStatus = AnalysisStatus.COMPLETED)
         )
-        coEvery { mealRepository.getAllMeals() } returns flowOf(meals)
+        every { mealRepository.getAllMeals() } returns flowOf(meals)
         
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { it.bestStreak > 0 }
 
         // Assert - best streak should be at least 1
@@ -214,7 +292,14 @@ class ProgressViewModelTest {
     @Test
     fun `weekly calories data is generated for 7 days`() = runTest {
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
@@ -225,7 +310,14 @@ class ProgressViewModelTest {
     @Test
     fun `completed days list has 7 entries for week display`() = runTest {
         // Act
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         val state = viewModel.uiState.first { !it.isLoading }
 
         // Assert
@@ -237,7 +329,14 @@ class ProgressViewModelTest {
     @Test
     fun `refreshData sets isLoading to true initially`() = runTest {
         // Arrange
-        viewModel = ProgressViewModel(userPreferencesRepository, mealRepository)
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
         viewModel.uiState.first { !it.isLoading }
         
         // Act

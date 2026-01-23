@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">高级宏量营养素细分</string>
     <string name="feature_trends_insights">趋势和个性化见解</string>
     <string name="feature_no_ads">无广告</string>
+    <string name="feature_voice_logging">语音食物记录</string>
+    <string name="feature_ai_coach">AI 教练通知</string>
+    <string name="feature_streak_freeze">连胜冻结 (3次/月)</string>
+    <string name="feature_water_reminders">智能喝水提醒</string>
+    <string name="feature_social_challenges">社交挑战与排行榜</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">正在加载计划...</string>

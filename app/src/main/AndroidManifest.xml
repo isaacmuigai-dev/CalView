@@ -2,6 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     
     <!-- Allow Health Connect library despite minSdk mismatch (feature disabled at runtime on API < 26) -->
@@ -78,6 +80,27 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_calories_info" />
+        </receiver>
+        
+        <!-- Widget Configuration Activity -->
+        <activity
+            android:name=".widget.WidgetConfigureActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CalView">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        
+
+        
+        <!-- Water Log Receiver for quick logging from notifications -->
+        <receiver
+            android:name=".worker.WaterLogReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.calview.ACTION_LOG_WATER" />
+            </intent-filter>
         </receiver>
         
         <!-- FileProvider for sharing images -->

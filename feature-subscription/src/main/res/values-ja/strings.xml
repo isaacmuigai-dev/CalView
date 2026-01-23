@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">高度な栄養素内訳</string>
     <string name="feature_trends_insights">トレンドとパーソナライズされた分析</string>
     <string name="feature_no_ads">広告なし</string>
+    <string name="feature_voice_logging">音声食事記録</string>
+    <string name="feature_ai_coach">AIコーチ通知</string>
+    <string name="feature_streak_freeze">ストリークフリーズ (月3回)</string>
+    <string name="feature_water_reminders">スマート水分補給リマインダー</string>
+    <string name="feature_social_challenges">ソーシャルチャレンジとランキング</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">プランを読み込み中...</string>

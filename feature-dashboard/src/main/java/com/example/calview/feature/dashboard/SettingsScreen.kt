@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -55,6 +56,7 @@ fun SettingsScreen(
     onNavigateToLicenses: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {},
+    onNavigateToSubscription: () -> Unit = {},
     // Widget data from dashboard
     remainingCalories: Int = 0,
     proteinLeft: Int = 0,
@@ -94,9 +96,17 @@ fun SettingsScreen(
         carbsLeft = carbsLeft,
         fatsLeft = fatsLeft,
         streakDays = streakDays,
+
         userEmail = uiState.userEmail,
         userId = uiState.userId,
-        scrollState = scrollState
+        scrollState = scrollState,
+        onUpgradeClick = onNavigateToSubscription,
+        // Streak Freeze
+        remainingFreezes = uiState.remainingFreezes,
+        maxFreezes = uiState.maxFreezes,
+        yesterdayMissed = uiState.yesterdayMissed,
+        onUseFreeze = viewModel::useFreeze,
+        isPremium = uiState.isPremium
     )
 }
 
@@ -130,11 +140,19 @@ fun SettingsContent(
     carbsLeft: Int = 0,
     fatsLeft: Int = 0,
     streakDays: Int = 0,
+
     // Support email data
     userEmail: String = "",
     userId: String = "",
     // Scroll state for position memory
-    scrollState: androidx.compose.foundation.ScrollState = rememberScrollState()
+    scrollState: androidx.compose.foundation.ScrollState = rememberScrollState(),
+    onUpgradeClick: () -> Unit = {},
+    // Streak Freeze
+    remainingFreezes: Int = 2,
+    maxFreezes: Int = 2,
+    yesterdayMissed: Boolean = false,
+    onUseFreeze: () -> Unit = {},
+    isPremium: Boolean = false
 ) {
     val context = LocalContext.current
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
@@ -223,12 +241,11 @@ fun SettingsContent(
             onRolloverCaloriesChange = onRolloverCaloriesChange
         )
         
+
+        
+
+        
         WidgetsSection(
-            remainingCalories = remainingCalories,
-            proteinLeft = proteinLeft,
-            carbsLeft = carbsLeft,
-            fatsLeft = fatsLeft,
-            streakDays = streakDays,
             onHowToAddClick = onHowToAddWidgetClick
         )
         
@@ -585,217 +602,521 @@ fun PreferenceToggle(
 
 @Composable
 fun WidgetsSection(
-    remainingCalories: Int = 0,
-    proteinLeft: Int = 0,
-    carbsLeft: Int = 0,
-    fatsLeft: Int = 0,
-    streakDays: Int = 0,
     onHowToAddClick: () -> Unit = {}
 ) {
-    Column {
-        Row(
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            stringResource(R.string.widgets),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            stringResource(R.string.how_to_add),
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable { onHowToAddClick() }
+        )
+    }
+}
+
+@Composable
+fun WidgetPreview(
+    remainingCalories: Int,
+    proteinLeft: Int,
+    carbsLeft: Int,
+    fatsLeft: Int,
+    streakDays: Int
+) {
+    // Theme-aware colors matching widget_calories.xml
+    val widgetBackground = androidx.compose.ui.graphics.Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFFFFFFF),
+            Color(0xFFFFF0EB),
+            Color(0xFFF5EEF8)
+        )
+    )
+    
+    // "Smaller and compact" -> add horizontal padding and width constraint
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .width(320.dp) // Simulate widget width for compactness
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Text(
-                stringResource(R.string.widgets),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                stringResource(R.string.how_to_add),
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onHowToAddClick() }
-            )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 8.dp)
-        ) {
-            item { WidgetCaloriesWithMacros(
-                remainingCalories = remainingCalories,
-                proteinLeft = proteinLeft,
-                carbsLeft = carbsLeft,
-                fatsLeft = fatsLeft
-            ) }
-            item { WidgetQuickActions() }
+            Column(
+                modifier = Modifier
+                    .background(widgetBackground)
+                    .padding(12.dp)
+            ) {
+                // --- Row 1: Header ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Date Section
+                    Column {
+                        Text(
+                            text = "TODAY",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xB3000000), // #B3000000
+                            letterSpacing = 0.1.sp
+                        )
+                        Text(
+                            text = "Jan 19",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF000000) // #000000
+                        )
+                    }
+
+                    // Streak & BMI
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Streak
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(end = 12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocalFireDepartment,
+                                contentDescription = null,
+                                tint = Color(0xFFFF5722), // #FF5722
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = streakDays.toString(),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF5722)
+                            )
+                        }
+
+                        // BMI Badge
+                        Surface(
+                            color = Color(0xFFE0F2FE), // widget_bmi_background approx
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "BMI",
+                                    fontSize = 12.sp,
+                                    color = Color(0x99000000), // #99000000
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                                Text(
+                                    text = "22.0",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF000000)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // --- Row 2: Main Content (Rings + Macros) ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left: Nested Rings
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(85.dp)
+                            .padding(end = 12.dp)
+                    ) {
+                        // Outer Ring (Calories)
+                        CircularProgressIndicator(
+                            progress = { 0.6f },
+                            modifier = Modifier.size(85.dp),
+                            color = Color(0xFFFF5722),
+                            trackColor = Color(0xFFFFCCBC),
+                            strokeWidth = 6.dp
+                        )
+                        // Inner Ring (Steps)
+                        CircularProgressIndicator(
+                            progress = { 0.4f },
+                            modifier = Modifier.size(60.dp),
+                            color = Color(0xFF2196F3),
+                            trackColor = Color(0xFFBBDEFB),
+                            strokeWidth = 6.dp
+                        )
+                        // Center Text
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = remainingCalories.toString(),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1A1A) // #1A1A1A
+                            )
+                            Text(
+                                text = "left",
+                                fontSize = 9.sp,
+                                color = Color(0xFF666666) // #666666
+                            )
+                            // Indicators (Rollover/Active)
+                            Row(
+                                modifier = Modifier.padding(top = 1.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text("+0", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFC107))
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text("+9", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
+                            }
+                        }
+                    }
+
+                    // Right: Macros
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        MacroPreviewItem(label = "Pro", amount = "${proteinLeft}g", color = Color(0xFFEF4444))
+                        MacroPreviewItem(label = "Car", amount = "${carbsLeft}g", color = Color(0xFFF59E0B))
+                        MacroPreviewItem(label = "Fat", amount = "${fatsLeft}g", color = Color(0xFF3B82F6))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // --- Row 3: Activity Stats ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp, bottom = 6.dp)
+                ) {
+                    val itemModifier = Modifier
+                        .weight(1f)
+                        .padding(end = 4.dp)
+
+                    StatChipPreview(label = "Steps", value = "226", modifier = itemModifier)
+                    StatChipPreview(label = "Burn", value = "9", modifier = itemModifier)
+                    StatChipPreview(label = "7d Burn", value = "740", modifier = itemModifier)
+                    StatChipPreview(label = "Record", value = "232", modifier = Modifier.weight(1f))
+                }
+                
+                // --- BMI Section ---
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 12.dp)
+                ) {
+                    // Height/Weight Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "BMI 22.0",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF374151), // #374151
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("60 kg", fontSize = 12.sp, color = Color(0xFF6B7280), modifier = Modifier.padding(end = 12.dp))
+                            Text("165 cm", fontSize = 12.sp, color = Color(0xFF6B7280))
+                        }
+                    }
+
+                    // Gradient Bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF3B82F6),
+                                        Color(0xFF10B981),
+                                        Color(0xFFF59E0B),
+                                        Color(0xFFEF4444)
+                                    )
+                                )
+                            )
+                    ) {
+                        // Marker
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 100.dp) // Dummy position
+                                .size(12.dp)
+                                .align(Alignment.CenterStart)
+                                .clip(CircleShape) // IMPORTANT: Clip to Circle for circular background
+                                .background(Color.White)
+                                .border(2.dp, Color(0xFF10B981), CircleShape)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Labels Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Under", fontSize = 9.sp, color = Color(0xFF3B82F6), modifier = Modifier.weight(1f))
+                        Text("Healthy", fontSize = 9.sp, color = Color(0xFF10B981), modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text("Over", fontSize = 9.sp, color = Color(0xFFF59E0B), modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text("Obese", fontSize = 9.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                    }
+
+                    // Category Text
+                    Text(
+                        text = "Healthy Weight",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF10B981),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun WidgetCaloriesOnly(remainingCalories: Int = 0) {
+fun MacroPreviewItem(label: String, amount: String, color: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(bottom = 4.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = Color(0xFF666666),
+            modifier = Modifier.width(24.dp)
+        )
+        
+        LinearProgressIndicator(
+            progress = { 0.5f },
+            modifier = Modifier
+                .weight(1f)
+                .height(6.dp)
+                .padding(horizontal = 4.dp)
+                .clip(RoundedCornerShape(3.dp)),
+            color = color,
+            trackColor = color.copy(alpha = 0.2f),
+        )
+        
+        Text(
+            text = amount,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A1A1A)
+        )
+    }
+}
+
+@Composable
+fun StatChipPreview(label: String, value: String, modifier: Modifier = Modifier) {
     Surface(
-        modifier = Modifier.size(width = 160.dp, height = 180.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(24.dp),
-        shadowElevation = 2.dp
+        color = Color(0xFFF3F4F6),
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
-                CircularProgressIndicator(
-                    progress = { 0.5f },
-                    color = MaterialTheme.colorScheme.onSurface,
-                    trackColor = MaterialTheme.colorScheme.outlineVariant,
-                    strokeWidth = 8.dp,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        remainingCalories.toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        stringResource(R.string.calories_left),
-                        fontSize = 8.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface
-                ),
-                shape = CircleShape,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    stringResource(R.string.log_food_action),
-                    color = MaterialTheme.colorScheme.surface,
-                    fontSize = 10.sp
-                )
-            }
+            Text(label, fontSize = 7.sp, color = Color(0xFF666666))
+            Text(value, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
         }
     }
 }
 
 @Composable
-fun WidgetCaloriesWithMacros(
-    remainingCalories: Int = 0,
-    proteinLeft: Int = 0,
-    carbsLeft: Int = 0,
-    fatsLeft: Int = 0
+fun ControlCenterWidgetPreview(
+    isDarkTheme: Boolean = false
 ) {
-    Surface(
-        modifier = Modifier.size(width = 240.dp, height = 180.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(24.dp),
-        shadowElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
-                CircularProgressIndicator(
-                    progress = { 0.5f },
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    strokeWidth = 8.dp,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        remainingCalories.toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        stringResource(R.string.calories_left),
-                        fontSize = 7.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                WidgetMacroItem(Color(0xFFD64D50), Icons.Default.Favorite, "${proteinLeft}g", stringResource(R.string.protein_left))
-                WidgetMacroItem(Color(0xFFE5A87B), Icons.Default.Grass, "${carbsLeft}g", stringResource(R.string.carbs_left))
-                WidgetMacroItem(Color(0xFF6A8FB3), Icons.Default.Opacity, "${fatsLeft}g", stringResource(R.string.fats_left))
-            }
-        }
+    val widgetBackground = if (isDarkTheme) {
+        androidx.compose.ui.graphics.Brush.verticalGradient(
+            colors = listOf(Color(0xFF1A1A1A), Color(0xFF1A1A1A))
+        )
+    } else {
+        androidx.compose.ui.graphics.Brush.verticalGradient(
+            colors = listOf(Color(0xFFFFFFFF), Color(0xFFFFF0EB), Color(0xFFF5EEF8))
+        )
     }
-}
-
-@Composable
-fun WidgetQuickActions() {
-    Surface(
-        modifier = Modifier.size(width = 140.dp, height = 180.dp),
-        color = MaterialTheme.colorScheme.surface,
+    
+    val textColorPrimary = if (isDarkTheme) Color.White else Color.Black
+    val textColorSecondary = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF888888)
+    val sectionBg = if (isDarkTheme) Color(0xFF2A2A2A) else Color.White.copy(alpha = 0.8f)
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        shadowElevation = 2.dp
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(widgetBackground)
+                .padding(12.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Control Center",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColorPrimary
+                )
+                Text(
+                    "Today",
+                    fontSize = 12.sp,
+                    color = textColorSecondary
+                )
+            }
+            
+            // Water Section
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = sectionBg
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.FilterCenterFocus,
-                            null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            stringResource(R.string.scan_food),
-                            fontSize = 8.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                    Icon(
+                        Icons.Default.WaterDrop,
+                        contentDescription = "Water",
+                        tint = Color(0xFF2196F3),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text("Water", fontSize = 12.sp, color = textColorSecondary)
+                        Text("500 ml", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColorPrimary)
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.QrCodeScanner,
-                            null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                    Surface(
+                        color = Color(0xFF4CAF50),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
                         Text(
-                            stringResource(R.string.barcode),
-                            fontSize = 8.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            "+250ml",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
                 }
             }
+            
+            // Fasting Section
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = sectionBg
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Timer,
+                        contentDescription = "Fasting",
+                        tint = Color(0xFFFF9800),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text("Fasting", fontSize = 12.sp, color = textColorSecondary)
+                        Text("4h 32m", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textColorPrimary)
+                    }
+                    Surface(
+                        color = Color(0xFFE53935),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            "Stop",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+            
+            // Quick Actions Row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ControlCenterQuickAction(icon = Icons.Default.CameraAlt, label = "Scan", textColor = textColorSecondary)
+                ControlCenterQuickAction(icon = Icons.Default.Add, label = "Log", textColor = textColorSecondary)
+                ControlCenterQuickAction(icon = Icons.Default.EmojiEmotions, label = "Mood", textColor = textColorSecondary)
+            }
+            
+            // Quote
+            Text(
+                "\"Stay consistent, stay strong!\"",
+                fontSize = 10.sp,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                color = textColorSecondary,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
+    }
+}
+
+@Composable
+private fun ControlCenterQuickAction(
+    icon: ImageVector,
+    label: String,
+    textColor: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = label,
+            tint = textColor,
+            modifier = Modifier.size(28.dp)
+        )
+        Text(
+            label,
+            fontSize = 10.sp,
+            color = textColor,
+            modifier = Modifier.padding(top = 2.dp)
+        )
     }
 }
 
@@ -1152,3 +1473,7 @@ fun DeleteAccountDialog(
         }
     }
 }
+
+
+
+

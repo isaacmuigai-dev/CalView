@@ -2,6 +2,8 @@ package com.example.calview.core.data.di
 
 import com.example.calview.core.data.repository.DailyLogRepository
 import com.example.calview.core.data.repository.DailyLogRepositoryImpl
+import com.example.calview.core.data.repository.FastingRepository
+import com.example.calview.core.data.repository.FastingRepositoryImpl
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.MealRepositoryImpl
 import com.example.calview.core.data.repository.UserPreferencesRepository
@@ -33,4 +35,10 @@ abstract class RepositoryModule {
     abstract fun bindDailyLogRepository(
         dailyLogRepositoryImpl: DailyLogRepositoryImpl
     ): DailyLogRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindFastingRepository(
+        fastingRepositoryImpl: FastingRepositoryImpl
+    ): FastingRepository
 }

@@ -306,16 +306,22 @@ private fun MealCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Meal Image - Larger to match RecentMealCard (100dp)
             Box(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                if (meal.imagePath != null && File(meal.imagePath).exists()) {
+                val path = meal.imagePath
+                if (!path.isNullOrEmpty()) {
+                    val model = if (path.startsWith("http")) {
+                        path
+                    } else {
+                        File(path)
+                    }
+                    
                     AsyncImage(
-                        model = File(meal.imagePath ?: ""),
+                        model = model,
                         contentDescription = meal.name,
                         modifier = Modifier
                             .fillMaxSize()

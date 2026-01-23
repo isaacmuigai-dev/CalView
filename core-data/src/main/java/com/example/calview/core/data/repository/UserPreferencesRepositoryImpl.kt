@@ -58,7 +58,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         // Calorie settings
         val ADD_CALORIES_BACK = booleanPreferencesKey("add_calories_back")
         val ROLLOVER_EXTRA_CALORIES = booleanPreferencesKey("rollover_extra_calories")
+
         val ROLLOVER_CALORIES_AMOUNT = intPreferencesKey("rollover_calories_amount")
+        val LAST_ROLLOVER_DATE = longPreferencesKey("last_rollover_date")
         
         // Appearance settings
         val APPEARANCE_MODE = stringPreferencesKey("appearance_mode")
@@ -78,9 +80,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val WATER_CONSUMED = intPreferencesKey("water_consumed")
         val WATER_DATE = longPreferencesKey("water_date")
         val LAST_KNOWN_STEPS = intPreferencesKey("last_known_steps")
+        val LAST_KNOWN_CALORIES_BURNED = intPreferencesKey("last_known_calories_burned")
+        val WEEKLY_BURN = intPreferencesKey("weekly_burn")
+        val RECORD_BURN = intPreferencesKey("record_burn")
         
         // Camera Tutorial
         val HAS_SEEN_CAMERA_TUTORIAL = booleanPreferencesKey("has_seen_camera_tutorial")
+        
+        // Widget Theme
+        val WIDGET_DARK_THEME = booleanPreferencesKey("widget_dark_theme")
     }
     
     // Coroutine scope for background sync operations
@@ -116,7 +124,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             birthMonth = preferences[PreferencesKeys.BIRTH_MONTH] ?: "January",
             birthDay = preferences[PreferencesKeys.BIRTH_DAY] ?: 1,
             birthYear = preferences[PreferencesKeys.BIRTH_YEAR] ?: 2000,
-            language = preferences[PreferencesKeys.LANGUAGE] ?: "en"
+
+            language = preferences[PreferencesKeys.LANGUAGE] ?: "en",
+            lastRolloverDate = preferences[PreferencesKeys.LAST_ROLLOVER_DATE] ?: 0L
         )
     }
     
@@ -239,6 +249,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val rolloverCaloriesAmount: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.ROLLOVER_CALORIES_AMOUNT] ?: 0
     }
+
+    override val lastRolloverDate: Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LAST_ROLLOVER_DATE] ?: 0L
+    }
     
     override val maxRolloverCalories: Int = 200 // Fixed value as per design
     
@@ -293,6 +307,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] ?: false
     }
 
+    override val widgetDarkTheme: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.WIDGET_DARK_THEME] ?: false
+    }
+
     override suspend fun setOnboardingComplete(complete: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_ONBOARDING_COMPLETE] = complete
@@ -325,6 +343,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.RECOMMENDED_FATS] = fats
         }
         syncToFirestore()
+        syncWidgetData()
     }
     
     override suspend fun setUserName(name: String) {
@@ -367,11 +386,20 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.ROLLOVER_EXTRA_CALORIES] = enabled
         }
         syncToFirestore()
+        syncWidgetData()
     }
     
     override suspend fun setRolloverCaloriesAmount(amount: Int) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.ROLLOVER_CALORIES_AMOUNT] = amount.coerceAtMost(200)
+            preferences[PreferencesKeys.ROLLOVER_CALORIES_AMOUNT] = amount.coerceAtMost(maxRolloverCalories)
+        }
+        syncToFirestore()
+        syncWidgetData()
+    }
+
+    override suspend fun setLastRolloverDate(timestamp: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_ROLLOVER_DATE] = timestamp
         }
         syncToFirestore()
     }
@@ -415,6 +443,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.DAILY_STEPS_GOAL] = steps
         }
         syncToFirestore()
+        syncWidgetData()
     }
     
     override suspend fun setBirthDate(month: String, day: Int, year: Int) {
@@ -458,6 +487,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         )
         
         syncToFirestore()
+        syncWidgetData()
     }
     
     override suspend fun setHeight(heightCm: Int) {
@@ -465,6 +495,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.HEIGHT] = heightCm
         }
         syncToFirestore()
+        syncWidgetData()
     }
 
     override suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long) {
@@ -472,18 +503,40 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.WATER_CONSUMED] = amount
             preferences[PreferencesKeys.WATER_DATE] = dateTimestamp
         }
+        syncWidgetData()
     }
 
     override suspend fun setLastKnownSteps(steps: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_KNOWN_STEPS] = steps
         }
+        syncWidgetData()
+    }
+
+    override suspend fun setActivityStats(caloriesBurned: Int, weeklyBurn: Int, recordBurn: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_KNOWN_CALORIES_BURNED] = caloriesBurned
+            preferences[PreferencesKeys.WEEKLY_BURN] = weeklyBurn
+            preferences[PreferencesKeys.RECORD_BURN] = recordBurn
+        }
+        syncWidgetData()
     }
 
     override suspend fun setHasSeenCameraTutorial(seen: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] = seen
         }
+    }
+    
+    override suspend fun setWidgetDarkTheme(isDark: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WIDGET_DARK_THEME] = isDark
+        }
+        // Sync to SharedPreferences for widget access
+        val widgetPrefs = context.getSharedPreferences("widget_data", Context.MODE_PRIVATE)
+        widgetPrefs.edit().putBoolean("widget_dark_theme", isDark).apply()
+        // Trigger widget refresh
+        updateWidget()
     }
     
     /**
@@ -523,9 +576,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.DAILY_STEPS_GOAL] = userData.dailyStepsGoal
                     preferences[PreferencesKeys.BIRTH_MONTH] = userData.birthMonth
                     preferences[PreferencesKeys.BIRTH_DAY] = userData.birthDay
-                    preferences[PreferencesKeys.BIRTH_DAY] = userData.birthDay
                     preferences[PreferencesKeys.BIRTH_YEAR] = userData.birthYear
                     preferences[PreferencesKeys.LANGUAGE] = userData.language
+                    preferences[PreferencesKeys.LAST_ROLLOVER_DATE] = userData.lastRolloverDate
                 }
                 true
             } else {
@@ -534,17 +587,27 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        } finally {
+            // Ensure widget is updated with new user data (or defaults if restore failed)
+            syncWidgetData()
         }
     }
     
     /**
      * Sync widget data to SharedPreferences for widget access
      * Widget can't use DataStore (causes multiple instance conflict)
+     * 
+     * Syncs: goals, steps, water, and activity metrics (burn, weekly burn, record)
      */
     override suspend fun syncWidgetData() {
         try {
             val prefs = context.getSharedPreferences("widget_data", Context.MODE_PRIVATE)
             val dataStorePrefs = context.dataStore.data.first()
+            
+            val steps = dataStorePrefs[PreferencesKeys.LAST_KNOWN_STEPS] ?: 0
+            val caloriesBurned = dataStorePrefs[PreferencesKeys.LAST_KNOWN_CALORIES_BURNED] ?: 0
+            val weeklyBurn = dataStorePrefs[PreferencesKeys.WEEKLY_BURN] ?: 0
+            val recordBurn = dataStorePrefs[PreferencesKeys.RECORD_BURN] ?: 0
             
             prefs.edit()
                 .putInt("recommended_calories", dataStorePrefs[PreferencesKeys.RECOMMENDED_CALORIES] ?: 2000)
@@ -552,9 +615,19 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                 .putInt("recommended_carbs", dataStorePrefs[PreferencesKeys.RECOMMENDED_CARBS] ?: 203)
                 .putInt("recommended_fats", dataStorePrefs[PreferencesKeys.RECOMMENDED_FATS] ?: 47)
                 .putInt("daily_steps_goal", dataStorePrefs[PreferencesKeys.DAILY_STEPS_GOAL] ?: 10000)
-                .putInt("last_known_steps", dataStorePrefs[PreferencesKeys.LAST_KNOWN_STEPS] ?: 0)
+                .putInt("last_known_steps", steps)
                 .putInt("water_consumed", dataStorePrefs[PreferencesKeys.WATER_CONSUMED] ?: 0)
                 .putLong("water_date", dataStorePrefs[PreferencesKeys.WATER_DATE] ?: 0L)
+                // Activity stats
+                .putInt("calories_burned", caloriesBurned)
+                .putInt("weekly_burn", weeklyBurn)
+                .putInt("record_burn", recordBurn)
+                // New fields for widget redesign
+                .putFloat("weight", dataStorePrefs[PreferencesKeys.WEIGHT] ?: 0f)
+                .putInt("height", dataStorePrefs[PreferencesKeys.HEIGHT] ?: 0)
+                .putBoolean("rollover_enabled", dataStorePrefs[PreferencesKeys.ROLLOVER_EXTRA_CALORIES] ?: false)
+                .putInt("rollover_amount", dataStorePrefs[PreferencesKeys.ROLLOVER_CALORIES_AMOUNT] ?: 0)
+                .putBoolean("add_calories_back", dataStorePrefs[PreferencesKeys.ADD_CALORIES_BACK] ?: false)
                 .apply()
             
             // Trigger widget update
@@ -585,10 +658,21 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     
     override suspend fun clearAllData() {
         try {
+            // Clear DataStore preferences
             context.dataStore.edit { preferences ->
                 preferences.clear()
             }
-            Log.d("UserPreferences", "Cleared all local preferences")
+            
+            // Clear Widget SharedPreferences
+            context.getSharedPreferences("widget_data", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply()
+                
+            // Trigger widget update to reflect empty state
+            updateWidget()
+            
+            Log.d("UserPreferences", "Cleared all local preferences and widget data")
         } catch (e: Exception) {
             Log.e("UserPreferences", "Error clearing preferences", e)
         }

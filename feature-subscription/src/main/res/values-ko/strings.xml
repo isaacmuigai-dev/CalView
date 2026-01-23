@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">고급 매크로 영양소 분석</string>
     <string name="feature_trends_insights">트렌드 및 개인화된 인사이트</string>
     <string name="feature_no_ads">광고 없음</string>
+    <string name="feature_voice_logging">음성 음식 기록</string>
+    <string name="feature_ai_coach">AI 코치 알림</string>
+    <string name="feature_streak_freeze">스트릭 프리즈 (월 3회)</string>
+    <string name="feature_water_reminders">스마트 물 알림</string>
+    <string name="feature_social_challenges">소셜 챌린지 및 리더보드</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">플랜 로드 중...</string>

@@ -1,5 +1,6 @@
 package com.example.calview.feature.onboarding
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -73,28 +74,34 @@ fun SplashScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                // New Vector Icon - theme aware
-                val iconRes = if (androidx.compose.foundation.isSystemInDarkTheme()) {
-                    com.example.calview.core.ui.R.drawable.ic_vector_icon_white
+                // Theme-aware logo without tinting
+                // Theme-aware logo without tinting
+                // Use background luminance to determine actual theme (user pref or system)
+                val backgroundColor = MaterialTheme.colorScheme.background
+                val isDarkTheme = backgroundColor.luminance() < 0.5f
+                
+                // Light Mode -> Black Logo, Dark Mode -> White Logo
+                val iconRes = if (isDarkTheme) {
+                    com.example.calview.core.ui.R.drawable.app_logo_white
                 } else {
-                    com.example.calview.core.ui.R.drawable.ic_vector_icon_black
+                    com.example.calview.core.ui.R.drawable.app_logo_black
                 }
                 
                 Image(
                     painter = painterResource(id = iconRes),
                     contentDescription = "CalViewAI Icon",
                     modifier = Modifier.fillMaxWidth(0.2f)
-                        .size(100.dp),
+                        .size(90.dp),
                     contentScale = ContentScale.Crop
                 )
                 
                 // App Name
                 Text(
                     text = "CalViewAI",
-                    fontFamily = Inter,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                    fontSize = 60.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
             }
         }

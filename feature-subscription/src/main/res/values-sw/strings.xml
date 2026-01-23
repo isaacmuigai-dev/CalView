@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Uchanganuzi wa Kina wa Macronutrient</string>
     <string name="feature_trends_insights">Mitindo na Maarifa ya Kubinafsisha</string>
     <string name="feature_no_ads">Hakuna Matangazo</string>
+    <string name="feature_voice_logging">Kurekodi Chakula kwa Sauti</string>
+    <string name="feature_ai_coach">Arifa za Kocha wa AI</string>
+    <string name="feature_streak_freeze">Kuganda kwa Mfululizo (3/mwezi)</string>
+    <string name="feature_water_reminders">Vikumbusho Mahiri vya Maji</string>
+    <string name="feature_social_challenges">Changamoto za Kijamii na Ubao wa Walioongoza</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Inapakia mipango...</string>

@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Ripartizione Avanzata Macronutrienti</string>
     <string name="feature_trends_insights">Tendenze e Approfondimenti Personalizzati</string>
     <string name="feature_no_ads">Nessuna Pubblicità</string>
+    <string name="feature_voice_logging">Registrazione Vocale Cibo</string>
+    <string name="feature_ai_coach">Notifiche Coach AI</string>
+    <string name="feature_streak_freeze">Congela Serie (3/mese)</string>
+    <string name="feature_water_reminders">Promemoria Acqua Intelligenti</string>
+    <string name="feature_social_challenges">Sfide Sociali e Classifiche</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Caricamento piani...</string>

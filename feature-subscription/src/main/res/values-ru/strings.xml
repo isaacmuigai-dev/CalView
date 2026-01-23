@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">Продвинутая Разбивка Макросов</string>
     <string name="feature_trends_insights">Персональные Тренды и Инсайты</string>
     <string name="feature_no_ads">Без Рекламы</string>
+    <string name="feature_voice_logging">Голосовой дневник питания</string>
+    <string name="feature_ai_coach">Уведомления AI-тренера</string>
+    <string name="feature_streak_freeze">Заморозка серии (3/мес)</string>
+    <string name="feature_water_reminders">Умные напоминания о воде</string>
+    <string name="feature_social_challenges">Социальные челленджи и рейтинги</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">Загрузка планов...</string>

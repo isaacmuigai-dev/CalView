@@ -677,7 +677,7 @@ private fun StatusBadge(status: RequestStatus) {
         RequestStatus.OPEN -> stringResource(R.string.status_open) to MaterialTheme.colorScheme.onSurfaceVariant
         RequestStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress) to AccentOrange
         RequestStatus.COMPLETED -> stringResource(R.string.status_completed) to AccentGreen
-        RequestStatus.DECLINED -> stringResource(R.string.status_declined) to Color.Gray
+        RequestStatus.DECLINED -> stringResource(R.string.status_declined) to MaterialTheme.colorScheme.onSurfaceVariant
     }
     
     if (status != RequestStatus.OPEN) {

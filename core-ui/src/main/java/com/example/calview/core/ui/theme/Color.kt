@@ -60,53 +60,56 @@ val Avocado = SageGreenDark
 // DARK THEME COLORS - Modern & Brandable
 // ============================================
 
-// Background colors - Deep space aesthetic
-val DarkBackground = Color(0xFF0F0F14)     // Deep space black
-val DarkSurface = Color(0xFF1A1A22)        // Elevated dark slate
-val DarkSurfaceVariant = Color(0xFF252530) // Slightly lighter for cards
-val DarkCardBackground = Color(0xFF1E1E28) // Card background with slight purple tint
+// ============================================
+// DARK THEME COLORS - REDESIGNED (AMOLED Black)
+// ============================================
 
-// Accent colors - Electric & vibrant
-val ElectricCyan = Color(0xFF00D9FF)       // Primary accent - electric cyan
-val VibrantPurple = Color(0xFF7B61FF)      // Secondary accent
-val SoftPink = Color(0xFFFF6B9D)           // Tertiary accent
+// Background colors - Pure Black for AMOLED
+val AmoledBlack = Color(0xFF000000)
+val DarkGrayBackground = AmoledBlack       // Base background is now pure black
+val DarkGraySurface = Color(0xFF121212)    // Dark Gray for cards (was background)
+val DarkSurfaceVariant = Color(0xFF1E1E1E) // Slightly lighter for input fields
 
-// Text colors for dark mode
-val DarkOnBackground = Color(0xFFF5F5F7)   // Near white text
-val DarkOnSurface = Color(0xFFE8E8ED)      // Slightly dimmer
-val DarkMutedGrey = Color(0xFF6E6E78)      // Muted secondary text
+// Accent colors - Health & Vitality
+val VibrantHealthGreen = Color(0xFF00FF85) // Vibrant Green (Primary)
+val EnergyOrange = Color(0xFFFF9800)       // Muted Orange (Secondary/Alerts)
+val CalmingBlue = Color(0xFF2979FF)        // Calming Blue (Tertiary/Info)
 
-// Macro colors (Dark Mode) - Softer, easier on eyes
-val DarkProteinColor = Color(0xFFFF7B93)   // Soft coral
-val DarkCarbsColor = Color(0xFFFFB366)     // Warm orange
-val DarkFatsColor = Color(0xFF66D4FF)      // Sky blue
+// Text colors for dark mode - Pure White
+val DarkOffWhite = Color(0xFFFFFFFF)       // Primary text -> Pure White
+val DarkMutedText = Color(0xFFB0B0B0)      // Secondary text
 
-// Border and divider colors for dark mode
-val DarkDivider = Color(0xFF2A2A35)
-val DarkBorder = Color(0xFF3A3A45)
+// Macro colors (Dark Mode) - Adjusted for contrast
+val DarkProteinColor = Color(0xFFFF8A80)   // Soft Red
+val DarkCarbsColor = Color(0xFFFFD180)     // Soft Orange
+val DarkFatsColor = Color(0xFF80D8FF)      // Soft Blue
 
-// Success/Warning colors for dark mode
-val DarkSuccess = Color(0xFF4ADE80)        // Green
-val DarkWarning = Color(0xFFFFA726)        // Orange
-val DarkError = Color(0xFFEF5350)          // Red
+// Border and divider colors
+val DarkDivider = Color(0xFF2C2C2C)
+val DarkBorder = Color(0xFF333333)         // Slightly lighter border for visibility
+
+// Success/Warning colors
+val DarkSuccess = VibrantHealthGreen
+val DarkWarning = EnergyOrange
+val DarkError = Color(0xFFCF6679)
 
 // ============================================
 // GRADIENT DEFINITIONS - Bold & Visible
 // ============================================
 
 // New Modern Theme Base Colors
-val DeepPurple = Color(0xFF451E61)          // #451E61 - Rich deep purple
-val ModernCoral = Color(0xFFFB8E6A)         // #FB8E6A - Vibrant coral/peach
+val DeepPurple = Color(0xFF451E61)
+val ModernCoral = Color(0xFFFB8E6A)
 
 // Light Theme Gradient (White -> Soft Coral -> Soft Purple blend)
-val LightGradientStart = Color(0xFFFFFFFF)  // Pure white
-val LightGradientMid = Color(0xFFFFF0EB)    // White with soft coral tint
-val LightGradientEnd = Color(0xFFF5EEF8)    // White with soft purple tint
+val LightGradientStart = Color(0xFFFFFFFF)
+val LightGradientMid = Color(0xFFFFF0EB)
+val LightGradientEnd = Color(0xFFF5EEF8)
 
-// Dark Theme Gradient (Subtle Purple-Black - from Cal AI reference)
-val DarkGradientStart = Color(0xFF16162A)   // Top: Deep purple-tinted black
-val DarkGradientMid = Color(0xFF0F0F15)     // Middle: Very dark charcoal
-val DarkGradientEnd = Color(0xFF0A0A0E)     // Bottom: Near black
+// Dark Theme Gradient (Pure Black for AMOLED)
+val DarkGradientStart = AmoledBlack   // Top: Pure Black
+val DarkGradientMid = AmoledBlack     // Middle: Pure Black
+val DarkGradientEnd = AmoledBlack     // Bottom: Pure Black
 
 // Primary accent colors for new theme - Modern Indigo/Violet
 val IndigoPrimary = Color(0xFF6366F1)       // Deep indigo (primary)

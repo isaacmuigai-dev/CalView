@@ -9,6 +9,11 @@
     <string name="feature_advanced_macros">تفاصيل متقدمة للمغذيات الكبيرة</string>
     <string name="feature_trends_insights">تنبؤات ورؤى شخصية</string>
     <string name="feature_no_ads">بدون إعلانات</string>
+    <string name="feature_voice_logging">تسجيل الطعام بالصوت</string>
+    <string name="feature_ai_coach">إشعارات مدرب الذكاء الاصطناعي</string>
+    <string name="feature_streak_freeze">تجميد التتابع (3/شهر)</string>
+    <string name="feature_water_reminders">تذكير ذكي لشرب الماء</string>
+    <string name="feature_social_challenges">التحديات الاجتماعية ولوحات المتصدرين</string>
     
     <!-- Subscription Plans -->
     <string name="loading_plans">جاري تحميل الخطط...</string>
