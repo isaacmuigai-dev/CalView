@@ -169,6 +169,18 @@ fun PersonalDetailsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     
+                    // Age
+                    PersonalDetailItem(
+                        label = "Age",
+                        value = "${uiState.age} ${stringResource(R.string.years_old_suffix)}",
+                        onClick = onEditBirthday
+                    )
+                    
+                    HorizontalDivider(
+                        color = Color(0xFFF3F3F3),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    
                     // Gender
                     PersonalDetailItem(
                         label = stringResource(R.string.gender_label),

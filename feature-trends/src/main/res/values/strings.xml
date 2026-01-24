@@ -88,4 +88,22 @@
     <string name="day_completed_desc">Day completed</string>
     <string name="current_streak_desc">Current Streak</string>
     <string name="best_streak_desc">Best Streak</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Streak Freeze</string>
+    <string name="available_freezes_format">%1$d/%2$d Available</string>
+    <string name="missed_day_msg">You missed a day! Use a freeze to keep your %1$d day streak.</string>
+    <string name="use_freeze_action">Use Streak Freeze</string>
+    <string name="streak_safe_msg">Your streak is safe. Freezes automatically protect your progress.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Weight Forecast</string>
+    <string name="trend_down">Trending Down</string>
+    <string name="trend_up">Trending Up</string>
+    <string name="trend_stable">Stable</string>
+    <string name="in_30_days">In 30 Days</string>
+    <string name="reach_goal_by">Reach Goal By</string>
+    <string name="weekly_rate_label">Weekly Rate</string>
+    <string name="keep_pushing">Keep pushing!</string>
+    <string name="unit_kg_format">%1$.1f kg</string>
 </resources>

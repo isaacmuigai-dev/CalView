@@ -90,7 +90,7 @@ fun SplashScreen(
                 Image(
                     painter = painterResource(id = iconRes),
                     contentDescription = "CalViewAI Icon",
-                    modifier = Modifier.fillMaxWidth(0.2f)
+                    modifier = Modifier.fillMaxWidth(0.16f)
                         .size(90.dp),
                     contentScale = ContentScale.Crop
                 )
@@ -99,8 +99,8 @@ fun SplashScreen(
                 Text(
                     text = "CalViewAI",
                     fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-                    fontSize = 60.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 45.sp,
+                    fontWeight = FontWeight.Normal,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
             }

@@ -88,4 +88,21 @@
     <string name="day_completed_desc">완료된 날짜</string>
     <string name="current_streak_desc">현재 스트릭</string>
     <string name="best_streak_desc">최고 스트릭</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">스트리크 프리즈</string>
+    <string name="available_freezes_format">%1$d/%2$d 사용 가능</string>
+    <string name="missed_day_msg">하루를 놓쳤습니다! 스트리크 프리즈를 사용하여 %1$d일 스트리크를 유지하세요.</string>
+    <string name="use_freeze_action">스트리크 프리즈 사용</string>
+    <string name="streak_safe_msg">스트리크가 안전합니다. 프리즈가 자동으로 진행 상황을 보호합니다.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">체중 예측</string>
+    <string name="trend_down">하락 추세</string>
+    <string name="trend_up">상승 추세</string>
+    <string name="trend_stable">안정적</string>
+    <string name="in_30_days">30일 이내</string>
+    <string name="reach_goal_by">목표 달성 예정일</string>
+    <string name="weekly_rate_label">주간 비율</string>
+    <string name="keep_pushing">계속 힘내세요!</string>
 </resources>

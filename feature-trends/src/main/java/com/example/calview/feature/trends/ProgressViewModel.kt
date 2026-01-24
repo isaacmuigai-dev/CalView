@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.repository.StreakFreezeRepository
+import com.example.calview.core.data.repository.WeightHistoryRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.state.SelectedDateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +40,9 @@ private data class UserMetrics(
     val startWeight: Float,
     val height: Int,
     val calories: Int,
-    val protein: Int
+    val protein: Int,
+    val goal: String,
+    val pace: Float
 )
 
 
@@ -107,7 +110,15 @@ data class ProgressUiState(
     val yesterdayMissed: Boolean = false,
     
     // Loading state
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    
+    // Goal Journey
+    val userGoal: String = "Maintain",
+    val weeklyPace: Float = 0.5f,
+    val weeksToGoal: Int = 0,
+    val weightDiff: Int = 0,
+    val estimatedGoalDate: LocalDate = LocalDate.now(),
+    val showGoalJourney: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -117,7 +128,7 @@ class ProgressViewModel @Inject constructor(
     private val mealRepository: MealRepository,
     private val healthConnectManager: HealthConnectManager,
     private val selectedDateHolder: SelectedDateHolder,
-    private val weightDao: com.example.calview.core.data.local.WeightHistoryDao,
+    private val weightHistoryRepository: WeightHistoryRepository,
     private val predictionEngine: com.example.calview.core.data.prediction.WeightPredictionEngine,
     private val streakFreezeRepository: StreakFreezeRepository
 ) : ViewModel() {
@@ -131,7 +142,7 @@ class ProgressViewModel @Inject constructor(
 
     private fun loadProgressData() {
         viewModelScope.launch {
-            // Combine user metrics flows (split to avoid 5+ flow limitation)
+            // Combine user metrics flows (chaining to handle 5+ flows)
             combine(
                 userPreferencesRepository.weight,
                 userPreferencesRepository.goalWeight,
@@ -139,9 +150,13 @@ class ProgressViewModel @Inject constructor(
                 userPreferencesRepository.height,
                 userPreferencesRepository.recommendedCalories,
             ) { weight, goalWeight, startWeight, height, calories ->
-                UserMetrics(weight, goalWeight, startWeight, height, calories, 0) // Temp holder, correct below
+                UserMetrics(weight, goalWeight, startWeight, height, calories, 0, "", 0f)
             }.combine(userPreferencesRepository.recommendedProtein) { metrics, protein ->
                 metrics.copy(protein = protein)
+            }.combine(userPreferencesRepository.userGoal) { metrics, goal ->
+                metrics.copy(goal = goal)
+            }.combine(userPreferencesRepository.weightChangePerWeek) { metrics, pace ->
+                metrics.copy(pace = pace)
             }.combine(
                 combine(
                     userPreferencesRepository.recommendedCarbs,
@@ -164,8 +179,6 @@ class ProgressViewModel @Inject constructor(
                 }
                 
                 // Calculate weight progress
-                // Formula: (Current - Start) / (Goal - Start)
-                // If Start is not set (0), assume Start = Current (0% progress)
                 val start = if (metrics.startWeight > 0) metrics.startWeight else metrics.weight
                 val current = metrics.weight
                 val goal = metrics.goalWeight
@@ -173,12 +186,17 @@ class ProgressViewModel @Inject constructor(
                 val weightProgress = if (start == goal) {
                     1f
                 } else if (goal < start) {
-                    // Weight loss goal
                     ((start - current) / (start - goal)).coerceIn(0f, 1f)
                 } else {
-                    // Weight gain goal
                     ((current - start) / (goal - start)).coerceIn(0f, 1f)
                 }
+
+                // Goal Journey Calculations
+                val weightDiff = kotlin.math.abs(goal - current).toInt()
+                val weeklyPace = metrics.pace.coerceAtLeast(0.1f)
+                val weeksToGoal = (weightDiff / weeklyPace).toInt()
+                val estimatedDate = LocalDate.now().plusWeeks(weeksToGoal.toLong())
+                val showJourney = metrics.goal != "Maintain" && goal > 0
                 
                 ProgressUiState(
                     currentWeight = metrics.weight,
@@ -192,6 +210,12 @@ class ProgressViewModel @Inject constructor(
                     carbsGoal = macros.carbs,
                     fatsGoal = macros.fats,
                     stepsGoal = macros.stepsGoal,
+                    userGoal = metrics.goal,
+                    weeklyPace = metrics.pace,
+                    weeksToGoal = weeksToGoal,
+                    weightDiff = weightDiff,
+                    estimatedGoalDate = estimatedDate,
+                    showGoalJourney = showJourney,
                     isLoading = false
                 )
             }.collect { state ->
@@ -208,6 +232,12 @@ class ProgressViewModel @Inject constructor(
                         carbsGoal = state.carbsGoal,
                         fatsGoal = state.fatsGoal,
                         stepsGoal = state.stepsGoal,
+                        userGoal = state.userGoal,
+                        weeklyPace = state.weeklyPace,
+                        weeksToGoal = state.weeksToGoal,
+                        weightDiff = state.weightDiff,
+                        estimatedGoalDate = state.estimatedGoalDate,
+                        showGoalJourney = state.showGoalJourney,
                         isLoading = false
                     )
                 }
@@ -276,29 +306,17 @@ class ProgressViewModel @Inject constructor(
                 )}
             }
         }
-        
-        // Calculate streak (simplified - based on logged meals)
+        // Load overall progress data (streaks, weekly trends)
         viewModelScope.launch {
             mealRepository.getAllMeals().collect { meals ->
-                // Group meals by date and check consecutive days
-                val today = LocalDate.now()
                 val mealDates = meals.map { meal ->
-                    LocalDate.ofEpochDay(meal.timestamp / (24 * 60 * 60 * 1000))
+                    java.time.Instant.ofEpochMilli(meal.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                 }.distinct().sortedDescending()
-                
-                var streak = 0
-                var currentDate = today
-                for (date in mealDates) {
-                    if (date == currentDate || date == currentDate.minusDays(1)) {
-                        streak++
-                        currentDate = date
-                    } else {
-                        break
-                    }
-                }
-                
+
                 // Calculate completed days for the week
+                val today = LocalDate.now()
                 val weekStart = today.minusDays(today.dayOfWeek.value.toLong() % 7)
+                
                 val completedDays = (0..6).map { dayOffset ->
                     val checkDate = weekStart.plusDays(dayOffset.toLong())
                     mealDates.contains(checkDate)
@@ -309,7 +327,7 @@ class ProgressViewModel @Inject constructor(
                     val checkDate = weekStart.plusDays(dayOffset.toLong())
                     val dayName = checkDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayMeals = meals.filter { meal ->
-                        LocalDate.ofEpochDay(meal.timestamp / (24 * 60 * 60 * 1000)) == checkDate
+                         java.time.Instant.ofEpochMilli(meal.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate() == checkDate
                     }
                     DailyCalories(
                         day = dayName,
@@ -324,29 +342,24 @@ class ProgressViewModel @Inject constructor(
                     .map { it.calories }
                     .average()
                     .takeIf { !it.isNaN() }?.roundToInt() ?: 0
-                
-                // Calculate best streak ever
-                var bestStreak = streak
-                var tempStreak = 0
-                var lastDate: LocalDate? = null
-                for (date in mealDates.sortedDescending()) {
-                    if (lastDate == null || lastDate.minusDays(1) == date) {
-                        tempStreak++
-                    } else {
-                        bestStreak = maxOf(bestStreak, tempStreak)
-                        tempStreak = 1
-                    }
-                    lastDate = date
-                }
-                bestStreak = maxOf(bestStreak, tempStreak)
-                
+
                 _uiState.update { it.copy(
-                    dayStreak = streak, // Don't force minimum 1 - show actual streak
-                    bestStreak = maxOf(bestStreak, streak),
                     completedDays = completedDays,
                     weeklyCalories = weeklyCalories,
                     weeklyAverageCalories = weeklyAvg
                 )}
+
+                // Centralized streak logic
+                streakFreezeRepository.getStreakData(mealDates).flatMapLatest { streak ->
+                    streakFreezeRepository.calculateBestStreak(mealDates, streak).map { best ->
+                        Pair(streak, best)
+                    }
+                }.collect { (streak, best) ->
+                    _uiState.update { it.copy(
+                        dayStreak = streak,
+                        bestStreak = best
+                    )}
+                }
             }
         }
         
@@ -354,7 +367,7 @@ class ProgressViewModel @Inject constructor(
         viewModelScope.launch {
             // Combine history and goal weight to generate prediction
             combine(
-                weightDao.getAllWeightHistory(),
+                weightHistoryRepository.getAllWeightHistory(),
                 userPreferencesRepository.goalWeight
             ) { historyEntities, goalWeight ->
                 // Convert entities to UI model

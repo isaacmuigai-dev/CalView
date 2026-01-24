@@ -2,6 +2,7 @@ package com.example.calview.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.calview.core.data.repository.StreakFreezeRepository
 import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.data.repository.MealRepository
@@ -29,6 +30,8 @@ class DashboardViewModel @Inject constructor(
     private val coachMessageGenerator: com.example.calview.core.data.coach.CoachMessageGenerator,
     private val selectedDateHolder: SelectedDateHolder,
     private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository,
+    private val streakFreezeRepository: StreakFreezeRepository,
+    private val dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -59,50 +62,28 @@ class DashboardViewModel @Inject constructor(
     private val storedFatsGoal = userPreferencesRepository.recommendedFats
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
+    val hasSeenWalkthrough = userPreferencesRepository.hasSeenDashboardWalkthrough
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setHasSeenWalkthrough(seen: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setHasSeenDashboardWalkthrough(seen)
+        }
+    }
+
     private val _selectedDate = MutableStateFlow(Calendar.getInstance())
     val selectedDate = _selectedDate.asStateFlow()
     
     // Water consumption (persisted)
-    private val _waterConsumed = MutableStateFlow(0)
-    val waterConsumed = _waterConsumed.asStateFlow()
+    val waterConsumed = selectedDate.flatMapLatest { date ->
+        val dateString = dateFormat.format(date.time)
+        dailyLogRepository.getLogForDate(dateString).map { it?.waterIntake ?: 0 }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
     // Observe repository for water updates and date checks
     init {
         viewModelScope.launch {
             checkRollover()
-        }
-
-        viewModelScope.launch {
-            combine(
-                userPreferencesRepository.waterConsumed,
-                userPreferencesRepository.waterDate
-            ) { consumed, timestamp ->
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-                
-                val recordParams = Calendar.getInstance().apply { timeInMillis = timestamp }
-                val recordStartOfDay = recordParams.apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-
-                if (today == recordStartOfDay) {
-                    _waterConsumed.value = consumed
-                } else {
-                    // Reset if different day
-                    _waterConsumed.value = 0
-                    if (consumed > 0) {
-                        // Update repo to clean state for new day
-                        userPreferencesRepository.setWaterConsumed(0, System.currentTimeMillis())
-                    }
-                }
-            }.collect()
         }
     }
 
@@ -267,133 +248,104 @@ class DashboardViewModel @Inject constructor(
             waterReminderEndHour = waterSettings?.endHour ?: 22,
             waterReminderDailyGoalMl = waterSettings?.dailyGoalMl ?: 2500
         )
-    }.combine(allMeals) { state, allMealsList ->
-        // Calculate streak detection
-        val today = Calendar.getInstance()
-        val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
-        
-        // Check if user logged any meal yesterday
-        val yesterdayStart = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, -1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-        val yesterdayEnd = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, -1)
-            set(Calendar.HOUR_OF_DAY, 23)
-            set(Calendar.MINUTE, 59)
-            set(Calendar.SECOND, 59)
-            set(Calendar.MILLISECOND, 999)
-        }.timeInMillis
-        
-        val todayStart = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-        
-        val mealsYesterday = allMealsList.filter { 
-            it.timestamp in yesterdayStart..yesterdayEnd && 
-            it.analysisStatus == AnalysisStatus.COMPLETED 
-        }
-        val mealsToday = allMealsList.filter { 
-            it.timestamp >= todayStart && 
-            it.analysisStatus == AnalysisStatus.COMPLETED 
-        }
-        
-        // Streak is lost if no meals logged yesterday AND there were meals before yesterday
-        val hasMealsBefore = allMealsList.any { it.timestamp < yesterdayStart }
-        val streakLost = mealsYesterday.isEmpty() && hasMealsBefore && mealsToday.isEmpty()
-        
-        // Calculate current streak
-        var streak = 0
-        var checkDate = Calendar.getInstance()
-        while (true) {
-            val dayStart = checkDate.clone() as Calendar
-            dayStart.set(Calendar.HOUR_OF_DAY, 0)
-            dayStart.set(Calendar.MINUTE, 0)
-            dayStart.set(Calendar.SECOND, 0)
-            dayStart.set(Calendar.MILLISECOND, 0)
-            
-            val dayEnd = checkDate.clone() as Calendar
-            dayEnd.set(Calendar.HOUR_OF_DAY, 23)
-            dayEnd.set(Calendar.MINUTE, 59)
-            dayEnd.set(Calendar.SECOND, 59)
-            dayEnd.set(Calendar.MILLISECOND, 999)
-            
-            val mealsOnDay = allMealsList.filter { 
-                it.timestamp in dayStart.timeInMillis..dayEnd.timeInMillis &&
-                it.analysisStatus == AnalysisStatus.COMPLETED
+    }.combine(userPreferencesRepository.hasSeenDashboardWalkthrough) { state, hasSeen ->
+        state.copy(hasSeenWalkthrough = hasSeen)
+    }.flatMapLatest { state ->
+        allMeals.flatMapLatest { allMealsList ->
+            val mealDates = allMealsList.filter { it.analysisStatus == AnalysisStatus.COMPLETED }
+                .map { 
+                    java.time.Instant.ofEpochMilli(it.timestamp)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toLocalDate() 
+                }
+                .distinct()
+
+            streakFreezeRepository.getStreakData(mealDates).map { streak ->
+                // Calculate streak lost detection
+                val todayStart = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+                
+                val yesterdayStart = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, -1)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                val mealsToday = allMealsList.filter { 
+                    it.timestamp >= todayStart && 
+                    it.analysisStatus == AnalysisStatus.COMPLETED 
+                }
+                
+                // Streak is lost if it's 0 AND there were meals before yesterday AND no meals today
+                val hasMealsBefore = allMealsList.any { it.timestamp < yesterdayStart }
+                val streakLost = streak == 0 && hasMealsBefore && mealsToday.isEmpty()
+
+                // Calculate completed days for the week (Sunday to Saturday)
+                val weekStartForCompleted = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val completedDays = (0..6).map { dayOffset ->
+                    val dayStart = (weekStartForCompleted.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, dayOffset) }
+                    dayStart.set(Calendar.HOUR_OF_DAY, 0)
+                    val dayEnd = (dayStart.clone() as Calendar)
+                    dayEnd.set(Calendar.HOUR_OF_DAY, 23)
+                    dayEnd.set(Calendar.MINUTE, 59)
+                    dayEnd.set(Calendar.SECOND, 59)
+                    dayEnd.set(Calendar.MILLISECOND, 999)
+                    
+                    allMealsList.any { 
+                        it.timestamp in dayStart.timeInMillis..dayEnd.timeInMillis &&
+                        it.analysisStatus == AnalysisStatus.COMPLETED
+                    }
+                }
+                
+                // Calculate health score based on nutrition data
+                val healthScore = calculateHealthScore(
+                    caloriesConsumed = state.consumedCalories,
+                    caloriesGoal = state.goalCalories,
+                    proteinConsumed = state.proteinG,
+                    proteinGoal = state.proteinGoal,
+                    carbsConsumed = state.carbsG,
+                    carbsGoal = state.carbsGoal,
+                    fatsConsumed = state.fatsG,
+                    fatsGoal = state.fatsGoal,
+                    waterConsumed = state.waterConsumed,
+                    steps = state.steps.toInt(),
+                    stepsGoal = state.stepsGoal
+                )
+                
+                // Generate dynamic recommendation
+                val healthRecommendation = generateHealthRecommendation(
+                    caloriesConsumed = state.consumedCalories,
+                    caloriesGoal = state.goalCalories,
+                    proteinConsumed = state.proteinG,
+                    proteinGoal = state.proteinGoal,
+                    carbsConsumed = state.carbsG,
+                    carbsGoal = state.carbsGoal,
+                    fatsConsumed = state.fatsG,
+                    fatsGoal = state.fatsGoal
+                )
+                
+                state.copy(
+                    streakLost = streakLost,
+                    currentStreak = streak,
+                    completedDays = completedDays,
+                    healthScore = healthScore,
+                    healthRecommendation = healthRecommendation,
+                    allMealDates = allMealsList.filter { it.analysisStatus == AnalysisStatus.COMPLETED }.map { it.timestamp }
+                )
             }
-            
-            if (mealsOnDay.isNotEmpty()) {
-                streak++
-                checkDate.add(Calendar.DAY_OF_YEAR, -1)
-            } else {
-                break
-            }
         }
-        
-        // Calculate completed days for the week (Sunday to Saturday)
-        val weekStart = Calendar.getInstance().apply {
-            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val completedDays = (0..6).map { dayOffset ->
-            val dayStart = (weekStart.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, dayOffset) }
-            dayStart.set(Calendar.HOUR_OF_DAY, 0)
-            val dayEnd = (dayStart.clone() as Calendar)
-            dayEnd.set(Calendar.HOUR_OF_DAY, 23)
-            dayEnd.set(Calendar.MINUTE, 59)
-            dayEnd.set(Calendar.SECOND, 59)
-            dayEnd.set(Calendar.MILLISECOND, 999)
-            
-            allMealsList.any { 
-                it.timestamp in dayStart.timeInMillis..dayEnd.timeInMillis &&
-                it.analysisStatus == AnalysisStatus.COMPLETED
-            }
-        }
-        
-        // Calculate health score based on nutrition data
-        val healthScore = calculateHealthScore(
-            caloriesConsumed = state.consumedCalories,
-            caloriesGoal = state.goalCalories,
-            proteinConsumed = state.proteinG,
-            proteinGoal = state.proteinGoal,
-            carbsConsumed = state.carbsG,
-            carbsGoal = state.carbsGoal,
-            fatsConsumed = state.fatsG,
-            fatsGoal = state.fatsGoal,
-            waterConsumed = state.waterConsumed,
-            steps = state.steps.toInt(),
-            stepsGoal = state.stepsGoal
-        )
-        
-        // Generate dynamic recommendation based on current nutrition status
-        val healthRecommendation = generateHealthRecommendation(
-            caloriesConsumed = state.consumedCalories,
-            caloriesGoal = state.goalCalories,
-            proteinConsumed = state.proteinG,
-            proteinGoal = state.proteinGoal,
-            carbsConsumed = state.carbsG,
-            carbsGoal = state.carbsGoal,
-            fatsConsumed = state.fatsG,
-            fatsGoal = state.fatsGoal
-        )
-        
-        state.copy(
-            streakLost = streakLost,
-            currentStreak = streak,
-            completedDays = completedDays,
-            healthScore = healthScore,
-            healthRecommendation = healthRecommendation
-        )
     }.scan(DashboardState()) { previous, current ->
         // Detect health score change
         if (previous.healthScore != 0 && current.healthScore != previous.healthScore) {
@@ -447,11 +399,20 @@ class DashboardViewModel @Inject constructor(
     }
     
     fun addWater(amount: Int = 1) {
-        val newValue = _waterConsumed.value + amount
         viewModelScope.launch {
-            userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
-            _waterConsumed.value = newValue // Updates immediately for UI responsiveness
-            updateWidget()
+            val dateString = dateFormat.format(_selectedDate.value.time)
+            val currentWater = waterConsumed.value
+            val newValue = currentWater + amount
+            
+            // Update daily log for historical tracking
+            dailyLogRepository.updateWater(dateString, newValue)
+            
+            // If today, also update preferences for the widget
+            val todayDateString = dateFormat.format(Calendar.getInstance().time)
+            if (dateString == todayDateString) {
+                userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
+                updateWidget()
+            }
         }
     }
     
@@ -464,11 +425,20 @@ class DashboardViewModel @Inject constructor(
     }
     
     fun removeWater(amount: Int = 1) {
-        val newValue = (_waterConsumed.value - amount).coerceAtLeast(0)
         viewModelScope.launch {
-            userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
-            _waterConsumed.value = newValue
-            updateWidget()
+            val dateString = dateFormat.format(_selectedDate.value.time)
+            val currentWater = waterConsumed.value
+            val newValue = (currentWater - amount).coerceAtLeast(0)
+            
+            // Update daily log for historical tracking
+            dailyLogRepository.updateWater(dateString, newValue)
+            
+            // If today, also update preferences for the widget
+            val todayDateString = dateFormat.format(Calendar.getInstance().time)
+            if (dateString == todayDateString) {
+                userPreferencesRepository.setWaterConsumed(newValue, System.currentTimeMillis())
+                updateWidget()
+            }
         }
     }
     
@@ -835,7 +805,9 @@ data class DashboardState(
     val waterReminderIntervalHours: Int = 2,
     val waterReminderStartHour: Int = 8,
     val waterReminderEndHour: Int = 22,
-    val waterReminderDailyGoalMl: Int = 2500
+    val waterReminderDailyGoalMl: Int = 2500,
+    val hasSeenWalkthrough: Boolean = true,
+    val allMealDates: List<Long> = emptyList()
 )
 
 

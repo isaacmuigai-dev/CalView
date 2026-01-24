@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">سجل الوزن</string>
     <string name="no_weight_entries">لا توجد سجلات وزن بعد</string>
     <string name="weight_changes_appear_here">ستظهر تغيرات وزنك هنا</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">مؤقت الصيام</string>
+    <string name="stat_completed">مكتمل</string>
+    <string name="stat_current_streak">السلسلة الحالية</string>
+    <string name="elapsed_label">المنقضي</string>
+    <string name="left_suffix">متبقي</string>
+    <string name="select_fast_window">اختر نافذة الصيام</string>
+    <string name="fast_hour_suffix">صيام %1$d ساعة</string>
+    <string name="complete_action">مكتمل!</string>
+    <string name="end_fast_action">إنهاء الصيام</string>
+    <string name="start_fast_action">بدء الصيام</string>
+    <string name="recent_fasts_title">الصيام الأخير</string>
+    <string name="time_hours_mins">%1$d س %2$d د</string>
+    <string name="time_mins">%1$d د</string>
+    <string name="cancel_fast_desc">إلغاء الصيام</string>
+    <string name="complete_fast_desc">إكمال الصيام</string>
+    <string name="stop_fast_desc">إيقاف الصيام</string>
+    <string name="start_fast_desc">بدء الصيام</string>
 </resources>

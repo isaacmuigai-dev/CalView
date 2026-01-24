@@ -88,4 +88,21 @@
     <string name="day_completed_desc">Siku imekamilika</string>
     <string name="current_streak_desc">Mfululizo wa sasa</string>
     <string name="best_streak_desc">Mfululizo bora</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Kugandisha Mfululizo</string>
+    <string name="available_freezes_format">%1$d/%2$d Inapatikana</string>
+    <string name="missed_day_msg">Umekosa siku! Tumia kufungia ili kudumisha mfululizo wako wa siku %1$d.</string>
+    <string name="use_freeze_action">Tumia Kugandisha Mfululizo</string>
+    <string name="streak_safe_msg">Mfululizo wako ni salama. Kufungia hulinda maendeleo yako kiotomatiki.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Utabiri wa uzito</string>
+    <string name="trend_down">Mwelekeo wa chini</string>
+    <string name="trend_up">Mwelekeo wa juu</string>
+    <string name="trend_stable">Imara</string>
+    <string name="in_30_days">Katika Siku 30</string>
+    <string name="reach_goal_by">Fikia lengo kufikia</string>
+    <string name="weekly_rate_label">Kiwango cha wiki</string>
+    <string name="keep_pushing">Endelea kujitahidi!</string>
 </resources>

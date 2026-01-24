@@ -895,6 +895,20 @@ fun ScannerCameraContent(
         camera?.cameraControl?.enableTorch(flashEnabled)
     }
 
+    // Handle voice state resets when UI state changes
+    LaunchedEffect(uiState) {
+        if (uiState is ScannerUiState.Redirecting || uiState is ScannerUiState.NavigateToDashboard) {
+            voiceState = VoiceState.Idle
+            isListening = false
+        }
+        if (uiState is ScannerUiState.Error) {
+            // Update voice state to error if it was processing
+            if (voiceState is VoiceState.Processing) {
+                voiceState = VoiceState.Error((uiState as ScannerUiState.Error).message, 0)
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Camera Preview
         AndroidView(
@@ -1143,6 +1157,7 @@ fun ScannerCameraContent(
                     isListening = false
                     speechRecognizer.stopListening()
                     voiceState = VoiceState.Idle
+                    viewModel.cancelAnalysis()
                 }
             )
         }

@@ -88,4 +88,21 @@
     <string name="day_completed_desc">完了した日</string>
     <string name="current_streak_desc">現在のストリーク</string>
     <string name="best_streak_desc">ベストストリーク</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">ストリークフリーズ</string>
+    <string name="available_freezes_format">%1$d/%2$d 利用可能</string>
+    <string name="missed_day_msg">1日逃しました！ストリークフリーズを使って%1$d日間のストリークを維持しましょう。</string>
+    <string name="use_freeze_action">ストリークフリーズを使用</string>
+    <string name="streak_safe_msg">ストリークは安全です。フリーズが自動的に進行状況を保護します。</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">体重予測</string>
+    <string name="trend_down">下落傾向</string>
+    <string name="trend_up">上昇傾向</string>
+    <string name="trend_stable">安定</string>
+    <string name="in_30_days">30日以内</string>
+    <string name="reach_goal_by">目標達成予定日</string>
+    <string name="weekly_rate_label">週あたりのペース</string>
+    <string name="keep_pushing">その調子！</string>
 </resources>

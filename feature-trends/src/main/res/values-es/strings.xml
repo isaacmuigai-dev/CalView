@@ -88,4 +88,21 @@
     <string name="day_completed_desc">Día completado</string>
     <string name="current_streak_desc">Racha Actual</string>
     <string name="best_streak_desc">Mejor Racha</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Congelar racha</string>
+    <string name="available_freezes_format">%1$d/%2$d Disponible</string>
+    <string name="missed_day_msg">¡Perdiste un día! Usa un congelador para mantener tu racha de %1$d días.</string>
+    <string name="use_freeze_action">Usar Congelar Racha</string>
+    <string name="streak_safe_msg">Tu racha está a salvo. Los congeladores protegen tu progreso automáticamente.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Pronóstico de peso</string>
+    <string name="trend_down">Tendencia a la baja</string>
+    <string name="trend_up">Tendencia al alza</string>
+    <string name="trend_stable">Estable</string>
+    <string name="in_30_days">En 30 días</string>
+    <string name="reach_goal_by">Alcanzar objetivo para el</string>
+    <string name="weekly_rate_label">Tasa semanal</string>
+    <string name="keep_pushing">¡Sigue así!</string>
 </resources>

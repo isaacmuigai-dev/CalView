@@ -91,7 +91,11 @@ class SocialChallengeRepository @Inject constructor(
             docRef.set(challenge.toFirestoreMap()).await()
             Log.d("SocialChallengeRepo", "Firestore sync successful for challenge ${challenge.id}")
         } catch (e: Exception) {
-            Log.e("SocialChallengeRepo", "Firestore sync FAILED for challenge ${challenge.id}", e)
+            val message = e.message ?: "Unknown error"
+            Log.e("SocialChallengeRepo", "Firestore sync FAILED for challenge ${challenge.id}: $message", e)
+            if (message.contains("PERMISSION_DENIED")) {
+                Log.e("SocialChallengeRepo", "CRITICAL: Permission denied on 'social_challenges'. Check rules for creatorId/userId.")
+            }
             // We keep it in local DB even if sync fails (offline support)
         }
         
@@ -193,6 +197,8 @@ class SocialChallengeRepository @Inject constructor(
         val docId = "${challengeId}_${userId}"
         participantsCollection.document(docId).update(
             mapOf(
+                "userId" to userId, // Ensure userId is present for security rules
+                "odsmUserId" to userId,
                 "currentProgress" to progress,
                 "progressPercent" to progressPercent,
                 "lastUpdated" to System.currentTimeMillis()
@@ -212,18 +218,31 @@ class SocialChallengeRepository @Inject constructor(
      * Observe participants in a challenge (real-time from Firestore)
      */
     fun observeLeaderboard(challengeId: String): Flow<List<ChallengeParticipantEntity>> = callbackFlow {
+        // We remove orderBy from the Firestore query to simplify it.
+        // Queries with both an equality filter AND an orderBy often require a composite index.
+        // If the index is missing, it SOMETIMES reports as PERMISSION_DENIED.
+        // Also, sorting in memory is fine for small leaderboards (e.g. < 50-100 friends).
         val listener = participantsCollection
             .whereEqualTo("challengeId", challengeId)
-            .orderBy("currentProgress", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    val errorCode = error.code.name
+                    val message = error.message ?: ""
+                    Log.e("SocialChallengeRepo", "Firestore leaderboard sync failed: $errorCode - $message", error)
+                    if (errorCode == "PERMISSION_DENIED") {
+                        Log.e("SocialChallengeRepo", "CRITICAL: Permission denied. ACTION REQUIRED:")
+                        Log.e("SocialChallengeRepo", "1. Open Firebase Console > Firestore > Rules")
+                        Log.e("SocialChallengeRepo", "2. Add this rule for the 'challenge_participants' collection:")
+                        Log.e("SocialChallengeRepo", "   match /challenge_participants/{id} { allow read: if request.auth != null; }")
+                    }
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 
                 val participants = snapshot?.documents?.mapNotNull { doc ->
                     doc.toObject(ChallengeParticipantEntity::class.java)
-                }?.mapIndexed { index, p -> p.copy(rank = index + 1) } ?: emptyList()
+                }?.sortedByDescending { it.currentProgress } // Sort in memory instead
+                ?.mapIndexed { index, p -> p.copy(rank = index + 1) } ?: emptyList()
                 
                 trySend(participants)
             }
@@ -304,6 +323,7 @@ class SocialChallengeRepository @Inject constructor(
         "startDate" to startDate,
         "endDate" to endDate,
         "creatorId" to creatorId,
+        "userId" to creatorId, // Add generic userId for security rules
         "creatorName" to creatorName,
         "isActive" to isActive,
         "inviteCode" to inviteCode
@@ -312,6 +332,7 @@ class SocialChallengeRepository @Inject constructor(
     private fun ChallengeParticipantEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
         "challengeId" to challengeId,
         "odsmUserId" to odsmUserId,
+        "userId" to odsmUserId, // Add generic userId for security rules
         "displayName" to displayName,
         "photoUrl" to photoUrl,
         "currentProgress" to currentProgress,
@@ -319,4 +340,9 @@ class SocialChallengeRepository @Inject constructor(
         "lastUpdated" to lastUpdated,
         "hasAccepted" to hasAccepted
     )
+
+    suspend fun clearAllData() {
+        socialChallengeDao.deleteAllChallenges()
+        socialChallengeDao.deleteAllParticipants()
+    }
 }

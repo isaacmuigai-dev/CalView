@@ -48,5 +48,18 @@ data class UserData(
     
     // Localization
     val language: String = "en",
-    val lastRolloverDate: Long = 0L // Timestamp of last successful rollover calculation
+    val lastRolloverDate: Long = 0L,
+    val hasSeenDashboardWalkthrough: Boolean = false,
+    val hasSeenFeatureIntro: Boolean = false,
+    
+    // Missing fields for complete backup
+    val waterConsumed: Int = 0,
+    val waterDate: Long = 0L,
+    val lastKnownSteps: Int = 0,
+    val lastKnownCaloriesBurned: Int = 0,
+    val weeklyBurn: Int = 0,
+    val recordBurn: Int = 0,
+    val hasSeenCameraTutorial: Boolean = false,
+    val widgetDarkTheme: Boolean = false,
+    val weightChangePerWeek: Float = 0.5f
 )

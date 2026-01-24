@@ -88,4 +88,21 @@
     <string name="day_completed_desc">Tag abgeschlossen</string>
     <string name="current_streak_desc">Aktueller Streak</string>
     <string name="best_streak_desc">Bester Streak</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Serie einfrieren</string>
+    <string name="available_freezes_format">%1$d/%2$d Verfügbar</string>
+    <string name="missed_day_msg">Tag verpasst! Nutze Einfrieren, um deine %1$d Tage Serie zu halten.</string>
+    <string name="use_freeze_action">Serie einfrieren nutzen</string>
+    <string name="streak_safe_msg">Deine Serie ist sicher. Einfrieren schützt deinen Fortschritt automatisch.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Gewichtsprognose</string>
+    <string name="trend_down">Trend sinkend</string>
+    <string name="trend_up">Trend steigend</string>
+    <string name="trend_stable">Stabil</string>
+    <string name="in_30_days">In 30 Tagen</string>
+    <string name="reach_goal_by">Ziel erreichen bis</string>
+    <string name="weekly_rate_label">Wöchentliche Rate</string>
+    <string name="keep_pushing">Dranbleiben!</string>
 </resources>

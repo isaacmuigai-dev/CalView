@@ -39,4 +39,7 @@ interface GamificationDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBadge(badge: BadgeEntity)
+
+    @Query("DELETE FROM badges")
+    suspend fun clearAllBadges()
 }

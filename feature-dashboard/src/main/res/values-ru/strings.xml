@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">История веса</string>
     <string name="no_weight_entries">Пока нет записей веса</string>
     <string name="weight_changes_appear_here">Ваши изменения веса появятся здесь</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Таймер голодания</string>
+    <string name="stat_completed">Завершено</string>
+    <string name="stat_current_streak">Текущая серия</string>
+    <string name="elapsed_label">прошло</string>
+    <string name="left_suffix">осталось</string>
+    <string name="select_fast_window">Выберите окно голодания</string>
+    <string name="fast_hour_suffix">%1$d ч голодания</string>
+    <string name="complete_action">Готово!</string>
+    <string name="end_fast_action">Закончить голодание</string>
+    <string name="start_fast_action">Начать голодание</string>
+    <string name="recent_fasts_title">Последние голодания</string>
+    <string name="time_hours_mins">%1$d ч %2$d мин</string>
+    <string name="time_mins">%1$d мин</string>
+    <string name="cancel_fast_desc">Отменить голодание</string>
+    <string name="complete_fast_desc">Завершить голодание</string>
+    <string name="stop_fast_desc">Остановить голодание</string>
+    <string name="start_fast_desc">Начать голодание</string>
 </resources>

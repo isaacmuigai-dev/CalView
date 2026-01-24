@@ -2,9 +2,9 @@ package com.example.calview.feature.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calview.core.data.local.WeightHistoryDao
 import com.example.calview.core.data.prediction.WeightPredictionEngine
 import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.repository.WeightHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ data class WeightPredictionUiState(
 
 @HiltViewModel
 class WeightPredictionViewModel @Inject constructor(
-    private val weightDao: WeightHistoryDao,
+    private val weightHistoryRepository: WeightHistoryRepository,
     private val userPreferences: UserPreferencesRepository,
     private val predictionEngine: WeightPredictionEngine
 ) : ViewModel() {
@@ -51,7 +51,7 @@ class WeightPredictionViewModel @Inject constructor(
             val currentWeight = userPreferences.weight.first()
             
             // Get history
-            val history = weightDao.getAllWeightHistory().first()
+            val history = weightHistoryRepository.getAllWeightHistory().first()
             
             // Generate prediction
             val prediction = predictionEngine.predictWeight(history, goalWeight)

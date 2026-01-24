@@ -10,6 +10,7 @@ import com.example.calview.core.data.repository.SocialChallengeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
 
 data class SocialChallengesUiState(
@@ -21,6 +22,7 @@ data class SocialChallengesUiState(
     val createdChallenge: SocialChallengeEntity? = null  // For showing invite code dialog
 )
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SocialChallengesViewModel @Inject constructor(
     private val socialChallengeRepository: SocialChallengeRepository
@@ -38,27 +40,27 @@ class SocialChallengesViewModel @Inject constructor(
             _uiState.update { it.copy(currentUserId = socialChallengeRepository.getCurrentUserId()) }
             
             socialChallengeRepository.observeUserChallenges()
-                .collect { challenges ->
-                    _uiState.update { state ->
-                        state.copy(challenges = challenges)
-                    }
-                    
-                    // Load participants for each challenge
-                    challenges.forEach { challenge ->
-                        loadParticipants(challenge.id)
+                .onEach { challenges ->
+                    _uiState.update { it.copy(challenges = challenges) }
+                }
+                .flatMapLatest { challenges ->
+                    if (challenges.isEmpty()) {
+                        flowOf(emptyMap<String, List<ChallengeParticipantEntity>>())
+                    } else {
+                        val participantFlows = challenges.map { challenge ->
+                            socialChallengeRepository.observeLeaderboard(challenge.id)
+                                .map { participants -> challenge.id to participants }
+                        }
+                        combine(participantFlows) { it.toMap() }
                     }
                 }
-        }
-    }
-    
-    private fun loadParticipants(challengeId: String) {
-        viewModelScope.launch {
-            socialChallengeRepository.observeLeaderboard(challengeId)
-                .collect { participants ->
+                .catch { e ->
+                    Log.e("SocialChallengesVM", "Error loading challenges: ${e.message}", e)
+                    _uiState.update { it.copy(isLoading = false, error = "Failed to sync challenges. Please check your connection.") }
+                }
+                .collect { participantsMap ->
                     _uiState.update { state ->
-                        state.copy(
-                            participantsMap = state.participantsMap + (challengeId to participants)
-                        )
+                        state.copy(participantsMap = participantsMap)
                     }
                 }
         }

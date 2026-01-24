@@ -362,7 +362,18 @@ private fun ChallengeCard(
                 }
                 
                 Row {
-                    IconButton(onClick = onShareClick) {
+                    val context = LocalContext.current
+                    IconButton(onClick = {
+                        val shareIntent = android.content.Intent().apply {
+                            action = android.content.Intent.ACTION_SEND
+                            type = "text/plain"
+                            putExtra(
+                                android.content.Intent.EXTRA_TEXT,
+                                "Join my challenge \"${challenge.title}\" on CalView! Use invite code: ${challenge.inviteCode}"
+                            )
+                        }
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Share Challenge"))
+                    }) {
                         Icon(Icons.Default.Share, "Share invite", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
@@ -378,21 +389,24 @@ private fun ChallengeCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            participants.take(5).forEachIndexed { index, participant ->
+            val participantList = participants.take(5)
+            participantList.forEachIndexed { index, participant ->
                 LeaderboardRow(
                     rank = index + 1,
                     participant = participant,
                     isCurrentUser = participant.odsmUserId == currentUserId
                 )
-                if (index < participants.size - 1) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                if (index < participantList.size - 1) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
                 }
             }
             
             // Invite code
             Spacer(modifier = Modifier.height(12.dp))
+            val context = LocalContext.current
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 shape = RoundedCornerShape(8.dp)
@@ -400,6 +414,12 @@ private fun ChallengeCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable {
+                            val clipboardManager = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("Invite Code", challenge.inviteCode)
+                            clipboardManager.setPrimaryClip(clip)
+                            android.widget.Toast.makeText(context, "Code copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                        }
                         .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically

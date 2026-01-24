@@ -185,4 +185,9 @@ class GamificationRepository @Inject constructor(
         
         badge?.let { gamificationDao.insertBadge(it) }
     }
+
+    suspend fun clearAllData() {
+        gamificationDao.clearAllChallenges()
+        gamificationDao.clearAllBadges()
+    }
 }

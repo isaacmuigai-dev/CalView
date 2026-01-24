@@ -93,4 +93,8 @@ class WaterReminderRepository @Inject constructor(
             reminderVibrationEnabled = true
         )
     }
+
+    suspend fun clearAllData() {
+        waterReminderDao.deleteAll()
+    }
 }

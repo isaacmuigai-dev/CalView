@@ -18,6 +18,7 @@ data class FastingUiState(
     val progress: Float = 0f,
     val selectedFastType: FastType = FastType.SIXTEEN_EIGHT,
     val completedFasts: Int = 0,
+    val currentStreak: Int = 0,
     val recentSessions: List<FastingSessionEntity> = emptyList()
 )
 
@@ -53,6 +54,13 @@ class FastingViewModel @Inject constructor(
         viewModelScope.launch {
             fastingRepository.completedFastCount.collect { count ->
                 _uiState.update { it.copy(completedFasts = count) }
+            }
+        }
+
+        // Observe current streak
+        viewModelScope.launch {
+            fastingRepository.currentStreak.collect { streak ->
+                _uiState.update { it.copy(currentStreak = streak) }
             }
         }
         

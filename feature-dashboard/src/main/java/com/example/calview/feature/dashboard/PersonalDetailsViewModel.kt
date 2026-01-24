@@ -18,19 +18,24 @@ class PersonalDetailsViewModel @Inject constructor(
 
     // Combine all personal details into a single state
     val uiState: StateFlow<PersonalDetailsState> = combine(
-        userPreferencesRepository.weight,
-        userPreferencesRepository.height,
-        userPreferencesRepository.gender,
-        userPreferencesRepository.goalWeight,
-        userPreferencesRepository.dailyStepsGoal
-    ) { weight, height, gender, goalWeight, stepsGoal ->
-        PersonalDetailsState(
-            currentWeight = weight,
-            height = height,
-            gender = gender,
-            goalWeight = goalWeight,
-            dailyStepsGoal = stepsGoal
-        )
+        combine(
+            userPreferencesRepository.weight,
+            userPreferencesRepository.height,
+            userPreferencesRepository.gender,
+            userPreferencesRepository.goalWeight,
+            userPreferencesRepository.dailyStepsGoal
+        ) { weight, height, gender, goalWeight, stepsGoal ->
+            PersonalDetailsState(
+                currentWeight = weight,
+                height = height,
+                gender = gender,
+                goalWeight = goalWeight,
+                dailyStepsGoal = stepsGoal
+            )
+        },
+        userPreferencesRepository.age
+    ) { state, age ->
+        state.copy(age = age)
     }.combine(
         combine(
             userPreferencesRepository.birthMonth,
@@ -60,6 +65,21 @@ class PersonalDetailsViewModel @Inject constructor(
     fun updateGoalWeight(weight: Float) {
         viewModelScope.launch {
             userPreferencesRepository.setGoalWeight(weight)
+            
+            // Derive and save userGoal based on comparison with current weight
+            val currentWeight = uiState.value.currentWeight
+            val goal = when {
+                weight < currentWeight - 1 -> "Lose Weight"
+                weight > currentWeight + 1 -> "Gain Weight"
+                else -> "Maintain"
+            }
+            userPreferencesRepository.saveUserProfile(
+                goal = goal,
+                gender = uiState.value.gender,
+                age = uiState.value.age,
+                weight = currentWeight,
+                height = uiState.value.height
+            )
         }
     }
 

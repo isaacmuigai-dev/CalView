@@ -13,6 +13,7 @@ interface UserPreferencesRepository {
     val recommendedProtein: Flow<Int>
     val recommendedCarbs: Flow<Int>
     val recommendedFats: Flow<Int>
+    val weightChangePerWeek: Flow<Float>
     
     // User profile from Google sign-in
     val userName: Flow<String>
@@ -52,6 +53,10 @@ interface UserPreferencesRepository {
     
     // Widget Theme
     val widgetDarkTheme: Flow<Boolean> // True if widget should use dark theme
+
+    // Walkthrough flags
+    val hasSeenDashboardWalkthrough: Flow<Boolean>
+    val hasSeenFeatureIntro: Flow<Boolean>
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -94,6 +99,7 @@ interface UserPreferencesRepository {
     suspend fun setGender(gender: String)
     suspend fun setWeight(weight: Float)
     suspend fun setHeight(heightCm: Int)
+    suspend fun setWeightChangePerWeek(pace: Float)
     
     // Widget Data methods
     suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long)
@@ -105,6 +111,10 @@ interface UserPreferencesRepository {
     
     // Widget Theme methods
     suspend fun setWidgetDarkTheme(isDark: Boolean)
+    
+    // Walkthrough methods
+    suspend fun setHasSeenDashboardWalkthrough(seen: Boolean)
+    suspend fun setHasSeenFeatureIntro(seen: Boolean)
     
     /**
      * Restore user data from Firestore cloud storage

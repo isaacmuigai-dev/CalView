@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">Gewichtsverlauf</string>
     <string name="no_weight_entries">Noch keine Gewichtseinträge</string>
     <string name="weight_changes_appear_here">Ihre Gewichtsänderungen erscheinen hier</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Fasten-Timer</string>
+    <string name="stat_completed">Abgeschlossen</string>
+    <string name="stat_current_streak">Aktuelle Serie</string>
+    <string name="elapsed_label">verstrichen</string>
+    <string name="left_suffix">verbleibend</string>
+    <string name="select_fast_window">Fastenfenster wählen</string>
+    <string name="fast_hour_suffix">%1$dh Fasten</string>
+    <string name="complete_action">Fertig!</string>
+    <string name="end_fast_action">Fasten beenden</string>
+    <string name="start_fast_action">Fasten starten</string>
+    <string name="recent_fasts_title">Letzte Fastenzeiten</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">Fasten abbrechen</string>
+    <string name="complete_fast_desc">Fasten abschließen</string>
+    <string name="stop_fast_desc">Fasten stoppen</string>
+    <string name="start_fast_desc">Fasten starten</string>
 </resources>

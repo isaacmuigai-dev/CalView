@@ -88,4 +88,21 @@
     <string name="day_completed_desc">Jour terminé</string>
     <string name="current_streak_desc">Série Actuelle</string>
     <string name="best_streak_desc">Meilleure Série</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Gel de série</string>
+    <string name="available_freezes_format">%1$d/%2$d Disponible</string>
+    <string name="missed_day_msg">Jour manqué ! Utilisez un gel pour garder votre série de %1$d jours.</string>
+    <string name="use_freeze_action">Utiliser le gel de série</string>
+    <string name="streak_safe_msg">Votre série est en sécurité. Les gels protègent votre progression automatiquement.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Prévisions de poids</string>
+    <string name="trend_down">Tendance à la baisse</string>
+    <string name="trend_up">Tendance à la hausse</string>
+    <string name="trend_stable">Stable</string>
+    <string name="in_30_days">Dans 30 jours</string>
+    <string name="reach_goal_by">Atteindre l\'objectif pour le</string>
+    <string name="weekly_rate_label">Taux hebdomadaire</string>
+    <string name="keep_pushing">Continuez comme ça !</string>
 </resources>

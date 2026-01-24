@@ -68,6 +68,41 @@ interface FirestoreRepository {
      * Delete a meal from Firestore
      */
     suspend fun deleteMeal(userId: String, firestoreId: String)
+
+    /**
+     * Save a fasting session to Firestore
+     */
+    suspend fun saveFastingSession(userId: String, session: com.example.calview.core.data.local.FastingSessionEntity)
+
+    /**
+     * Get all fasting sessions for a user from Firestore
+     */
+    suspend fun getFastingSessions(userId: String): List<com.example.calview.core.data.local.FastingSessionEntity>
+
+    /**
+     * Delete a fasting session from Firestore
+     */
+    suspend fun deleteFastingSession(userId: String, firestoreId: String)
+
+    /**
+     * Save a streak freeze entry to Firestore
+     */
+    suspend fun saveStreakFreeze(userId: String, freeze: com.example.calview.core.data.local.StreakFreezeEntity)
+
+    /**
+     * Get all streak freeze entries for a user from Firestore
+     */
+    suspend fun getStreakFreezes(userId: String): List<com.example.calview.core.data.local.StreakFreezeEntity>
+
+    /**
+     * Save a weight history entry to Firestore
+     */
+    suspend fun saveWeightEntry(userId: String, entry: com.example.calview.core.data.local.WeightHistoryEntity)
+
+    /**
+     * Get all weight history entries for a user from Firestore
+     */
+    suspend fun getWeightHistory(userId: String): List<com.example.calview.core.data.local.WeightHistoryEntity>
     
     // ==================== FEATURE REQUEST METHODS ====================
     

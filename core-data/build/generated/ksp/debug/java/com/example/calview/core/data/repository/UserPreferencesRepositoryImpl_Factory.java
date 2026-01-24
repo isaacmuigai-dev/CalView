@@ -1,7 +1,6 @@
 package com.example.calview.core.data.repository;
 
 import android.content.Context;
-import com.example.calview.core.data.local.WeightHistoryDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Provider;
@@ -32,33 +31,33 @@ public final class UserPreferencesRepositoryImpl_Factory implements Factory<User
 
   private final Provider<FirestoreRepository> firestoreRepositoryProvider;
 
-  private final Provider<WeightHistoryDao> weightHistoryDaoProvider;
+  private final Provider<WeightHistoryRepository> weightHistoryRepositoryProvider;
 
   public UserPreferencesRepositoryImpl_Factory(Provider<Context> contextProvider,
       Provider<AuthRepository> authRepositoryProvider,
       Provider<FirestoreRepository> firestoreRepositoryProvider,
-      Provider<WeightHistoryDao> weightHistoryDaoProvider) {
+      Provider<WeightHistoryRepository> weightHistoryRepositoryProvider) {
     this.contextProvider = contextProvider;
     this.authRepositoryProvider = authRepositoryProvider;
     this.firestoreRepositoryProvider = firestoreRepositoryProvider;
-    this.weightHistoryDaoProvider = weightHistoryDaoProvider;
+    this.weightHistoryRepositoryProvider = weightHistoryRepositoryProvider;
   }
 
   @Override
   public UserPreferencesRepositoryImpl get() {
-    return newInstance(contextProvider.get(), authRepositoryProvider.get(), firestoreRepositoryProvider.get(), weightHistoryDaoProvider.get());
+    return newInstance(contextProvider.get(), authRepositoryProvider.get(), firestoreRepositoryProvider.get(), weightHistoryRepositoryProvider.get());
   }
 
   public static UserPreferencesRepositoryImpl_Factory create(Provider<Context> contextProvider,
       Provider<AuthRepository> authRepositoryProvider,
       Provider<FirestoreRepository> firestoreRepositoryProvider,
-      Provider<WeightHistoryDao> weightHistoryDaoProvider) {
-    return new UserPreferencesRepositoryImpl_Factory(contextProvider, authRepositoryProvider, firestoreRepositoryProvider, weightHistoryDaoProvider);
+      Provider<WeightHistoryRepository> weightHistoryRepositoryProvider) {
+    return new UserPreferencesRepositoryImpl_Factory(contextProvider, authRepositoryProvider, firestoreRepositoryProvider, weightHistoryRepositoryProvider);
   }
 
   public static UserPreferencesRepositoryImpl newInstance(Context context,
       AuthRepository authRepository, FirestoreRepository firestoreRepository,
-      WeightHistoryDao weightHistoryDao) {
-    return new UserPreferencesRepositoryImpl(context, authRepository, firestoreRepository, weightHistoryDao);
+      WeightHistoryRepository weightHistoryRepository) {
+    return new UserPreferencesRepositoryImpl(context, authRepository, firestoreRepository, weightHistoryRepository);
   }
 }

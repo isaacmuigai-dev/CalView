@@ -23,4 +23,7 @@ interface WaterReminderDao {
     
     @Query("UPDATE water_reminder_settings SET intervalHours = :hours WHERE id = 1")
     suspend fun setInterval(hours: Int)
+
+    @Query("DELETE FROM water_reminder_settings")
+    suspend fun deleteAll()
 }

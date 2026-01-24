@@ -246,8 +246,8 @@ class ScannerViewModel @Inject constructor(
                 currentMealId = activeMealId
                 updateWidget()
                 
-                // 2. Show redirection message
-                _uiState.value = ScannerUiState.Redirecting(activeMealId)
+                // 2. Show loading state in UI (instead of redirecting immediately)
+                _uiState.value = ScannerUiState.Loading
                 
                 withContext(NonCancellable + Dispatchers.IO) {
                     // Start progress animation using a proper CoroutineScope
@@ -476,6 +476,12 @@ class ScannerViewModel @Inject constructor(
     fun reset() {
         _uiState.value = ScannerUiState.Idle
         currentMealId = null
+    }
+
+    fun cancelAnalysis() {
+        progressAnimationJob?.cancel()
+        currentMealId = null
+        _uiState.value = ScannerUiState.Idle
     }
     
     /**

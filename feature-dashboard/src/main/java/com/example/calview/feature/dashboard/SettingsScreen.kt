@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -68,6 +69,13 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    // Redirect to splash/onboarding when deletion or logout is complete
+    LaunchedEffect(uiState.isDeletionComplete) {
+        if (uiState.isDeletionComplete) {
+            onDeleteAccount() // This navigates to splash in AppNavigation
+        }
+    }
+
     SettingsContent(
         userName = uiState.userName.ifEmpty { "User" },
         photoUrl = uiState.photoUrl,
@@ -89,14 +97,13 @@ fun SettingsScreen(
         onPrivacyClick = onNavigateToPrivacy,
         onFeatureRequestClick = onNavigateToFeatureRequest,
         onLicensesClick = onNavigateToLicenses,
-        onDeleteAccount = onDeleteAccount,
-        onLogout = onLogout,
+        onDeleteAccount = viewModel::deleteAccount,
+        onLogout = viewModel::logout,
         remainingCalories = remainingCalories,
         proteinLeft = proteinLeft,
         carbsLeft = carbsLeft,
         fatsLeft = fatsLeft,
         streakDays = streakDays,
-
         userEmail = uiState.userEmail,
         userId = uiState.userId,
         scrollState = scrollState,
@@ -106,7 +113,9 @@ fun SettingsScreen(
         maxFreezes = uiState.maxFreezes,
         yesterdayMissed = uiState.yesterdayMissed,
         onUseFreeze = viewModel::useFreeze,
-        isPremium = uiState.isPremium
+        isPremium = uiState.isPremium,
+        isDeletingAccount = uiState.isDeletingAccount,
+        deletionMessage = uiState.deletionProgressMessage
     )
 }
 
@@ -152,7 +161,9 @@ fun SettingsContent(
     maxFreezes: Int = 2,
     yesterdayMissed: Boolean = false,
     onUseFreeze: () -> Unit = {},
-    isPremium: Boolean = false
+    isPremium: Boolean = false,
+    isDeletingAccount: Boolean = false,
+    deletionMessage: String = ""
 ) {
     val context = LocalContext.current
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
@@ -284,7 +295,47 @@ fun SettingsContent(
             }
         )
     }
+    
+    // Deletion Progress Overlay
+    if (isDeletingAccount) {
+        DeletionProgressOverlay(message = deletionMessage)
+    }
     } // Close Box
+}
+
+@Composable
+fun DeletionProgressOverlay(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .clickable(enabled = false) {}, // Block interactions
+        contentAlignment = Alignment.Center
+    ) {
+        CalAICard(
+            modifier = Modifier
+                .width(280.dp)
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3.dp
+                )
+                Text(
+                    text = message,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)

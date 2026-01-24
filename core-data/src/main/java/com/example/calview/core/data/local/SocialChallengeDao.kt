@@ -60,4 +60,10 @@ interface SocialChallengeDao {
         ORDER BY sc.startDate DESC
     """)
     suspend fun getActiveChallengesSync(userId: String): List<SocialChallengeEntity>
+
+    @Query("DELETE FROM social_challenges")
+    suspend fun deleteAllChallenges()
+
+    @Query("DELETE FROM challenge_participants")
+    suspend fun deleteAllParticipants()
 }

@@ -99,9 +99,12 @@ import java.util.Calendar
 import java.util.Locale
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
-import com.example.calview.core.ui.util.rememberHapticsManager
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import com.example.calview.core.ui.walkthrough.*
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.runtime.mutableIntStateOf
+import com.example.calview.core.ui.util.rememberHapticsManager
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
@@ -314,7 +317,8 @@ fun DashboardScreen(
                 onWaterReminderEnabledChange = { viewModel.setWaterReminderEnabled(it) },
                 onWaterReminderIntervalChange = { viewModel.setWaterReminderInterval(it) },
                 onWaterReminderDailyGoalChange = { viewModel.setWaterReminderDailyGoal(it) },
-                onUpgradeClick = { /* Navigate to Paywall - handled via top level nav if needed, or callback */ } 
+                onUpgradeClick = { /* Navigate to Paywall - handled via top level nav if needed, or callback */ },
+                onWalkthroughComplete = { viewModel.setHasSeenWalkthrough(true) }
             )
             
             // Snackbar host at bottom
@@ -343,19 +347,94 @@ fun DashboardContent(
     onWaterReminderEnabledChange: (Boolean) -> Unit = {},
     onWaterReminderIntervalChange: (Int) -> Unit = {},
     onWaterReminderDailyGoalChange: (Int) -> Unit = {},
-    onUpgradeClick: () -> Unit = {}
+    onUpgradeClick: () -> Unit = {},
+    onWalkthroughComplete: () -> Unit = {}
 ) {
     // Get adaptive layout values based on screen size
     val windowSizeClass = LocalWindowSizeClass.current
     val horizontalPadding = AdaptiveLayoutUtils.getHorizontalPadding(windowSizeClass.widthSizeClass)
     val maxContentWidth = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass)
     
+    // Walkthrough State
+    var nutritionRect by remember { mutableStateOf<Rect?>(null) }
+    var healthScoreRect by remember { mutableStateOf<Rect?>(null) }
+    var waterRect by remember { mutableStateOf<Rect?>(null) }
+    
+    var currentStepIndex by remember(state.hasSeenWalkthrough) { 
+        mutableIntStateOf(if (!state.hasSeenWalkthrough) 0 else -1) 
+    }
+    
+    val walkthroughSteps = listOf(
+        WalkthroughStep(
+            id = "nutrition",
+            title = "Track Your Goals",
+            description = "Your AI-calculated nutrition goals are right here. Monitor your calories and macros in real-time.",
+            targetRect = nutritionRect
+        ),
+        WalkthroughStep(
+            id = "score",
+            title = "AI Health Coach",
+            description = "Your Health Score updates dynamically. Check the AI Coach tips for personalized nutrition advice.",
+            targetRect = healthScoreRect
+        ),
+        WalkthroughStep(
+            id = "water",
+            title = "Hydration Tracker",
+            description = "Staying hydrated is key to your health. Quickly log your water intake throughout the day.",
+            targetRect = waterRect
+        )
+    )
+
+    // Auto-scroll logic for walkthrough steps to ensure target items are visible
+    LaunchedEffect(currentStepIndex, nutritionRect, healthScoreRect, waterRect) {
+        if (currentStepIndex != -1) {
+            // Small delay to let any previous scroll finish
+            kotlinx.coroutines.delay(100)
+            
+            // Only proceed if the target rect for current step is captured
+            // This prevents the tour from starting at the bottom (0,0 or default)
+            val hasRect = when (currentStepIndex) {
+                0 -> nutritionRect != null
+                1 -> healthScoreRect != null
+                2 -> waterRect != null
+                else -> true
+            }
+            
+            if (hasRect) {
+                when (currentStepIndex) {
+                    0 -> lazyListState.animateScrollToItem(1) // Nutrition
+                    1 -> lazyListState.animateScrollToItem(2) // Health Score
+                    2 -> lazyListState.animateScrollToItem(4) // Water Tracker
+                }
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
         contentAlignment = Alignment.TopCenter
     ) {
+        // Walkthrough Overlay
+        if (currentStepIndex != -1) {
+            WalkthroughOverlay(
+                steps = walkthroughSteps,
+                currentStepIndex = currentStepIndex,
+                onNext = {
+                    if (currentStepIndex < walkthroughSteps.size - 1) {
+                        currentStepIndex++
+                    } else {
+                        currentStepIndex = -1
+                        onWalkthroughComplete()
+                    }
+                },
+                onSkip = {
+                    currentStepIndex = -1
+                    onWalkthroughComplete()
+                }
+            )
+        }
         LazyColumn(
             state = lazyListState,
             modifier = Modifier
@@ -371,13 +450,14 @@ fun DashboardContent(
             DateSelector(
                 selectedDate = state.selectedDate, 
                 onDateSelected = onDateSelected,
-                mealsForDates = state.meals
+                allMealDates = state.allMealDates
             )
         }
 
         item {
 
         NutritionOverviewCard(
+            modifier = Modifier.onPositionedRect { nutritionRect = it },
             remainingCalories = state.remainingCalories,
             consumedCalories = state.consumedCalories,
             goalCalories = state.goalCalories,
@@ -405,6 +485,7 @@ fun DashboardContent(
         // Health Score Card - Premium design with AI Coach tip
         item {
             HealthScoreCardPremium(
+                modifier = Modifier.onPositionedRect { healthScoreRect = it },
                 score = state.healthScore,
                 recommendation = state.healthRecommendation,
                 coachTip = state.coachTip
@@ -501,6 +582,7 @@ fun DashboardContent(
             var waterServingSize by remember { mutableStateOf(8) }
             
             WaterCardPremium(
+                modifier = Modifier.onPositionedRect { waterRect = it },
                 consumed = state.waterConsumed,
                 servingSize = waterServingSize,
                 onAdd = { onAddWater(waterServingSize) },
@@ -541,8 +623,13 @@ fun DashboardContent(
         }
 
         item {
+            val today = Calendar.getInstance()
+            val isToday = state.selectedDate.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) &&
+                         state.selectedDate.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+            
             Text(
-                stringResource(R.string.recently_uploaded),
+                text = if (isToday) stringResource(R.string.recently_uploaded) 
+                       else "Meals for ${SimpleDateFormat("MMM d", Locale.getDefault()).format(state.selectedDate.time)}",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
@@ -550,7 +637,7 @@ fun DashboardContent(
             )
         }
 
-        items(state.recentUploads) { meal ->
+        items(state.meals) { meal ->
             RecentMealCard(
                 meal = meal,
                 onClick = { onMealClick(meal) }
@@ -790,7 +877,7 @@ fun HeaderSection(streakDays: Int = 0) {
                 Text(
                     stringResource(R.string.dashboard_title),
                     fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
@@ -828,7 +915,7 @@ fun HeaderSection(streakDays: Int = 0) {
 fun DateSelector(
     selectedDate: Calendar, 
     onDateSelected: (Calendar) -> Unit,
-    mealsForDates: List<MealEntity> = emptyList()
+    allMealDates: List<Long> = emptyList()
 ) {
     val today = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
@@ -861,8 +948,15 @@ fun DateSelector(
     )
     
     // Helper to check if a date has meals logged
+    val calendarForCalc = Calendar.getInstance()
     fun hasMealsOnDate(date: Calendar): Boolean {
-        return mealsForDates.isNotEmpty() && date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        if (allMealDates.isEmpty()) return false
+        
+        return allMealDates.any { timestamp ->
+            calendarForCalc.timeInMillis = timestamp
+            calendarForCalc.get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR) &&
+            calendarForCalc.get(Calendar.YEAR) == date.get(Calendar.YEAR)
+        }
     }
     
     // Helper to check if date is in the future
@@ -1080,7 +1174,8 @@ fun NutritionOverviewCard(
     rolloverCaloriesEnabled: Boolean = false,
     rolloverCaloriesAmount: Int = 0,
     burnedCalories: Int = 0,
-    addCaloriesBackEnabled: Boolean = false
+    addCaloriesBackEnabled: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     // Shared toggle state for all cards
     var showEaten by remember { mutableStateOf(true) }
@@ -1099,7 +1194,7 @@ fun NutritionOverviewCard(
     )
     
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -1481,7 +1576,8 @@ fun MicroCardUnified(
 fun HealthScoreCardPremium(
     score: Int,
     recommendation: String = "Track your meals to get personalized health insights.",
-    coachTip: CoachMessageGenerator.CoachTip? = null
+    coachTip: CoachMessageGenerator.CoachTip? = null,
+    modifier: Modifier = Modifier
 ) {
     val animatedScore by animateFloatAsState(
         targetValue = score / 10f,
@@ -1496,7 +1592,7 @@ fun HealthScoreCardPremium(
         else -> Color(0xFFF44336) // Red
     }
     
-    CalAICard(modifier = Modifier.fillMaxWidth()) {
+    CalAICard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1597,7 +1693,7 @@ fun HealthScoreCardPremium(
                                     text = tip.category.name.lowercase().replaceFirstChar { it.uppercase() },
                                     fontSize = 9.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -2013,11 +2109,12 @@ fun WaterCardPremium(
     servingSize: Int = 8,
     onAdd: () -> Unit,
     onRemove: () -> Unit,
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val cups = consumed / servingSize
     
-    CalAICard(modifier = Modifier.fillMaxWidth()) {
+    CalAICard(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -93,8 +93,6 @@ class GeminiFoodAnalysisService @Inject constructor(
                 
                 IMPORTANT: Return all nutritional amounts (weight, calories, macros) as INTEGERS.
                 
-                Return ONLY a valid JSON object with this structure:
-                {
                   "detected_items": [
                     {
                       "name": "string with quantity",
@@ -109,6 +107,8 @@ class GeminiFoodAnalysisService @Inject constructor(
                   "confidence_score": 1.0,
                   "health_insight": "string"
                 }
+                
+                IMPORTANT: Return all nutritional amounts (weight, calories, macros) as INTEGERS. Round to the nearest whole number.
             """.trimIndent()
 
             android.util.Log.d("GeminiAI", "Sending text request to Gemini API...")
@@ -144,31 +144,39 @@ class GeminiFoodAnalysisService @Inject constructor(
         
         android.util.Log.d("GeminiAI", "Response text (first 200 chars): ${text.take(200)}")
         
-        val cleanedJson = text
-            .removePrefix("```json")
-            .removePrefix("```")
-            .removeSuffix("```")
-            .trim()
-        
-        android.util.Log.d("GeminiAI", "Parsing JSON response...")
-        
         try {
-            // More robust JSON cleaning
+            // Find the first '{' and last '}' to extract the JSON object
             val firstBrace = text.indexOf('{')
             val lastBrace = text.lastIndexOf('}')
             
-            val jsonString = if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
-                text.substring(firstBrace, lastBrace + 1)
-            } else {
-                cleanedJson // Fallback to previous cleaning if braces not found
+            if (firstBrace == -1 || lastBrace == -1 || lastBrace <= firstBrace) {
+                android.util.Log.e("GeminiAI", "No JSON object found in response: $text")
+                throw Exception("No valid JSON found in AI response")
+            }
+            
+            var jsonString = text.substring(firstBrace, lastBrace + 1)
+            
+            // Basic cleanup for common AI JSON mistakes
+            jsonString = jsonString
+                .replace(",\\s*}".toRegex(), "}") // Trailing commas in objects
+                .replace(",\\s*]".toRegex(), "]") // Trailing commas in arrays
+
+            // Check if it's an error response
+            if (jsonString.contains("\"error\"") && !jsonString.contains("\"detected_items\"")) {
+                try {
+                    val errorObj = json.decodeFromString<com.example.calview.core.ai.model.ErrorResponse>(jsonString)
+                    throw Exception(errorObj.error)
+                } catch (e: Exception) {
+                    throw Exception("AI reported an error or no food detected")
+                }
             }
 
             val result = json.decodeFromString<FoodAnalysisResponse>(jsonString)
             return Result.success(result)
         } catch (e: Throwable) {
             android.util.Log.e("GeminiAI", "JSON Parsing failed", e)
-            android.util.Log.e("GeminiAI", "Failed JSON content: $cleanedJson")
-            throw Exception("Failed to parse AI response: ${e.message}")
+            android.util.Log.e("GeminiAI", "Raw text: $text")
+            throw Exception("Failed to process food data: ${e.message}")
         }
     }
 

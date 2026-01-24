@@ -1,0 +1,48 @@
+GOOGLE PLAY STORE LISTING
+=========================
+
+SHORT DESCRIPTION (Max 80 chars)
+--------------------------------
+Snap photos to track calories. AI coach, fasting & macro tracker for weight loss.
+
+
+FULL DESCRIPTION (Max 4000 chars)
+---------------------------------
+Transform your health journey with CalView AI, the smartest calorie counter and nutrition tracker powered by advanced artificial intelligence. Whether you want to lose weight, gain muscle, or simply eat healthier, CalView AI makes tracking effortless. Forget manual entry—just snap a photo, and let our AI Food Scanner analyze your meal instantly.
+
+Key Features:
+
+📸 AI Photo Food Scanner
+• Instant Calorie Logging: Simply take a picture of your food, and our AI identifies the meal and calculates calories and macros automatically.
+• Detailed Breakdown: Get accurate data on protein, carbs, fats, fiber, sugar, and more from a single photo.
+
+🤖 Personalized AI Health Coach
+• Smart Health Score: Receive a daily health score (0-10) based on your food quality, hydration, and adherence to goals.
+• Dynamic Coaching Tips: Get real-time, personalized advice to improve your nutrition. "Low on protein? Try adding Greek yogurt to your next snack!"
+
+🍽️ Advanced Macro & Nutrient Tracker
+• Custom Goals: Set personalized targets for calories, protein, carbs, and fats.
+• Rollover Calories: Flexible tracking that adapts to your life. Unused calories can roll over to the next day or week.
+• Comprehensive Stats: Monitor essential micronutrients like sodium, sugar, and fiber to ensure a balanced diet.
+
+💧 Smart Hydration & Fasting
+• Water Tracker: Log your water intake with a tap and stay hydrated with smart reminders.
+• Intermittent Fasting Timer: Track your fasting windows easily with integrated timers for various protocols (16:8, OMAD, etc.).
+
+🤝 Social Challenges & Streaks
+• Compete with Friends: Join social challenges to stay motivated.
+• Streak Protection: Keep your momentum going with Streak Freezes for those busy days.
+
+🌟 Premium Features
+Unlock the full potential of CalView AI:
+• Voice Logging: Log meals hands-free with voice commands.
+• Deep Insights: Advanced analytics on your nutrient trends.
+• Unlimited AI Analysis: Scan as many meals as you want without limits.
+• Exclusive Challenges: Compete in premium-only social leaderboards.
+
+Why Choose CalView AI?
+• Effortless: The fastest way to log meals using just your camera.
+• Intelligent: More than just a logger, it's a coach that understands your habits.
+• Complete: Calorie counting, fasting, water, and macros in one beautiful app.
+
+Download CalView AI today and reach your fitness goals faster with the power of AI nutrition tracking!

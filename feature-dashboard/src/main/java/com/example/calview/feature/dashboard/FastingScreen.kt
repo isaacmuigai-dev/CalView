@@ -36,6 +36,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
+import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +50,7 @@ fun FastingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Fasting Timer", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.fasting_timer_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -83,12 +85,12 @@ fun FastingScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 StatCard(
-                    label = "Completed",
+                    label = stringResource(R.string.stat_completed),
                     value = "${uiState.completedFasts}",
                     icon = "✅"
                 )
                 StatCard(
-                    label = "Current Streak",
+                    label = stringResource(R.string.stat_current_streak),
                     value = "🔥 ${uiState.completedFasts}",
                     icon = ""
                 )
@@ -120,13 +122,13 @@ fun FastingScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "elapsed",
+                            text = stringResource(R.string.elapsed_label),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "${formatTime(uiState.remainingMinutes)} left",
+                            text = "${formatTime(uiState.remainingMinutes)} ${stringResource(R.string.left_suffix)}",
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -138,7 +140,7 @@ fun FastingScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "${uiState.selectedFastType.fastingHours}h fast",
+                            text = stringResource(R.string.fast_hour_suffix, uiState.selectedFastType.fastingHours),
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -151,7 +153,7 @@ fun FastingScreen(
             // Fast Type Selection (only when not active)
             if (!uiState.isActive) {
                 Text(
-                    text = "Select Fasting Window",
+                    text = stringResource(R.string.select_fast_window),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.align(Alignment.Start)
@@ -187,9 +189,9 @@ fun FastingScreen(
                             contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel fasting")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel_fast_desc))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel_fast_desc))
                     }
                     
                     // End Fast Button
@@ -204,10 +206,10 @@ fun FastingScreen(
                     ) {
                         Icon(
                             if (uiState.progress >= 1f) Icons.Default.Check else Icons.Default.Stop,
-                            contentDescription = if (uiState.progress >= 1f) "Complete fast" else "Stop fasting"
+                            contentDescription = if (uiState.progress >= 1f) stringResource(R.string.complete_fast_desc) else stringResource(R.string.stop_fast_desc)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (uiState.progress >= 1f) "Complete!" else "End Fast")
+                        Text(if (uiState.progress >= 1f) stringResource(R.string.complete_action) else stringResource(R.string.end_fast_action))
                     }
                 }
             } else {
@@ -222,9 +224,9 @@ fun FastingScreen(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = "Start fasting")
+                    Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.start_fast_desc))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Start Fasting", fontSize = 18.sp)
+                    Text(stringResource(R.string.start_fast_action), fontSize = 18.sp)
                 }
             }
             
@@ -233,7 +235,7 @@ fun FastingScreen(
             // Recent History
             if (uiState.recentSessions.isNotEmpty()) {
                 Text(
-                    text = "Recent Fasts",
+                    text = stringResource(R.string.recent_fasts_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.align(Alignment.Start)
@@ -335,7 +337,7 @@ private fun FastTypeChip(
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "${type.fastingHours}h fast",
+                text = stringResource(R.string.fast_hour_suffix, type.fastingHours),
                 fontSize = 12.sp,
                 color = if (isSelected) 
                     MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) 
@@ -430,12 +432,13 @@ private fun RecentFastCard(session: com.example.calview.core.data.local.FastingS
     }
 }
 
+@Composable
 private fun formatTime(minutes: Int): String {
     val hours = minutes / 60
     val mins = minutes % 60
     return if (hours > 0) {
-        "${hours}h ${mins}m"
+        stringResource(R.string.time_hours_mins, hours, mins)
     } else {
-        "${mins}m"
+        stringResource(R.string.time_mins, mins)
     }
 }

@@ -10,5 +10,5 @@
     android:widgetFeatures="reconfigurable"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:previewLayout="@layout/widget_control_center_preview"
+    android:previewImage="@drawable/widget_preview_main"
     android:description="@string/widget_control_center_description" />

@@ -14,7 +14,9 @@ class MealRepositoryImpl @Inject constructor(
     private val firestoreRepository: FirestoreRepository,
     private val authRepository: AuthRepository,
     private val storageRepository: StorageRepository,
-    private val socialChallengeRepository: SocialChallengeRepository
+    private val socialChallengeRepository: SocialChallengeRepository,
+    private val streakFreezeRepository: StreakFreezeRepository,
+    private val dailyLogRepository: DailyLogRepository
 ) : MealRepository {
     
     // Scope for background sync operations
@@ -106,10 +108,34 @@ class MealRepositoryImpl @Inject constructor(
         }
         
         
-        // Update Social Challenge progress (Logging)
+        // Update Social Challenge progress
         scope.launch {
-            val todayMeals = getMealsForToday().firstOrNull() ?: emptyList()
-            socialChallengeRepository.updateUserProgressForType(SocialChallengeType.LOGGING, todayMeals.size + 1)
+            try {
+                // 1. Update Logging Challenge
+                val todayMeals = getMealsForToday().firstOrNull() ?: emptyList()
+                val completedToday = todayMeals.filter { it.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.COMPLETED }.size
+                socialChallengeRepository.updateUserProgressForType(SocialChallengeType.LOGGING, completedToday)
+                
+                // 2. Update Streak Challenge
+                val allMeals = getAllMeals().firstOrNull() ?: emptyList()
+                val mealDates = allMeals.filter { it.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.COMPLETED }
+                    .map { 
+                        java.time.Instant.ofEpochMilli(it.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate() 
+                    }.distinct()
+                
+                streakFreezeRepository.getStreakData(mealDates).firstOrNull()?.let { streak ->
+                    socialChallengeRepository.updateUserProgressForType(SocialChallengeType.STREAK, streak)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MealRepository", "Error updating challenge progress", e)
+            }
+        }
+        
+        // Update DailyLog totals
+        scope.launch {
+            syncTotalsForDate(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(meal.timestamp))
         }
         
         return id
@@ -129,6 +155,11 @@ class MealRepositoryImpl @Inject constructor(
                 }
             }
         }
+
+        // Update DailyLog totals
+        scope.launch {
+            syncTotalsForDate(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(meal.timestamp))
+        }
     }
 
     override suspend fun deleteMeal(meal: MealEntity) {
@@ -144,6 +175,11 @@ class MealRepositoryImpl @Inject constructor(
                     e.printStackTrace()
                 }
             }
+        }
+
+        // Update DailyLog totals
+        scope.launch {
+            syncTotalsForDate(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(meal.timestamp))
         }
     }
     
@@ -203,6 +239,34 @@ class MealRepositoryImpl @Inject constructor(
             android.util.Log.d("MealRepository", "Cleared all local meals")
         } catch (e: Exception) {
             android.util.Log.e("MealRepository", "Error clearing meals", e)
+        }
+    }
+    private suspend fun syncTotalsForDate(dateString: String) {
+        try {
+            val meals = getMealsForDate(dateString).firstOrNull() ?: emptyList()
+            val completedMeals = meals.filter { it.analysisStatus == com.example.calview.core.data.local.AnalysisStatus.COMPLETED }
+            
+            val totalCalories = completedMeals.sumOf { it.calories }
+            val totalProtein = completedMeals.sumOf { it.protein }
+            val totalCarbs = completedMeals.sumOf { it.carbs }
+            val totalFats = completedMeals.sumOf { it.fats }
+            val totalFiber = completedMeals.sumOf { it.fiber }
+            val totalSugar = completedMeals.sumOf { it.sugar }
+            val totalSodium = completedMeals.sumOf { it.sodium }
+            
+            val log = dailyLogRepository.getLogForDateSync(dateString) ?: com.example.calview.core.data.local.DailyLogEntity(date = dateString)
+            
+            dailyLogRepository.saveLog(log.copy(
+                caloriesConsumed = totalCalories,
+                proteinConsumed = totalProtein,
+                carbsConsumed = totalCarbs,
+                fatsConsumed = totalFats,
+                fiberConsumed = totalFiber,
+                sugarConsumed = totalSugar,
+                sodiumConsumed = totalSodium
+            ))
+        } catch (e: Exception) {
+            android.util.Log.e("MealRepository", "Error syncing totals for $dateString", e)
         }
     }
 }

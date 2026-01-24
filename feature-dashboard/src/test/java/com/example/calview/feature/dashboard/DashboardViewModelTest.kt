@@ -42,6 +42,7 @@ class DashboardViewModelTest {
     private val coachMessageGenerator: com.example.calview.core.data.coach.CoachMessageGenerator = mockk(relaxed = true)
     private val selectedDateHolder: com.example.calview.core.data.state.SelectedDateHolder = mockk(relaxed = true)
     private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository = mockk(relaxed = true)
+    private val streakFreezeRepository: com.example.calview.core.data.repository.StreakFreezeRepository = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true)
     
     // Use UnconfinedTestDispatcher for immediate execution
@@ -102,6 +103,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         
@@ -147,6 +149,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         
@@ -204,6 +207,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         
@@ -244,6 +248,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         
@@ -267,6 +272,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         
@@ -295,6 +301,7 @@ class DashboardViewModelTest {
             coachMessageGenerator,
             selectedDateHolder,
             waterReminderRepository,
+            streakFreezeRepository,
             context
         )
         

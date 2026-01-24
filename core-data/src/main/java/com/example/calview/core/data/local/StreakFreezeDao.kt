@@ -19,4 +19,7 @@ interface StreakFreezeDao {
 
     @Query("UPDATE streak_freezes SET freezesUsed = freezesUsed + 1, frozenDates = :frozenDates WHERE month = :month")
     suspend fun useFreeze(month: String, frozenDates: String)
+
+    @Query("DELETE FROM streak_freezes")
+    suspend fun deleteAll()
 }

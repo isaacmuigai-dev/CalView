@@ -88,4 +88,21 @@
     <string name="day_completed_desc">दिन पूरा हुआ</string>
     <string name="current_streak_desc">वर्तमान स्ट्रीक</string>
     <string name="best_streak_desc">सर्वश्रेष्ठ स्ट्रीक</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">सिलसिला फ्रीज</string>
+    <string name="available_freezes_format">%1$d/%2$d उपलब्ध</string>
+    <string name="missed_day_msg">आपने एक दिन याद किया! अपने %1$d दिन के सिलसिले को बनाए रखने के लिए फ्रीज का उपयोग करें।</string>
+    <string name="use_freeze_action">सिलसिला फ्रीज उपयोग करें</string>
+    <string name="streak_safe_msg">आपका सिलसिला सुरक्षित है। फ्रीज स्वचालित रूप से आपकी प्रगति की रक्षा करता है।</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">वजन का पूर्वानुमान</string>
+    <string name="trend_down">नीचे की ओर रुझان</string>
+    <string name="trend_up">ऊपर की ओर रुझان</string>
+    <string name="trend_stable">स्थिर</string>
+    <string name="in_30_days">30 दिनों में</string>
+    <string name="reach_goal_by">तक लक्ष्य प्राप्त करें</string>
+    <string name="weekly_rate_label">साप्ताहिक दर</string>
+    <string name="keep_pushing">प्रयास जारी रखें!</string>
 </resources>

@@ -32,7 +32,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val authRepository: AuthRepository,
     private val firestoreRepository: FirestoreRepository,
-    private val weightHistoryDao: WeightHistoryDao
+    private val weightHistoryRepository: WeightHistoryRepository
 ) : UserPreferencesRepository {
 
     private object PreferencesKeys {
@@ -89,6 +89,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         
         // Widget Theme
         val WIDGET_DARK_THEME = booleanPreferencesKey("widget_dark_theme")
+
+        // Walkthrough flags
+        val HAS_SEEN_DASHBOARD_WALKTHROUGH = booleanPreferencesKey("has_seen_dashboard_walkthrough")
+        val HAS_SEEN_FEATURE_INTRO = booleanPreferencesKey("has_seen_feature_intro")
+        val WEIGHT_CHANGE_PER_WEEK = floatPreferencesKey("weight_change_per_week")
     }
     
     // Coroutine scope for background sync operations
@@ -126,7 +131,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             birthYear = preferences[PreferencesKeys.BIRTH_YEAR] ?: 2000,
 
             language = preferences[PreferencesKeys.LANGUAGE] ?: "en",
-            lastRolloverDate = preferences[PreferencesKeys.LAST_ROLLOVER_DATE] ?: 0L
+            lastRolloverDate = preferences[PreferencesKeys.LAST_ROLLOVER_DATE] ?: 0L,
+            hasSeenDashboardWalkthrough = preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] ?: false,
+            hasSeenFeatureIntro = preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] ?: false,
+            waterConsumed = preferences[PreferencesKeys.WATER_CONSUMED] ?: 0,
+            waterDate = preferences[PreferencesKeys.WATER_DATE] ?: 0L,
+            lastKnownSteps = preferences[PreferencesKeys.LAST_KNOWN_STEPS] ?: 0,
+            lastKnownCaloriesBurned = preferences[PreferencesKeys.LAST_KNOWN_CALORIES_BURNED] ?: 0,
+            weeklyBurn = preferences[PreferencesKeys.WEEKLY_BURN] ?: 0,
+            recordBurn = preferences[PreferencesKeys.RECORD_BURN] ?: 0,
+            hasSeenCameraTutorial = preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] ?: false,
+            widgetDarkTheme = preferences[PreferencesKeys.WIDGET_DARK_THEME] ?: false,
+            weightChangePerWeek = preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] ?: 0.5f
         )
     }
     
@@ -217,6 +233,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override val recommendedFats: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.RECOMMENDED_FATS] ?: 47
+    }
+
+    override val weightChangePerWeek: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] ?: 0.5f
     }
     
     // User profile from Google sign-in
@@ -309,6 +329,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override val widgetDarkTheme: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.WIDGET_DARK_THEME] ?: false
+    }
+
+    override val hasSeenDashboardWalkthrough: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] ?: false
+    }
+
+    override val hasSeenFeatureIntro: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] ?: false
     }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
@@ -458,7 +486,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 Month.JANUARY // Fallback
             }
-            val birthDate = LocalDate.of(year, birthMonth, day.coerceIn(1, 28)) // Coerce day to valid range
+            val birthDate = LocalDate.of(year, birthMonth, day.coerceIn(1, 31)) // Coerce day to valid range
             val today = LocalDate.now()
             val age = Period.between(birthDate, today).years
             preferences[PreferencesKeys.AGE] = age.coerceAtLeast(0)
@@ -479,7 +507,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
         
         // Record weight in history table
-        weightHistoryDao.insertWeight(
+        weightHistoryRepository.insertWeight(
             WeightHistoryEntity(
                 weight = weight,
                 timestamp = System.currentTimeMillis()
@@ -498,11 +526,19 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         syncWidgetData()
     }
 
+    override suspend fun setWeightChangePerWeek(pace: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] = pace
+        }
+        syncToFirestore()
+    }
+
     override suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.WATER_CONSUMED] = amount
             preferences[PreferencesKeys.WATER_DATE] = dateTimestamp
         }
+        syncToFirestore()
         syncWidgetData()
     }
 
@@ -510,6 +546,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_KNOWN_STEPS] = steps
         }
+        syncToFirestore()
         syncWidgetData()
     }
 
@@ -519,6 +556,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.WEEKLY_BURN] = weeklyBurn
             preferences[PreferencesKeys.RECORD_BURN] = recordBurn
         }
+        syncToFirestore()
         syncWidgetData()
     }
 
@@ -526,6 +564,21 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] = seen
         }
+        syncToFirestore()
+    }
+
+    override suspend fun setHasSeenDashboardWalkthrough(seen: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] = seen
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setHasSeenFeatureIntro(seen: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] = seen
+        }
+        syncToFirestore()
     }
     
     override suspend fun setWidgetDarkTheme(isDark: Boolean) {
@@ -579,6 +632,17 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.BIRTH_YEAR] = userData.birthYear
                     preferences[PreferencesKeys.LANGUAGE] = userData.language
                     preferences[PreferencesKeys.LAST_ROLLOVER_DATE] = userData.lastRolloverDate
+                    preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] = userData.hasSeenDashboardWalkthrough
+                    preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] = userData.hasSeenFeatureIntro
+                    preferences[PreferencesKeys.WATER_CONSUMED] = userData.waterConsumed
+                    preferences[PreferencesKeys.WATER_DATE] = userData.waterDate
+                    preferences[PreferencesKeys.LAST_KNOWN_STEPS] = userData.lastKnownSteps
+                    preferences[PreferencesKeys.LAST_KNOWN_CALORIES_BURNED] = userData.lastKnownCaloriesBurned
+                    preferences[PreferencesKeys.WEEKLY_BURN] = userData.weeklyBurn
+                    preferences[PreferencesKeys.RECORD_BURN] = userData.recordBurn
+                    preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] = userData.hasSeenCameraTutorial
+                    preferences[PreferencesKeys.WIDGET_DARK_THEME] = userData.widgetDarkTheme
+                    preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] = userData.weightChangePerWeek
                 }
                 true
             } else {
@@ -588,6 +652,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             e.printStackTrace()
             false
         } finally {
+            // Restore weight history and other repository data
+            weightHistoryRepository.restoreFromCloud()
             // Ensure widget is updated with new user data (or defaults if restore failed)
             syncWidgetData()
         }

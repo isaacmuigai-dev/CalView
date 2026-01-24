@@ -10,6 +10,5 @@
     android:widgetFeatures="reconfigurable"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
-    android:previewLayout="@layout/widget_calories_preview"
-    android:previewImage="@drawable/widget_calories_preview_img"
+    android:previewImage="@drawable/widget_preview_main"
     android:description="@string/widget_calories_description" />

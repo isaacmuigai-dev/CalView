@@ -124,6 +124,24 @@ class MainActivity : AppCompatActivity() {
     lateinit var firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository
     
     @Inject
+    lateinit var fastingRepository: com.example.calview.core.data.repository.FastingRepository
+
+    @Inject
+    lateinit var streakFreezeRepository: com.example.calview.core.data.repository.StreakFreezeRepository
+
+    @Inject
+    lateinit var weightHistoryRepository: com.example.calview.core.data.repository.WeightHistoryRepository
+
+    @Inject
+    lateinit var waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository
+
+    @Inject
+    lateinit var socialChallengeRepository: com.example.calview.core.data.repository.SocialChallengeRepository
+
+    @Inject
+    lateinit var gamificationRepository: com.example.calview.core.data.repository.GamificationRepository
+
+    @Inject
     lateinit var billingManager: BillingManager
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -166,6 +184,12 @@ class MainActivity : AppCompatActivity() {
                         mealRepository = mealRepository,
                         dailyLogRepository = dailyLogRepository,
                         firestoreRepository = firestoreRepository,
+                        fastingRepository = fastingRepository,
+                        streakFreezeRepository = streakFreezeRepository,
+                        weightHistoryRepository = weightHistoryRepository,
+                        waterReminderRepository = waterReminderRepository,
+                        socialChallengeRepository = socialChallengeRepository,
+                        gamificationRepository = gamificationRepository,
                         billingManager = billingManager
                     )
                 }
@@ -183,6 +207,12 @@ fun AppNavigation(
     mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
     dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository? = null,
     firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository? = null,
+    fastingRepository: com.example.calview.core.data.repository.FastingRepository? = null,
+    streakFreezeRepository: com.example.calview.core.data.repository.StreakFreezeRepository? = null,
+    weightHistoryRepository: com.example.calview.core.data.repository.WeightHistoryRepository? = null,
+    waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository? = null,
+    socialChallengeRepository: com.example.calview.core.data.repository.SocialChallengeRepository? = null,
+    gamificationRepository: com.example.calview.core.data.repository.GamificationRepository? = null,
     billingManager: BillingManager? = null
 ) {
     val navController = rememberNavController()
@@ -224,21 +254,32 @@ fun AppNavigation(
                     if (success) {
                         // Save Google profile info and restore data from cloud
                         scope.launch {
-                            // Restore user data from Firestore first
-                            val restored = userPreferencesRepository?.restoreFromCloud() ?: false
+                            // Check if user already completed onboarding as a guest
+                            val localOnboardingComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
                             
-                            // Also restore meals and daily logs
-                            mealRepository?.restoreFromCloud()
-                            dailyLogRepository?.restoreFromCloud()
+                            var restored = false
+                            if (!localOnboardingComplete) {
+                                // Only restore if they haven't already filled out local data
+                                restored = userPreferencesRepository?.restoreFromCloud() ?: false
+                                // Also restore meals and daily logs
+                                mealRepository?.restoreFromCloud()
+                                dailyLogRepository?.restoreFromCloud()
+                            } else {
+                                // If they already filled out onboarding as guest, upload that data!
+                                userPreferencesRepository?.syncToCloud()
+                                // Also sync name/photo from Google to the newly created local profile
+                                userPreferencesRepository?.setUserName(displayName)
+                                userPreferencesRepository?.setPhotoUrl(photoUrl)
+                            }
                             
-                            if (!restored) {
-                                // If no cloud data found (new user), save profile info
+                            if (!restored && !localOnboardingComplete) {
+                                // If no cloud data found (new user) AND no local data
                                 userPreferencesRepository?.setUserName(displayName)
                                 userPreferencesRepository?.setPhotoUrl(photoUrl)
                                 // Generate referral code if needed
                                 val code = com.example.calview.core.data.repository.UserPreferencesRepositoryImpl.generateReferralCode()
                                 userPreferencesRepository?.setReferralCode(code)
-                            } else {
+                            } else if (restored) {
                                 // Cloud data restored - update name/photo if they changed
                                 userPreferencesRepository?.setUserName(displayName)
                                 userPreferencesRepository?.setPhotoUrl(photoUrl)
@@ -413,112 +454,15 @@ fun AppNavigation(
                 onChallengesClick = { navController.navigate("challenges") },
                 onAchievementsClick = { navController.navigate("achievements") },
                 onDeleteAccount = {
-                    scope.launch {
-                        // Get user ID before deletion (needed for Firestore cleanup)
-                        val userId = authRepository?.getUserId() ?: ""
-                        
-                        if (userId.isEmpty()) {
-                            android.util.Log.e("DeleteAccount", "No user ID found")
-                            return@launch
-                        }
-                        
-                        // First, delete all user data from Firestore
-                        try {
-                            android.util.Log.d("DeleteAccount", "Deleting Firestore data for user: $userId")
-                            firestoreRepository?.deleteUserData(userId)
-                            android.util.Log.d("DeleteAccount", "Firestore data deleted successfully")
-                        } catch (e: Exception) {
-                            android.util.Log.e("DeleteAccount", "Failed to delete Firestore data", e)
-                            // Continue with local cleanup even if Firestore cleanup fails
-                        }
-                        
-                        // Clear local Room database (meals)
-                        try {
-                            android.util.Log.d("DeleteAccount", "Clearing local meals...")
-                            mealRepository?.clearAllMeals()
-                            android.util.Log.d("DeleteAccount", "Local meals cleared")
-                        } catch (e: Exception) {
-                            android.util.Log.e("DeleteAccount", "Failed to clear local meals", e)
-                        }
-                        
-                        // Clear local DataStore preferences
-                        try {
-                            android.util.Log.d("DeleteAccount", "Clearing local preferences...")
-                            userPreferencesRepository?.clearAllData()
-                            android.util.Log.d("DeleteAccount", "Local preferences cleared")
-                        } catch (e: Exception) {
-                            android.util.Log.e("DeleteAccount", "Failed to clear local preferences", e)
-                        }
-                        
-                        // Then delete Firebase Auth account
-                        authRepository?.deleteAccount()?.let { result ->
-                            if (result.isSuccess) {
-                                // Navigate to splash screen after account deletion (splash -> welcome)
-                                navController.navigate("splash") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            } else {
-                                val exception = result.exceptionOrNull()
-                                if (exception is com.example.calview.core.data.repository.ReAuthenticationRequiredException) {
-                                    // Need to re-authenticate - trigger Google Sign-In
-                                    try {
-                                        val credentialManager = CredentialManager.create(context)
-                                        val googleIdOption = GetGoogleIdOption.Builder()
-                                            .setFilterByAuthorizedAccounts(true)
-                                            .setServerClientId(context.getString(R.string.default_web_client_id))
-                                            .build()
-                                        
-                                        val request = GetCredentialRequest.Builder()
-                                            .addCredentialOption(googleIdOption)
-                                            .build()
-                                        
-                                        val response = credentialManager.getCredential(context, request)
-                                        val credential = response.credential
-                                        
-                                        if (credential is androidx.credentials.CustomCredential &&
-                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                                            val idToken = googleIdTokenCredential.idToken
-                                            
-                                            // Re-authenticate with Firebase
-                                            authRepository?.reauthenticateWithGoogle(idToken)?.let { reAuthResult ->
-                                                if (reAuthResult.isSuccess) {
-                                                    // Retry delete after re-authentication
-                                                    authRepository?.deleteAccount()?.let { deleteResult ->
-                                                        if (deleteResult.isSuccess) {
-                                                            // Navigate to splash screen (splash -> welcome)
-                                                            navController.navigate("splash") {
-                                                                popUpTo(0) { inclusive = true }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } catch (e: Exception) {
-                                        // Re-authentication failed
-                                        android.util.Log.e("DeleteAccount", "Re-auth failed", e)
-                                    }
-                                }
-                            }
-                        }
+                    // Navigation is now triggered by SettingsViewModel's isDeletionComplete flag
+                    // but we still provide this for cleanup/safety
+                    navController.navigate("splash") {
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onLogout = {
-                    scope.launch {
-                        // Sync all user data to Firestore before signing out
-                        userPreferencesRepository?.syncToCloud()
-                        
-                        // CLEAR ALL LOCAL DATA
-                        mealRepository?.clearAllMeals()
-                        dailyLogRepository?.clearAllLogs()
-                        userPreferencesRepository?.clearAllData()
-                        
-                        authRepository?.signOut()
-                        // Navigate to welcome/onboarding screen after logout
-                        navController.navigate("onboarding") {
-                            popUpTo(0) { inclusive = true }
-                        }
+                    navController.navigate("splash") {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -773,7 +717,7 @@ fun AppNavigation(
                 initialHeightCm = currentHeight,
                 initialWeightKg = currentWeight,
                 onBack = { navController.popBackStack() },
-                onComplete = { goals ->
+                onComplete = { goals, data ->
                     // Save generated goals to repository
                     scope.launch {
                         userPreferencesRepository?.saveRecommendedMacros(
@@ -782,6 +726,16 @@ fun AppNavigation(
                             carbs = goals.carbs,
                             fats = goals.fats
                         )
+                        // Save underlying parameters for Goal Journey card
+                        userPreferencesRepository?.setGoalWeight(data.desiredWeightKg)
+                        userPreferencesRepository?.saveUserProfile(
+                            goal = data.goal,
+                            gender = data.gender,
+                            age = data.age,
+                            weight = data.weightKg,
+                            height = data.heightCm
+                        )
+                        userPreferencesRepository?.setWeightChangePerWeek(data.weightChangePerWeek)
                     }
                     // Navigate back past auto_generate_goals to edit_nutrition_goals
                     navController.popBackStack()

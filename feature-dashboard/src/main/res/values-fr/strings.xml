@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">Historique de poids</string>
     <string name="no_weight_entries">Aucune entrée de poids pour l\'instant</string>
     <string name="weight_changes_appear_here">Vos changements de poids apparaîtront ici</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Minuteur de jeûne</string>
+    <string name="stat_completed">Terminé</string>
+    <string name="stat_current_streak">Série actuelle</string>
+    <string name="elapsed_label">écoulé</string>
+    <string name="left_suffix">restant</string>
+    <string name="select_fast_window">Choisir la fenêtre de jeûne</string>
+    <string name="fast_hour_suffix">%1$dh de jeûne</string>
+    <string name="complete_action">Terminé !</string>
+    <string name="end_fast_action">Arrêter le jeûne</string>
+    <string name="start_fast_action">Commencer le jeûne</string>
+    <string name="recent_fasts_title">Jeûnes récents</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">Annuler le jeûne</string>
+    <string name="complete_fast_desc">Terminer le jeûne</string>
+    <string name="stop_fast_desc">Arrêter le jeûne</string>
+    <string name="start_fast_desc">Commencer le jeûne</string>
 </resources>

@@ -88,4 +88,21 @@
     <string name="day_completed_desc">يوم مكتمل</string>
     <string name="current_streak_desc">السلسلة الحالية</string>
     <string name="best_streak_desc">أفضل سلسلة</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">تجميد السلسلة</string>
+    <string name="available_freezes_format">%1$d/%2$d متاح</string>
+    <string name="missed_day_msg">لقد فاتك يوم! استخدم التجميد للحفاظ على سلسلة الـ %1$d أيام.</string>
+    <string name="use_freeze_action">استخدام تجميد السلسلة</string>
+    <string name="streak_safe_msg">سلسلتك آمنة. التجمد يحمي تقدمك تلقائياً.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">توقعات الوزن</string>
+    <string name="trend_down">اتجاه تنازلي</string>
+    <string name="trend_up">اتجاه تصاعدي</string>
+    <string name="trend_stable">مستقر</string>
+    <string name="in_30_days">في 30 يوم</string>
+    <string name="reach_goal_by">الوصول للهدف بحلول</string>
+    <string name="weekly_rate_label">المعدل الأسبوعي</string>
+    <string name="keep_pushing">استمر في المحاولة!</string>
 </resources>

@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.data.prediction.WeightPredictionEngine
+import com.example.calview.feature.trends.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun WeightPredictionCard(
@@ -32,10 +34,10 @@ fun WeightPredictionCard(
 ) {
     if (trend == WeightPredictionEngine.Trend.INSUFFICIENT_DATA) return
 
-    val (icon, color, label) = when (trend) {
-        WeightPredictionEngine.Trend.LOSING -> Triple(Icons.Default.TrendingDown, Color(0xFF10B981), "Trending Down")
-        WeightPredictionEngine.Trend.GAINING -> Triple(Icons.Default.TrendingUp, Color(0xFFEF4444), "Trending Up")
-        else -> Triple(Icons.Default.TrendingFlat, Color(0xFFF59E0B), "Stable")
+    val (icon, color, labelRes) = when (trend) {
+        WeightPredictionEngine.Trend.LOSING -> Triple(Icons.Default.TrendingDown, Color(0xFF10B981), R.string.trend_down)
+        WeightPredictionEngine.Trend.GAINING -> Triple(Icons.Default.TrendingUp, Color(0xFFEF4444), R.string.trend_up)
+        else -> Triple(Icons.Default.TrendingFlat, Color(0xFFF59E0B), R.string.trend_stable)
     }
 
     val animatedWeight by animateFloatAsState(
@@ -71,7 +73,7 @@ fun WeightPredictionCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Weight Forecast",
+                        text = stringResource(R.string.weight_forecast_title),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -93,7 +95,7 @@ fun WeightPredictionCard(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = label,
+                                text = stringResource(labelRes),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = color
@@ -111,12 +113,12 @@ fun WeightPredictionCard(
                 ) {
                     Column {
                         Text(
-                            text = "In 30 Days",
+                            text = stringResource(R.string.in_30_days),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${String.format("%.1f", animatedWeight)} kg",
+                            text = stringResource(R.string.unit_kg_format, animatedWeight),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -126,7 +128,7 @@ fun WeightPredictionCard(
                     if (projectedDate != null) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "Reach Goal By",
+                                text = stringResource(R.string.reach_goal_by),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -140,14 +142,14 @@ fun WeightPredictionCard(
                     } else if (trend != WeightPredictionEngine.Trend.STABLE) {
                          Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "Weekly Rate",
+                                text = stringResource(R.string.weekly_rate_label),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                              // We don't have weekly rate passed explicitly here, but we can infer or pass it. 
                              // For now let's show "Keep pushing!"
                              Text(
-                                text = "Keep pushing!",
+                                text = stringResource(R.string.keep_pushing),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary

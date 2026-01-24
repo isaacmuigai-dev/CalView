@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">Historia ya Uzito</string>
     <string name="no_weight_entries">Hakuna maingizo ya uzito bado</string>
     <string name="weight_changes_appear_here">Mabadiliko yako ya uzito yataonekana hapa</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Kipima muda cha kufunga</string>
+    <string name="stat_completed">Imekamilika</string>
+    <string name="stat_current_streak">Mfululizo wa sasa</string>
+    <string name="elapsed_label">imepita</string>
+    <string name="left_suffix">imebaki</string>
+    <string name="select_fast_window">Chagua muda wa kufunga</string>
+    <string name="fast_hour_suffix">%1$dh kufunga</string>
+    <string name="complete_action">Imekamilika!</string>
+    <string name="end_fast_action">Maliza kufunga</string>
+    <string name="start_fast_action">Anza kufunga</string>
+    <string name="recent_fasts_title">Saumu za hivi karibuni</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">Ghairi kufunga</string>
+    <string name="complete_fast_desc">Kamilisha kufunga</string>
+    <string name="stop_fast_desc">Simamisha kufunga</string>
+    <string name="start_fast_desc">Anza kufunga</string>
 </resources>

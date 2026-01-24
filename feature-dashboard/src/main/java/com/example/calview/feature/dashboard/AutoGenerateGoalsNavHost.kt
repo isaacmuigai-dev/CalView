@@ -111,7 +111,7 @@ fun AutoGenerateGoalsNavHost(
     initialHeightCm: Int = 170,
     initialWeightKg: Float = 70f,
     onBack: () -> Unit,
-    onComplete: (NutritionGoals) -> Unit
+    onComplete: (NutritionGoals, GoalGenerationData) -> Unit
 ) {
     AutoGenerateGoalsScreen(
         initialGender = initialGender,
@@ -133,7 +133,7 @@ fun AutoGenerateGoalsScreen(
     initialHeightCm: Int = 170,
     initialWeightKg: Float = 70f,
     onBack: () -> Unit,
-    onComplete: (NutritionGoals) -> Unit
+    onComplete: (NutritionGoals, GoalGenerationData) -> Unit
 ) {
     val scrollState = rememberScrollState()
     
@@ -464,7 +464,7 @@ fun AutoGenerateGoalsScreen(
                     age = initialAge
                 )
                 val goals = calculateNutritionGoals(data)
-                onComplete(goals)
+                onComplete(goals, data)
             },
             enabled = isComplete,
             modifier = Modifier

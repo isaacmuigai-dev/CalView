@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">वजन का इतिहास</string>
     <string name="no_weight_entries">अभी तक कोई वजन प्रविष्टि नहीं</string>
     <string name="weight_changes_appear_here">आपके वजन परिवर्तन यहां दिखाई देंगे</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">उपवास टाइमر</string>
+    <string name="stat_completed">पूरा हुआ</string>
+    <string name="stat_current_streak">वर्तमान सिलसिला</string>
+    <string name="elapsed_label">बीत गया</string>
+    <string name="left_suffix">बचा है</string>
+    <string name="select_fast_window">उपवास विंडो चुनें</string>
+    <string name="fast_hour_suffix">%1$dh उपवास</string>
+    <string name="complete_action">पूरा!</string>
+    <string name="end_fast_action">उपवास समाप्त करें</string>
+    <string name="start_fast_action">उपवास शुरू करें</string>
+    <string name="recent_fasts_title">हाल के उपवास</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">उपवास रद्द करें</string>
+    <string name="complete_fast_desc">उपवास पूरा करें</string>
+    <string name="stop_fast_desc">उपवास रोकें</string>
+    <string name="start_fast_desc">उपवास शुरू करें</string>
 </resources>

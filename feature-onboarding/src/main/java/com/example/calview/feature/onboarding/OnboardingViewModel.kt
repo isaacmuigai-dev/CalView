@@ -177,6 +177,12 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    fun setHasSeenFeatureIntro(seen: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setHasSeenFeatureIntro(seen)
+        }
+    }
+
     /**
      * Recalculate nutrition recommendations based on current user profile.
      * Uses AI when available, falls back to BMR calculation.

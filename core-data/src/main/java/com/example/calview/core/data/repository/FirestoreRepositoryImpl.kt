@@ -133,6 +133,115 @@ class FirestoreRepositoryImpl @Inject constructor(
             throw e
         }
     }
+
+    override suspend fun saveFastingSession(userId: String, session: com.example.calview.core.data.local.FastingSessionEntity) {
+        try {
+            Log.d(TAG, "Saving fasting session to Firestore: ${session.fastingType}, ID: ${session.firestoreId}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("fasting_sessions")
+                .document(session.firestoreId)
+                .set(session)
+                .await()
+            Log.d(TAG, "Fasting session saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving fasting session to Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun getFastingSessions(userId: String): List<com.example.calview.core.data.local.FastingSessionEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("fasting_sessions")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.FastingSessionEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting fasting sessions from Firestore", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun deleteFastingSession(userId: String, firestoreId: String) {
+        try {
+            Log.d(TAG, "Deleting fasting session from Firestore: $firestoreId")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("fasting_sessions")
+                .document(firestoreId)
+                .delete()
+                .await()
+            Log.d(TAG, "Fasting session deleted successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting fasting session from Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun saveStreakFreeze(userId: String, freeze: com.example.calview.core.data.local.StreakFreezeEntity) {
+        try {
+            Log.d(TAG, "Saving streak freeze to Firestore: ${freeze.month}, ID: ${freeze.month}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("streak_freezes")
+                .document(freeze.month)
+                .set(freeze)
+                .await()
+            Log.d(TAG, "Streak freeze saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving streak freeze to Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun getStreakFreezes(userId: String): List<com.example.calview.core.data.local.StreakFreezeEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("streak_freezes")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.StreakFreezeEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting streak freezes from Firestore", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun saveWeightEntry(userId: String, entry: com.example.calview.core.data.local.WeightHistoryEntity) {
+        try {
+            Log.d(TAG, "Saving weight entry to Firestore: ${entry.weight}, ID: ${entry.firestoreId}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("weight_history")
+                .document(entry.firestoreId)
+                .set(entry)
+                .await()
+            Log.d(TAG, "Weight entry saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving weight entry to Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun getWeightHistory(userId: String): List<com.example.calview.core.data.local.WeightHistoryEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("weight_history")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.WeightHistoryEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting weight history from Firestore", e)
+            emptyList()
+        }
+    }
     
     // ==================== FEATURE REQUEST IMPLEMENTATIONS ====================
     
@@ -331,7 +440,63 @@ class FirestoreRepositoryImpl @Inject constructor(
             }
             Log.d(TAG, "Deleted ${dailyLogsSnapshot.size()} daily logs")
             
-            // 3. Delete the user document itself
+            // 3. Delete all fasting sessions in the fasting_sessions subcollection
+            val fastingCollection = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("fasting_sessions")
+            
+            val fastingSnapshot = fastingCollection.get().await()
+            for (fastDoc in fastingSnapshot.documents) {
+                fastDoc.reference.delete().await()
+                Log.d(TAG, "Deleted fasting session: ${fastDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${fastingSnapshot.size()} fasting sessions")
+            
+            // 4. Delete all streak freezes in the streak_freezes subcollection
+            val streakFreezesCollection = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("streak_freezes")
+            
+            val streakFreezesSnapshot = streakFreezesCollection.get().await()
+            for (freezeDoc in streakFreezesSnapshot.documents) {
+                freezeDoc.reference.delete().await()
+                Log.d(TAG, "Deleted streak freeze: ${freezeDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${streakFreezesSnapshot.size()} streak freezes")
+            
+            // 5. Delete all weight entries in the weight_history subcollection
+            val weightHistoryCollection = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("weight_history")
+            
+            val weightHistorySnapshot = weightHistoryCollection.get().await()
+            for (weightDoc in weightHistorySnapshot.documents) {
+                weightDoc.reference.delete().await()
+                Log.d(TAG, "Deleted weight entry: ${weightDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${weightHistorySnapshot.size()} weight entries")
+
+            // 6. Delete challenge participation
+            val participationQuery = firestore.collection("challenge_participants")
+                .whereEqualTo("odsmUserId", userId)
+            val participationSnapshot = participationQuery.get().await()
+            for (pDoc in participationSnapshot.documents) {
+                pDoc.reference.delete().await()
+                Log.d(TAG, "Deleted challenge participation: ${pDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${participationSnapshot.size()} challenge participations")
+
+            // 7. Delete social challenges created by user
+            val challengesQuery = firestore.collection("social_challenges")
+                .whereEqualTo("creatorId", userId)
+            val challengesSnapshot = challengesQuery.get().await()
+            for (cDoc in challengesSnapshot.documents) {
+                cDoc.reference.delete().await()
+                Log.d(TAG, "Deleted social challenge: ${cDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${challengesSnapshot.size()} social challenges")
+            
+            // 8. Delete the user document itself
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .delete()

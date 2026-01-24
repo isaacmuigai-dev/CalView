@@ -2,19 +2,15 @@ package com.example.calview.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calview.core.data.repository.AuthRepository
-import com.example.calview.core.data.repository.UserPreferencesRepository
-import com.example.calview.core.data.repository.UserPreferencesRepositoryImpl
-import com.example.calview.core.data.repository.WaterReminderRepository
-
+import com.example.calview.core.data.repository.*
 import com.example.calview.core.data.local.WaterReminderSettingsEntity
 import com.example.calview.core.data.local.StreakFreezeEntity
-import com.example.calview.core.data.repository.StreakFreezeRepository
 import java.time.LocalDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
 
 data class SettingsUiState(
     val userName: String = "",
@@ -39,16 +35,27 @@ data class SettingsUiState(
     // Streak Freeze
     val remainingFreezes: Int = 2,
     val maxFreezes: Int = 2,
-    val yesterdayMissed: Boolean = false
+    val yesterdayMissed: Boolean = false,
+    
+    // Account Deletion State
+    val isDeletingAccount: Boolean = false,
+    val deletionProgressMessage: String = "",
+    val isDeletionComplete: Boolean = false
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: AuthRepository,
-
     private val waterReminderRepository: WaterReminderRepository,
-    private val streakFreezeRepository: StreakFreezeRepository
+    private val streakFreezeRepository: StreakFreezeRepository,
+    private val mealRepository: MealRepository,
+    private val dailyLogRepository: DailyLogRepository,
+    private val firestoreRepository: FirestoreRepository,
+    private val fastingRepository: FastingRepository,
+    private val weightHistoryRepository: WeightHistoryRepository,
+    private val socialChallengeRepository: SocialChallengeRepository,
+    private val gamificationRepository: GamificationRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -194,6 +201,87 @@ class SettingsViewModel @Inject constructor(
     fun setWaterReminderDailyGoal(ml: Int) {
         viewModelScope.launch {
             waterReminderRepository.setDailyGoal(ml)
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeletingAccount = true, deletionProgressMessage = "Preparing to delete account...") }
+            kotlinx.coroutines.delay(800)
+            
+            val userId = authRepository.getUserId()
+            if (userId.isEmpty()) {
+                _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Error: User ID not found.") }
+                return@launch
+            }
+
+            // 1. Delete Firestore Data
+            _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data...") }
+            try {
+                firestoreRepository.deleteUserData(userId)
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to delete Firestore data", e)
+                // Continue with local cleanup
+            }
+            kotlinx.coroutines.delay(1000)
+
+            // 2. Clear Local Data
+            _uiState.update { it.copy(deletionProgressMessage = "Clearing local data and cache...") }
+            try {
+                mealRepository.clearAllMeals()
+                dailyLogRepository.clearAllLogs()
+                fastingRepository.deleteAllSessions()
+                streakFreezeRepository.clearAllData()
+                weightHistoryRepository.deleteAll()
+                waterReminderRepository.clearAllData()
+                socialChallengeRepository.clearAllData()
+                gamificationRepository.clearAllData()
+                userPreferencesRepository.clearAllData()
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to clear some local data", e)
+            }
+            kotlinx.coroutines.delay(1000)
+
+            // 3. Delete Firebase Auth Account
+            _uiState.update { it.copy(deletionProgressMessage = "Finalizing account deletion...") }
+            kotlinx.coroutines.delay(800)
+            val result = authRepository.deleteAccount()
+            
+            if (result.isSuccess) {
+                _uiState.update { it.copy(deletionProgressMessage = "Account deleted successfully. Redirecting...") }
+                kotlinx.coroutines.delay(2000)
+                _uiState.update { it.copy(isDeletionComplete = true) }
+            } else {
+                val exception = result.exceptionOrNull()
+                _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Failed to delete account: ${exception?.message}") }
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            // Sync preferences one last time
+            userPreferencesRepository.syncToCloud()
+            
+            // Clear all local data for privacy
+            try {
+                mealRepository.clearAllMeals()
+                dailyLogRepository.clearAllLogs()
+                fastingRepository.deleteAllSessions()
+                streakFreezeRepository.clearAllData()
+                weightHistoryRepository.deleteAll()
+                waterReminderRepository.clearAllData()
+                socialChallengeRepository.clearAllData()
+                gamificationRepository.clearAllData()
+                userPreferencesRepository.clearAllData()
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to clear local data during logout", e)
+            }
+            
+            authRepository.signOut()
+            _uiState.update { it.copy(deletionProgressMessage = "Logging out...", isDeletingAccount = true) }
+            kotlinx.coroutines.delay(1000)
+            _uiState.update { it.copy(isDeletionComplete = true) } // Use this flag to trigger navigation
         }
     }
 }

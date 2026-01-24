@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">Histórico de peso</string>
     <string name="no_weight_entries">Nenhum registro de peso ainda</string>
     <string name="weight_changes_appear_here">Suas mudanças de peso aparecerão aqui</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Temporizador de jejum</string>
+    <string name="stat_completed">Concluído</string>
+    <string name="stat_current_streak">Sequência atual</string>
+    <string name="elapsed_label">decorrido</string>
+    <string name="left_suffix">restante</string>
+    <string name="select_fast_window">Selecionar janela de jejum</string>
+    <string name="fast_hour_suffix">%1$dh de jejum</string>
+    <string name="complete_action">Concluído!</string>
+    <string name="end_fast_action">Encerrar jejum</string>
+    <string name="start_fast_action">Iniciar jejum</string>
+    <string name="recent_fasts_title">Jejuns recentes</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">Cancelar jejum</string>
+    <string name="complete_fast_desc">Completar jejum</string>
+    <string name="stop_fast_desc">Parar jejum</string>
+    <string name="start_fast_desc">Iniciar jejum</string>
 </resources>

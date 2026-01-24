@@ -88,4 +88,21 @@
     <string name="day_completed_desc">День завершен</string>
     <string name="current_streak_desc">Текущая серия</string>
     <string name="best_streak_desc">Лучшая серия</string>
+
+    <!-- Streak Freeze Card -->
+    <string name="streak_freeze_title">Заморозка серии</string>
+    <string name="available_freezes_format">%1$d/%2$d Доступно</string>
+    <string name="missed_day_msg">Вы пропустили день! Используйте заморозку, чтобы сохранить серию из %1$d дн.</string>
+    <string name="use_freeze_action">Использ. заморозку</string>
+    <string name="streak_safe_msg">Ваша серия в безопасности. Заморозки автоматически защищают ваш прогресс.</string>
+
+    <!-- Weight Prediction Card -->
+    <string name="weight_forecast_title">Прогноз веса</string>
+    <string name="trend_down">Идет на убыль</string>
+    <string name="trend_up">Идет на подъем</string>
+    <string name="trend_stable">Стабильно</string>
+    <string name="in_30_days">Через 30 дней</string>
+    <string name="reach_goal_by">Достижение цели к</string>
+    <string name="weekly_rate_label">Еженедельный темп</string>
+    <string name="keep_pushing">Так держать!</string>
 </resources>

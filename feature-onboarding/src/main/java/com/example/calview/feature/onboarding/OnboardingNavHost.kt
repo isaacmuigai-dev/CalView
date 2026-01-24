@@ -61,8 +61,8 @@ fun OnboardingNavHost(
     // Calculate current weight in kg
     val currentWeightKg = weightKg.toFloat()
     
-    // Total steps: 9 screens (removed AddCaloriesBurnedScreen)
-    val totalSteps = 9
+    // Total steps: 10 screens
+    val totalSteps = 10
 
     NavHost(
         navController = navController,
@@ -229,14 +229,22 @@ fun OnboardingNavHost(
                 recommendedProtein = uiState.recommendedProtein,
                 recommendedFats = uiState.recommendedFats,
                 onBack = { navController.popBackStack() },
+                onContinue = { navController.navigate("features_explain") }
+            )
+        }
+        
+        // ============ STEP 8: FEATURES EXPLAIN ============
+        composable("features_explain") {
+            FeaturesExplainScreen(
+                viewModel = viewModel,
                 onContinue = { navController.navigate("referral_code") }
             )
         }
         
-        // ============ STEP 8: REFERRAL CODE (Optional) ============
+        // ============ STEP 9: REFERRAL CODE (Optional) ============
         composable("referral_code") {
             ReferralCodeScreen(
-                currentStep = 8,
+                currentStep = 9,
                 totalSteps = totalSteps,
                 onBack = { navController.popBackStack() },
                 onContinue = { code ->
@@ -248,10 +256,10 @@ fun OnboardingNavHost(
             )
         }
         
-        // ============ STEP 9: CREATE ACCOUNT ============
+        // ============ STEP 10: CREATE ACCOUNT ============
         composable("create_account") {
             CreateAccountScreen(
-                currentStep = 9,
+                currentStep = 10,
                 totalSteps = totalSteps,
                 onBack = { navController.popBackStack() },
                 onGoogleSignIn = {

@@ -8,6 +8,8 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.MealRepositoryImpl
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.repository.UserPreferencesRepositoryImpl
+import com.example.calview.core.data.repository.WeightHistoryRepository
+import com.example.calview.core.data.repository.WeightHistoryRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindFastingRepository(
         fastingRepositoryImpl: FastingRepositoryImpl
     ): FastingRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWeightHistoryRepository(
+        weightHistoryRepositoryImpl: WeightHistoryRepositoryImpl
+    ): WeightHistoryRepository
 }

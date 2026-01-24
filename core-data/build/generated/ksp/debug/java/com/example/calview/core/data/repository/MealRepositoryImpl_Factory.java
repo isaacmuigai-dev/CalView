@@ -35,34 +35,45 @@ public final class MealRepositoryImpl_Factory implements Factory<MealRepositoryI
 
   private final Provider<SocialChallengeRepository> socialChallengeRepositoryProvider;
 
+  private final Provider<StreakFreezeRepository> streakFreezeRepositoryProvider;
+
+  private final Provider<DailyLogRepository> dailyLogRepositoryProvider;
+
   public MealRepositoryImpl_Factory(Provider<MealDao> mealDaoProvider,
       Provider<FirestoreRepository> firestoreRepositoryProvider,
       Provider<AuthRepository> authRepositoryProvider,
       Provider<StorageRepository> storageRepositoryProvider,
-      Provider<SocialChallengeRepository> socialChallengeRepositoryProvider) {
+      Provider<SocialChallengeRepository> socialChallengeRepositoryProvider,
+      Provider<StreakFreezeRepository> streakFreezeRepositoryProvider,
+      Provider<DailyLogRepository> dailyLogRepositoryProvider) {
     this.mealDaoProvider = mealDaoProvider;
     this.firestoreRepositoryProvider = firestoreRepositoryProvider;
     this.authRepositoryProvider = authRepositoryProvider;
     this.storageRepositoryProvider = storageRepositoryProvider;
     this.socialChallengeRepositoryProvider = socialChallengeRepositoryProvider;
+    this.streakFreezeRepositoryProvider = streakFreezeRepositoryProvider;
+    this.dailyLogRepositoryProvider = dailyLogRepositoryProvider;
   }
 
   @Override
   public MealRepositoryImpl get() {
-    return newInstance(mealDaoProvider.get(), firestoreRepositoryProvider.get(), authRepositoryProvider.get(), storageRepositoryProvider.get(), socialChallengeRepositoryProvider.get());
+    return newInstance(mealDaoProvider.get(), firestoreRepositoryProvider.get(), authRepositoryProvider.get(), storageRepositoryProvider.get(), socialChallengeRepositoryProvider.get(), streakFreezeRepositoryProvider.get(), dailyLogRepositoryProvider.get());
   }
 
   public static MealRepositoryImpl_Factory create(Provider<MealDao> mealDaoProvider,
       Provider<FirestoreRepository> firestoreRepositoryProvider,
       Provider<AuthRepository> authRepositoryProvider,
       Provider<StorageRepository> storageRepositoryProvider,
-      Provider<SocialChallengeRepository> socialChallengeRepositoryProvider) {
-    return new MealRepositoryImpl_Factory(mealDaoProvider, firestoreRepositoryProvider, authRepositoryProvider, storageRepositoryProvider, socialChallengeRepositoryProvider);
+      Provider<SocialChallengeRepository> socialChallengeRepositoryProvider,
+      Provider<StreakFreezeRepository> streakFreezeRepositoryProvider,
+      Provider<DailyLogRepository> dailyLogRepositoryProvider) {
+    return new MealRepositoryImpl_Factory(mealDaoProvider, firestoreRepositoryProvider, authRepositoryProvider, storageRepositoryProvider, socialChallengeRepositoryProvider, streakFreezeRepositoryProvider, dailyLogRepositoryProvider);
   }
 
   public static MealRepositoryImpl newInstance(MealDao mealDao,
       FirestoreRepository firestoreRepository, AuthRepository authRepository,
-      StorageRepository storageRepository, SocialChallengeRepository socialChallengeRepository) {
-    return new MealRepositoryImpl(mealDao, firestoreRepository, authRepository, storageRepository, socialChallengeRepository);
+      StorageRepository storageRepository, SocialChallengeRepository socialChallengeRepository,
+      StreakFreezeRepository streakFreezeRepository, DailyLogRepository dailyLogRepository) {
+    return new MealRepositoryImpl(mealDao, firestoreRepository, authRepository, storageRepository, socialChallengeRepository, streakFreezeRepository, dailyLogRepository);
   }
 }

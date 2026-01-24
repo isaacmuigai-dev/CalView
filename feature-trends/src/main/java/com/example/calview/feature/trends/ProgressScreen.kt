@@ -159,6 +159,19 @@ fun ProgressContent(
             onUseFreeze = onUseStreakFreeze
         )
         
+        // 1.7. Goal Journey Card
+        if (uiState.showGoalJourney) {
+            GoalJourneyCard(
+                goal = uiState.userGoal,
+                currentWeight = uiState.currentWeight,
+                targetWeight = uiState.goalWeight,
+                weeklyPace = uiState.weeklyPace,
+                weeksToGoal = uiState.weeksToGoal,
+                weightDiff = uiState.weightDiff,
+                estimatedGoalDate = uiState.estimatedGoalDate
+            )
+        }
+        
         
         // 2. Weight Goal Card
         WeightProgressCard(
@@ -369,7 +382,7 @@ fun CompactBMICard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = String.format("%.1f kg", weight),
+                                text = stringResource(R.string.unit_kg_format, weight),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1679,13 +1692,13 @@ fun StreakFreezeCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Streak Freeze",
+                    text = stringResource(R.string.streak_freeze_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "$remainingFreezes/$maxFreezes Available",
+                    text = stringResource(R.string.available_freezes_format, remainingFreezes, maxFreezes),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -1695,16 +1708,16 @@ fun StreakFreezeCard(
             
             if (yesterdayMissed && canUseFreeze) {
                Text(
-                   text = "You missed a day! Use a freeze to keep your $currentStreak day streak.",
+                   text = stringResource(R.string.missed_day_msg, currentStreak),
                    style = MaterialTheme.typography.bodyMedium
                )
                Spacer(modifier = Modifier.height(8.dp))
                Button(onClick = onUseFreeze, modifier = Modifier.fillMaxWidth()) {
-                   Text("Use Streak Freeze")
+                   Text(stringResource(R.string.use_freeze_action))
                }
             } else {
                 Text(
-                    text = "Your streak is safe. Freezes automatically protect your progress.",
+                    text = stringResource(R.string.streak_safe_msg),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

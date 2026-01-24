@@ -207,4 +207,23 @@
     <string name="weight_history_title_screen">Cronologia peso</string>
     <string name="no_weight_entries">Ancora nessuna voce di peso</string>
     <string name="weight_changes_appear_here">I tuoi cambiamenti di peso appariranno qui</string>
+
+    <!-- Fasting Screen -->
+    <string name="fasting_timer_title">Timer Digiuno</string>
+    <string name="stat_completed">Completato</string>
+    <string name="stat_current_streak">Streak attuale</string>
+    <string name="elapsed_label">trascorso</string>
+    <string name="left_suffix">rimanente</string>
+    <string name="select_fast_window">Seleziona finestra digiuno</string>
+    <string name="fast_hour_suffix">%1$dh di digiuno</string>
+    <string name="complete_action">Completato!</string>
+    <string name="end_fast_action">Termina digiuno</string>
+    <string name="start_fast_action">Inizia digiuno</string>
+    <string name="recent_fasts_title">Digiuni recenti</string>
+    <string name="time_hours_mins">%1$dh %2$dm</string>
+    <string name="time_mins">%1$dm</string>
+    <string name="cancel_fast_desc">Annulla digiuno</string>
+    <string name="complete_fast_desc">Completa digiuno</string>
+    <string name="stop_fast_desc">Ferma digiuno</string>
+    <string name="start_fast_desc">Inizia digiuno</string>
 </resources>

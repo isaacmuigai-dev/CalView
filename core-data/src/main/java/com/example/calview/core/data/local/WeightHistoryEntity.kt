@@ -10,6 +10,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "weight_history")
 data class WeightHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val firestoreId: String = java.util.UUID.randomUUID().toString(),
     val weight: Float,           // Weight in kg
     val timestamp: Long = System.currentTimeMillis(),  // When this weight was recorded
     val note: String? = null     // Optional note (e.g., "Morning weight", "After workout")

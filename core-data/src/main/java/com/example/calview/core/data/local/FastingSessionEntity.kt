@@ -9,6 +9,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "fasting_sessions")
 data class FastingSessionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val firestoreId: String = java.util.UUID.randomUUID().toString(),
     val startTime: Long,                    // Epoch millis when fast started
     val endTime: Long? = null,              // Epoch millis when fast ended (null if ongoing)
     val targetDurationMinutes: Int,         // Target fast duration in minutes
