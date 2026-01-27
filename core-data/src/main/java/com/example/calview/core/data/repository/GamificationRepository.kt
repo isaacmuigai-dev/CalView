@@ -12,11 +12,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import java.util.Calendar
 import java.util.UUID
+import com.example.calview.core.data.notification.NotificationHandler
 
-@Singleton
 class GamificationRepository @Inject constructor(
     private val gamificationDao: GamificationDao,
-    private val mealDao: MealDao
+    private val mealDao: MealDao,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val notificationHandler: NotificationHandler
 ) {
     val activeChallenges: Flow<List<ChallengeEntity>> = gamificationDao.getActiveChallenges()
     val completedChallenges: Flow<List<ChallengeEntity>> = gamificationDao.getCompletedChallenges()
@@ -30,7 +32,15 @@ class GamificationRepository @Inject constructor(
         val currentChallenges = activeChallenges.first()
         if (currentChallenges.isEmpty()) {
             // Create default weekly challenges
-            val now = System.currentTimeMillis()
+            val calendar = Calendar.getInstance()
+            // Set to beginning of current week (Monday 00:00:00)
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            
+            val weekStart = calendar.timeInMillis
             val oneWeekMs = 7 * 24 * 60 * 60 * 1000L
             
             val challenges = listOf(
@@ -41,8 +51,8 @@ class GamificationRepository @Inject constructor(
                     type = ChallengeType.LOG_MEALS,
                     targetValue = 15, // 3 meals * 5 days = 15 meals (simplified logic)
                     currentProgress = 0,
-                    startDate = now,
-                    endDate = now + oneWeekMs,
+                    startDate = weekStart,
+                    endDate = weekStart + oneWeekMs,
                     badgeRewardId = "consistency_badge"
                 ),
                 ChallengeEntity(
@@ -52,8 +62,8 @@ class GamificationRepository @Inject constructor(
                     type = ChallengeType.HIT_PROTEIN,
                     targetValue = 3,
                     currentProgress = 0,
-                    startDate = now,
-                    endDate = now + oneWeekMs,
+                    startDate = weekStart,
+                    endDate = weekStart + oneWeekMs,
                     badgeRewardId = "protein_badge"
                 ),
                 ChallengeEntity(
@@ -63,8 +73,8 @@ class GamificationRepository @Inject constructor(
                     type = ChallengeType.EARLY_BIRD,
                     targetValue = 5,
                     currentProgress = 0,
-                    startDate = now,
-                    endDate = now + oneWeekMs,
+                    startDate = weekStart,
+                    endDate = weekStart + oneWeekMs,
                     badgeRewardId = "early_bird_badge"
                 )
             )
@@ -95,6 +105,7 @@ class GamificationRepository @Inject constructor(
                     
                     if (updatedChallenge.isCompleted && !challenge.isCompleted) {
                          awardBadge(challenge.badgeRewardId)
+                         grantXp(500) // Large XP for challenge completion
                     }
                 }
             } else if (challenge.type == ChallengeType.HIT_PROTEIN) {
@@ -119,6 +130,7 @@ class GamificationRepository @Inject constructor(
                     gamificationDao.updateChallenge(updatedChallenge)
                     if (updatedChallenge.isCompleted && !challenge.isCompleted) {
                          awardBadge(challenge.badgeRewardId)
+                         grantXp(500)
                     }
                  }
             } else if (challenge.type == ChallengeType.EARLY_BIRD) {
@@ -144,6 +156,7 @@ class GamificationRepository @Inject constructor(
                     gamificationDao.updateChallenge(updatedChallenge)
                     if (updatedChallenge.isCompleted && !challenge.isCompleted) {
                          awardBadge(challenge.badgeRewardId)
+                         grantXp(500)
                     }
                  }
             }
@@ -180,10 +193,65 @@ class GamificationRepository @Inject constructor(
                 dateUnlocked = System.currentTimeMillis(),
                 tier = BadgeTier.BRONZE
             )
+            "water_warrior" -> BadgeEntity(
+                id = UUID.randomUUID().toString(),
+                name = "Water Warrior",
+                description = "Hit your water goal for 3 days straight",
+                iconResName = "ic_badge_water",
+                dateUnlocked = System.currentTimeMillis(),
+                tier = BadgeTier.SILVER
+            )
+            "macro_master" -> BadgeEntity(
+                id = UUID.randomUUID().toString(),
+                name = "Macro Master",
+                description = "Perfectly hit all your macro goals today",
+                iconResName = "ic_badge_macros",
+                dateUnlocked = System.currentTimeMillis(),
+                tier = BadgeTier.GOLD
+            )
             else -> null
         }
         
-        badge?.let { gamificationDao.insertBadge(it) }
+        badge?.let { 
+            gamificationDao.insertBadge(it)
+            notificationHandler.showNotification(
+                id = NotificationHandler.ID_BADGE_UNLOCKED,
+                channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                title = "✨ New Badge Unlocked!",
+                message = "Congratulations! You've earned the '${it.name}' badge: ${it.description}",
+                navigateTo = "gamification"
+            )
+            grantXp(200) // Bonus for badges
+        }
+    }
+
+    /**
+     * Helper to grant XP and handle leveling.
+     */
+    suspend fun grantXp(amount: Int) {
+        val currentXp = userPreferencesRepository.userXp.first()
+        val currentLevel = userPreferencesRepository.userLevel.first()
+        
+        val newXpTotal = currentXp + amount
+        
+        // Simple level logic: Level * 1000 = XP required for next level
+        val xpRequiredForNext = currentLevel * 1000
+        
+        if (newXpTotal >= xpRequiredForNext) {
+            val newLevel = currentLevel + 1
+            userPreferencesRepository.setUserLevel(newLevel)
+            userPreferencesRepository.setUserXp(newXpTotal - xpRequiredForNext)
+            
+            notificationHandler.showNotification(
+                id = NotificationHandler.ID_BADGE_UNLOCKED, // Reuse for feedback
+                channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                title = "⏫ Level Up!",
+                message = "You've reached Level $newLevel! Your progress is inspiring.",
+                navigateTo = "achievements"
+            )
+        } else {
+            userPreferencesRepository.setUserXp(newXpTotal)
+        }
     }
 
     suspend fun clearAllData() {

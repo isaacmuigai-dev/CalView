@@ -213,6 +213,14 @@ class SocialChallengeRepository @Inject constructor(
         val userId = auth.currentUser?.uid ?: return kotlinx.coroutines.flow.flowOf(emptyList())
         return socialChallengeDao.observeUserChallenges(userId)
     }
+
+    /**
+     * Get all active user challenges synchronously (including expired but not yet settled)
+     */
+    suspend fun getAllActiveUserChallengesSync(): List<SocialChallengeEntity> {
+        val userId = auth.currentUser?.uid ?: return emptyList()
+        return socialChallengeDao.getAllActiveUserChallengesSync(userId)
+    }
     
     /**
      * Observe participants in a challenge (real-time from Firestore)

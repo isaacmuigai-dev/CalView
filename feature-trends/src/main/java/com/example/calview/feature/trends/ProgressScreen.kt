@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
@@ -49,9 +51,12 @@ import kotlin.math.cos
 
 import kotlin.math.cos
 import kotlin.math.sin
-import com.example.calview.feature.trends.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.geometry.Rect
+import com.example.calview.core.ui.walkthrough.WalkthroughOverlay
+import com.example.calview.core.ui.walkthrough.WalkthroughStep
+import com.example.calview.core.ui.walkthrough.onPositionedRect
 
 // Modern color palette
 private val GradientCyan = Color(0xFF00D4AA)
@@ -78,7 +83,8 @@ fun ProgressScreen(
     ProgressContent(
         uiState = uiState,
         onRefresh = { viewModel.refreshData() },
-        onUseStreakFreeze = { viewModel.useStreakFreeze() }
+        onUseStreakFreeze = { viewModel.useStreakFreeze() },
+        onDismissWalkthrough = { viewModel.setHasSeenWalkthrough(true) }
     )
 }
 
@@ -86,7 +92,8 @@ fun ProgressScreen(
 fun ProgressContent(
     uiState: ProgressUiState,
     onRefresh: () -> Unit = {},
-    onUseStreakFreeze: () -> Unit = {}
+    onUseStreakFreeze: () -> Unit = {},
+    onDismissWalkthrough: () -> Unit = {}
 ) {
     var animationTriggered by remember { mutableStateOf(false) }
     
@@ -95,11 +102,88 @@ fun ProgressContent(
         animationTriggered = true
     }
     
+    // Walkthrough state
+    var streakRect by remember { mutableStateOf<Rect?>(null) }
+    var goalRect by remember { mutableStateOf<Rect?>(null) }
+    var chartRect by remember { mutableStateOf<Rect?>(null) }
+    var macroRect by remember { mutableStateOf<Rect?>(null) }
+    var bmiRect by remember { mutableStateOf<Rect?>(null) }
+    
+    var currentStepIndex by remember(uiState.hasSeenWalkthrough) { 
+        mutableIntStateOf(if (!uiState.hasSeenWalkthrough) 0 else -1) 
+    }
+    
+    val walkthroughSteps = listOf(
+        WalkthroughStep(
+            id = "streak",
+            title = "Consistency is Key",
+            description = "Track your daily consistency with the streak counter. Keep the momentum going!",
+            targetRect = streakRect
+        ),
+        WalkthroughStep(
+            id = "goal",
+            title = "Your Weight Journey",
+            description = "Monitor your weight progress and see your estimated goal reach date.",
+            targetRect = goalRect
+        ),
+        WalkthroughStep(
+            id = "nutrition",
+            title = "Weekly Trends",
+            description = "Visualize your calorie intake patterns over the past week to stay on track.",
+            targetRect = chartRect
+        ),
+        WalkthroughStep(
+            id = "macro",
+            title = "Macro Balance",
+            description = "Check your protein, carbs, and fats distribution to ensure a balanced diet.",
+            targetRect = macroRect
+        ),
+        WalkthroughStep(
+            id = "bmi",
+            title = "Health Indicator",
+            description = "Keep an eye on your BMI and health category based on your weight and height.",
+            targetRect = bmiRect
+        )
+    )
+    
+    // Captured top position of the scrollable container
+    var containerTop by remember { mutableStateOf(0f) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+
     // Get adaptive layout values based on screen size
     val windowSizeClass = LocalWindowSizeClass.current
     val horizontalPadding = AdaptiveLayoutUtils.getHorizontalPadding(windowSizeClass.widthSizeClass)
     val maxContentWidth = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass)
     
+    val scrollState = rememberScrollState()
+    
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp.value
+
+    // Auto-scroll logic for walkthrough
+    LaunchedEffect(currentStepIndex) {
+        if (currentStepIndex >= 0 && currentStepIndex < walkthroughSteps.size) {
+            val step = walkthroughSteps[currentStepIndex]
+            
+            // Wait for layout and rects
+            delay(200) 
+            
+            step.targetRect?.let { rect ->
+                // Calculate position relative to container and center it
+                // targetOffset = (absoluteItemTop - absoluteContainerTop) + currentScroll - (halfViewportHeight)
+                val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+                val itemTopInContainer = rect.top - containerTop + scrollState.value
+                val itemHeight = rect.height
+                val scrollTarget = itemTopInContainer - (viewportHeightPx / 2) + (itemHeight / 2)
+                
+                scrollState.animateScrollTo(
+                    scrollTarget.toInt().coerceIn(0, scrollState.maxValue),
+                    animationSpec = tween(700, easing = FastOutSlowInEasing)
+                )
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,7 +195,8 @@ fun ProgressContent(
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .onGloballyPositioned { containerTop = it.positionInWindow().y }
+                .verticalScroll(scrollState)
                 .padding(horizontal = horizontalPadding, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -136,6 +221,14 @@ fun ProgressContent(
             }
         }
         
+        // 0. Mission Control (Combined Summary)
+        MissionControlCard(
+            level = uiState.userLevel,
+            xp = uiState.userXp,
+            xpRequired = uiState.xpRequired,
+            checklistItems = uiState.checklistItems
+        )
+        
         // 1. Daily Motivation - First
         MotivationalCard(
             progress = uiState.weightProgress,
@@ -144,6 +237,7 @@ fun ProgressContent(
         
         // 1.5. Weekly Streak Tracking Card
         DayStreakCard(
+            modifier = Modifier.onPositionedRect { streakRect = it },
             streak = uiState.dayStreak,
             completedDays = uiState.completedDays,
             animationTriggered = animationTriggered
@@ -162,6 +256,7 @@ fun ProgressContent(
         // 1.7. Goal Journey Card
         if (uiState.showGoalJourney) {
             GoalJourneyCard(
+                modifier = Modifier.onPositionedRect { goalRect = it },
                 goal = uiState.userGoal,
                 currentWeight = uiState.currentWeight,
                 targetWeight = uiState.goalWeight,
@@ -191,6 +286,7 @@ fun ProgressContent(
         
         // 3. Weekly Calories Chart
         WeeklyCaloriesChart(
+            modifier = Modifier.onPositionedRect { chartRect = it },
             weeklyData = uiState.weeklyCalories,
             calorieGoal = uiState.calorieGoal,
             animationTriggered = animationTriggered
@@ -198,6 +294,7 @@ fun ProgressContent(
         
         // 4. Today's Macros Donut
         MacroDonutCard(
+            modifier = Modifier.onPositionedRect { macroRect = it },
             protein = uiState.todayProtein,
             carbs = uiState.todayCarbs,
             fats = uiState.todayFats,
@@ -257,6 +354,7 @@ fun ProgressContent(
 
         // 6. BMI Card - Last with height/weight
         CompactBMICard(
+            modifier = Modifier.onPositionedRect { bmiRect = it },
             bmi = uiState.bmi,
             bmiCategory = stringResource(uiState.bmiCategory),
             height = uiState.height.toFloat(),
@@ -266,12 +364,31 @@ fun ProgressContent(
         
         Spacer(modifier = Modifier.height(80.dp))
         } // Close Column
+
+        // Walkthrough Overlay
+        WalkthroughOverlay(
+            steps = walkthroughSteps,
+            currentStepIndex = currentStepIndex,
+            onNext = {
+                if (currentStepIndex < walkthroughSteps.size - 1) {
+                    currentStepIndex++
+                } else {
+                    currentStepIndex = -1
+                    onDismissWalkthrough()
+                }
+            },
+            onSkip = {
+                currentStepIndex = -1
+                onDismissWalkthrough()
+            }
+        )
     } // Close Box
 }
 
 // ============ COMPACT BMI CARD ============
 @Composable
 fun CompactBMICard(
+    modifier: Modifier = Modifier,
     bmi: Float,
     bmiCategory: String,
     height: Float = 0f,  // in cm
@@ -302,7 +419,7 @@ fun CompactBMICard(
     
     val bmiDescription = stringResource(R.string.bmi_content_desc, bmi, bmiCategory)
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .semantics { contentDescription = bmiDescription },
         shape = RoundedCornerShape(16.dp),
@@ -701,6 +818,7 @@ fun WeightProgressCard(
 // ============ MACRO DONUT CARD ============
 @Composable
 fun MacroDonutCard(
+    modifier: Modifier = Modifier,
     protein: Float,
     carbs: Float,
     fats: Float,
@@ -735,7 +853,7 @@ fun MacroDonutCard(
     val fatsColor = Color(0xFF3B82F6)
     
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
@@ -879,6 +997,7 @@ private fun MacroLegendRow(
 // ============ WEEKLY CALORIES CHART WITH GRID ============
 @Composable
 fun WeeklyCaloriesChart(
+    modifier: Modifier = Modifier,
     weeklyData: List<DailyCalories>,
     calorieGoal: Int,
     animationTriggered: Boolean
@@ -887,9 +1006,9 @@ fun WeeklyCaloriesChart(
     val rawMax = maxOf(weeklyData.maxOfOrNull { it.calories } ?: calorieGoal, calorieGoal)
     val maxCalories = ((rawMax / 500) + 1) * 500
     val gridLines = 4 // Number of horizontal grid lines
-    
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
@@ -1082,6 +1201,7 @@ fun WeeklyCaloriesChart(
 // ============ ENHANCED DAY STREAK CARD ============
 @Composable
 fun DayStreakCard(
+    modifier: Modifier = Modifier,
     streak: Int,
     bestStreak: Int = streak, // Added best streak parameter
     completedDays: List<Boolean>,
@@ -1111,7 +1231,7 @@ fun DayStreakCard(
     val unlockedMilestones = milestones.filter { it.first <= bestStreak }
     
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
@@ -1663,6 +1783,7 @@ private fun WeeklyStatItem(
 
 @Composable
 fun StreakFreezeCard(
+    modifier: Modifier = Modifier,
     remainingFreezes: Int,
     maxFreezes: Int,
     canUseFreeze: Boolean,
@@ -1670,56 +1791,80 @@ fun StreakFreezeCard(
     currentStreak: Int,
     onUseFreeze: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = null,
-                    tint = Color(0xFF00B0FF),
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.streak_freeze_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = stringResource(R.string.available_freezes_format, remainingFreezes, maxFreezes),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(GradientBlue.copy(alpha = 0.1f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Icecream, // Use Icecream as a fun "freeze" icon or snowflake if available
+                            contentDescription = null,
+                            tint = GradientBlue,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(R.string.streak_freeze_title),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.available_freezes_format, remainingFreezes, maxFreezes),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             if (yesterdayMissed && canUseFreeze) {
                Text(
                    text = stringResource(R.string.missed_day_msg, currentStreak),
-                   style = MaterialTheme.typography.bodyMedium
+                   fontSize = 14.sp,
+                   color = MaterialTheme.colorScheme.onSurface,
+                   lineHeight = 20.sp
                )
-               Spacer(modifier = Modifier.height(8.dp))
-               Button(onClick = onUseFreeze, modifier = Modifier.fillMaxWidth()) {
+               Spacer(modifier = Modifier.height(16.dp))
+               Button(
+                   onClick = onUseFreeze, 
+                   modifier = Modifier.fillMaxWidth(),
+                   shape = RoundedCornerShape(12.dp)
+               ) {
                    Text(stringResource(R.string.use_freeze_action))
                }
             } else {
                 Text(
-                    text = stringResource(R.string.streak_safe_msg),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = if (remainingFreezes >0) stringResource(R.string.streak_safe_msg) else "No freezes remaining for this month.",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
                 )
             }
         }

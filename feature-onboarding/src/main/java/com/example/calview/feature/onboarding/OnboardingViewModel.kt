@@ -69,6 +69,10 @@ class OnboardingViewModel @Inject constructor(
             userPreferencesRepository.syncWidgetData()
             
             userPreferencesRepository.setOnboardingComplete(true)
+            
+            // CRITICAL: Sync to cloud immediately so returning users are correctly identified
+            userPreferencesRepository.syncToCloud()
+            
             onComplete()
         }
     }

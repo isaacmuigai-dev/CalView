@@ -27,12 +27,26 @@ class CalViewApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
+        // Force load BeginSignInRequest to prevent ClassNotFoundException during unmarshalling
+        // This ensures the class is available early to all processes (including Firebase Analytics)
+        try {
+            Class.forName("com.google.android.gms.auth.api.identity.BeginSignInRequest")
+            Log.d("CalViewApp", "✅ Successfully pre-loaded BeginSignInRequest")
+        } catch (e: Exception) {
+            Log.e("CalViewApp", "⚠️ Failed to pre-load BeginSignInRequest", e)
+        }
+
         // Schedule daily sync
         scheduleDailySync()
         
         // Schedule premium feature workers
         scheduleCoachNotifications()
         scheduleWaterReminders()
+    }
+
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(base)
+        androidx.multidex.MultiDex.install(this)
     }
     
     /**

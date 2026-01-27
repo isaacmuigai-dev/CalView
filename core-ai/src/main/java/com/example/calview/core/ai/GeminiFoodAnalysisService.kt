@@ -158,8 +158,8 @@ class GeminiFoodAnalysisService @Inject constructor(
             
             // Basic cleanup for common AI JSON mistakes
             jsonString = jsonString
-                .replace(",\\s*}".toRegex(), "}") // Trailing commas in objects
-                .replace(",\\s*]".toRegex(), "]") // Trailing commas in arrays
+                .replace(",\\s*\\}".toRegex(), "}") // Trailing commas in objects
+                .replace(",\\s*\\]".toRegex(), "]") // Trailing commas in arrays
 
             // Check if it's an error response
             if (jsonString.contains("\"error\"") && !jsonString.contains("\"detected_items\"")) {

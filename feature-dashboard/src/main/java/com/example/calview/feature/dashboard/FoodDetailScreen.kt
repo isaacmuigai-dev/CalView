@@ -1159,16 +1159,16 @@ private fun ShareFoodSheet(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // App Logo - compact 36dp
+                                // App Logo - compact 80dp
                                 Image(
                                     painter = androidx.compose.ui.res.painterResource(
                                         id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
                                     ),
                                     contentDescription = "CalViewAI Logo",
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.size(80.dp)
                                 )
                                 
-                                Spacer(modifier = Modifier.width(10.dp))
+                                Spacer(modifier = Modifier.width(2.dp))
                                 
                                 // Food name and app branding
                                 Column(modifier = Modifier.weight(1f)) {
@@ -1655,7 +1655,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
 
         // --- DRAW BOTTOM BRANDING CARD ---
         val density = context.resources.displayMetrics.density
-        val logoSize = (36 * density).toInt().coerceAtLeast(60)
+        val logoSize = (80 * density).toInt().coerceAtLeast(100)
         
         // Available width for text (full width - margins - padding - logo)
         val textLeft = horizontalMargin + padding + logoSize + padding * 0.8f

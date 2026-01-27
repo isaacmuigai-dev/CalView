@@ -51,7 +51,9 @@ fun SplashScreen(
     
     LaunchedEffect(key1 = true) {
         startAnimation = true
+        android.util.Log.d("SplashScreen", "Splash started, waiting 2.5s...")
         delay(2500L) // 2.5 seconds
+        android.util.Log.d("SplashScreen", "Splash timeout reached, calling onTimeout")
         onTimeout()
     }
     

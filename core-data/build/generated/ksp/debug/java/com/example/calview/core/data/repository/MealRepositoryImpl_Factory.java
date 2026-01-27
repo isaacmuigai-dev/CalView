@@ -39,13 +39,16 @@ public final class MealRepositoryImpl_Factory implements Factory<MealRepositoryI
 
   private final Provider<DailyLogRepository> dailyLogRepositoryProvider;
 
+  private final Provider<GamificationRepository> gamificationRepositoryProvider;
+
   public MealRepositoryImpl_Factory(Provider<MealDao> mealDaoProvider,
       Provider<FirestoreRepository> firestoreRepositoryProvider,
       Provider<AuthRepository> authRepositoryProvider,
       Provider<StorageRepository> storageRepositoryProvider,
       Provider<SocialChallengeRepository> socialChallengeRepositoryProvider,
       Provider<StreakFreezeRepository> streakFreezeRepositoryProvider,
-      Provider<DailyLogRepository> dailyLogRepositoryProvider) {
+      Provider<DailyLogRepository> dailyLogRepositoryProvider,
+      Provider<GamificationRepository> gamificationRepositoryProvider) {
     this.mealDaoProvider = mealDaoProvider;
     this.firestoreRepositoryProvider = firestoreRepositoryProvider;
     this.authRepositoryProvider = authRepositoryProvider;
@@ -53,11 +56,12 @@ public final class MealRepositoryImpl_Factory implements Factory<MealRepositoryI
     this.socialChallengeRepositoryProvider = socialChallengeRepositoryProvider;
     this.streakFreezeRepositoryProvider = streakFreezeRepositoryProvider;
     this.dailyLogRepositoryProvider = dailyLogRepositoryProvider;
+    this.gamificationRepositoryProvider = gamificationRepositoryProvider;
   }
 
   @Override
   public MealRepositoryImpl get() {
-    return newInstance(mealDaoProvider.get(), firestoreRepositoryProvider.get(), authRepositoryProvider.get(), storageRepositoryProvider.get(), socialChallengeRepositoryProvider.get(), streakFreezeRepositoryProvider.get(), dailyLogRepositoryProvider.get());
+    return newInstance(mealDaoProvider.get(), firestoreRepositoryProvider.get(), authRepositoryProvider.get(), storageRepositoryProvider.get(), socialChallengeRepositoryProvider.get(), streakFreezeRepositoryProvider.get(), dailyLogRepositoryProvider.get(), gamificationRepositoryProvider.get());
   }
 
   public static MealRepositoryImpl_Factory create(Provider<MealDao> mealDaoProvider,
@@ -66,14 +70,16 @@ public final class MealRepositoryImpl_Factory implements Factory<MealRepositoryI
       Provider<StorageRepository> storageRepositoryProvider,
       Provider<SocialChallengeRepository> socialChallengeRepositoryProvider,
       Provider<StreakFreezeRepository> streakFreezeRepositoryProvider,
-      Provider<DailyLogRepository> dailyLogRepositoryProvider) {
-    return new MealRepositoryImpl_Factory(mealDaoProvider, firestoreRepositoryProvider, authRepositoryProvider, storageRepositoryProvider, socialChallengeRepositoryProvider, streakFreezeRepositoryProvider, dailyLogRepositoryProvider);
+      Provider<DailyLogRepository> dailyLogRepositoryProvider,
+      Provider<GamificationRepository> gamificationRepositoryProvider) {
+    return new MealRepositoryImpl_Factory(mealDaoProvider, firestoreRepositoryProvider, authRepositoryProvider, storageRepositoryProvider, socialChallengeRepositoryProvider, streakFreezeRepositoryProvider, dailyLogRepositoryProvider, gamificationRepositoryProvider);
   }
 
   public static MealRepositoryImpl newInstance(MealDao mealDao,
       FirestoreRepository firestoreRepository, AuthRepository authRepository,
       StorageRepository storageRepository, SocialChallengeRepository socialChallengeRepository,
-      StreakFreezeRepository streakFreezeRepository, DailyLogRepository dailyLogRepository) {
-    return new MealRepositoryImpl(mealDao, firestoreRepository, authRepository, storageRepository, socialChallengeRepository, streakFreezeRepository, dailyLogRepository);
+      StreakFreezeRepository streakFreezeRepository, DailyLogRepository dailyLogRepository,
+      GamificationRepository gamificationRepository) {
+    return new MealRepositoryImpl(mealDao, firestoreRepository, authRepository, storageRepository, socialChallengeRepository, streakFreezeRepository, dailyLogRepository, gamificationRepository);
   }
 }

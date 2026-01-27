@@ -1,5 +1,9 @@
 package com.example.calview.feature.trends
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.MealRepository
@@ -19,6 +23,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import com.example.calview.feature.trends.R
+import com.example.calview.core.data.notification.NotificationHandler
 
 data class WeightEntry(
     val date: LocalDate,
@@ -118,7 +123,21 @@ data class ProgressUiState(
     val weeksToGoal: Int = 0,
     val weightDiff: Int = 0,
     val estimatedGoalDate: LocalDate = LocalDate.now(),
-    val showGoalJourney: Boolean = false
+    val showGoalJourney: Boolean = false,
+    val hasSeenWalkthrough: Boolean = true,
+    
+    // Gamification & Checklist
+    val userLevel: Int = 1,
+    val userXp: Int = 0,
+    val xpRequired: Int = 1000,
+    val checklistItems: List<ChecklistItem> = emptyList()
+)
+
+data class ChecklistItem(
+    val title: String,
+    val status: String, // e.g., "Hit!", "2/8 glasses", "Log lunch"
+    val isCompleted: Boolean,
+    val icon: ImageVector
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -130,14 +149,125 @@ class ProgressViewModel @Inject constructor(
     private val selectedDateHolder: SelectedDateHolder,
     private val weightHistoryRepository: WeightHistoryRepository,
     private val predictionEngine: com.example.calview.core.data.prediction.WeightPredictionEngine,
-    private val streakFreezeRepository: StreakFreezeRepository
+    private val streakFreezeRepository: StreakFreezeRepository,
+    private val notificationHandler: NotificationHandler
 ) : ViewModel() {
+    
+    // Track notified milestones for today to avoid spam
+    private var notifiedCalories = false
+    private var notifiedProtein = false
+    private var notifiedCarbs = false
+    private var notifiedFats = false
+    private var notifiedStepsRecord = false
+    private var notifiedPersonalBest = false
+    private var lastMilestoneDate = LocalDate.now()
     
     private val _uiState = MutableStateFlow(ProgressUiState())
     val uiState: StateFlow<ProgressUiState> = _uiState.asStateFlow()
     
     init {
         loadProgressData()
+        observeWalkthroughStatus()
+        observeGoalMilestones()
+    }
+
+    private fun observeGoalMilestones() {
+        viewModelScope.launch {
+            uiState.collect { state ->
+                // Reset flags if day changed
+                if (LocalDate.now() != lastMilestoneDate) {
+                    notifiedCalories = false
+                    notifiedProtein = false
+                    notifiedCarbs = false
+                    notifiedFats = false
+                    notifiedStepsRecord = false
+                    notifiedPersonalBest = false
+                    lastMilestoneDate = LocalDate.now()
+                }
+
+                // Only notify if it's today
+                if (!state.isToday) return@collect
+
+                // Calorie Goal
+                if (!notifiedCalories && state.todayCalories >= state.calorieGoal && state.calorieGoal > 0) {
+                    notifiedCalories = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_DAILY_GOAL,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "🎯 Calorie Goal Reached!",
+                        message = "Great job! You've hit your daily calorie goal of ${state.calorieGoal} kcal.",
+                        navigateTo = "main?tab=0"
+                    )
+                }
+
+                // Protein Goal
+                if (!notifiedProtein && state.todayProtein >= state.proteinGoal && state.proteinGoal > 0) {
+                    notifiedProtein = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_DAILY_GOAL,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "💪 Protein Goal Hit!",
+                        message = "Nice! You've reached your protein goal of ${state.proteinGoal}g today.",
+                        navigateTo = "main?tab=0"
+                    )
+                }
+
+                // Carbs/Fats Goals (Combined for brevity)
+                if (!notifiedCarbs && state.todayCarbs >= state.carbsGoal && state.carbsGoal > 0) {
+                    notifiedCarbs = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_DAILY_GOAL,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "🍞 Carbs Goal Reached!",
+                        message = "You've reached your carbohydrate goal for today.",
+                        navigateTo = "main?tab=0"
+                    )
+                }
+                
+                if (!notifiedFats && state.todayFats >= state.fatsGoal && state.fatsGoal > 0) {
+                    notifiedFats = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_DAILY_GOAL,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "🥑 Fats Goal Reached!",
+                        message = "You've reached your fats goal for today.",
+                        navigateTo = "main?tab=0"
+                    )
+                }
+
+                // Max Steps Record
+                if (!notifiedStepsRecord && state.todaySteps > state.stepsRecord && state.stepsRecord > 0) {
+                    notifiedStepsRecord = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_PERSONAL_BEST,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "🏆 New Steps Record!",
+                        message = "Boom! That's a new personal best for daily steps: ${state.todaySteps}!",
+                        navigateTo = "progress"
+                    )
+                }
+                
+                // Personal Best (Calories Burned Record)
+                if (!notifiedPersonalBest && state.caloriesBurned > state.caloriesBurnedRecord && state.caloriesBurnedRecord > 0) {
+                    notifiedPersonalBest = true
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_PERSONAL_BEST,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "💎 New Calories Record!",
+                        message = "Incredible! You just set a new record for calories burned: ${state.caloriesBurned} kcal!",
+                        navigateTo = "progress"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun observeWalkthroughStatus() {
+        viewModelScope.launch {
+            userPreferencesRepository.hasSeenProgressWalkthrough.collect { seen ->
+                _uiState.update { it.copy(hasSeenWalkthrough = seen) }
+            }
+        }
     }
 
     private fun loadProgressData() {
@@ -241,6 +371,57 @@ class ProgressViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
+            }
+        }
+
+        // Collect Gamification data
+        viewModelScope.launch {
+            userPreferencesRepository.userLevel.collect { level ->
+                _uiState.update { it.copy(userLevel = level, xpRequired = level * 1000) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.userXp.collect { xp ->
+                _uiState.update { it.copy(userXp = xp) }
+            }
+        }
+
+        // Monitor checklist items reactively
+        viewModelScope.launch {
+            combine(
+                uiState.map { it.todayProtein to it.proteinGoal }.distinctUntilChanged(),
+                userPreferencesRepository.waterConsumed,
+                userPreferencesRepository.waterDate
+            ) { (protein, goal), water, waterDate ->
+                val items = mutableListOf<ChecklistItem>()
+                
+                // 1. Protein Goal
+                items.add(
+                    ChecklistItem(
+                        title = "Protein Goal",
+                        status = if (protein >= goal) "Goal Reached!" else "${(goal - protein).toInt()}g to go",
+                        isCompleted = protein >= goal,
+                        icon = Icons.Default.FitnessCenter
+                    )
+                )
+
+                // 2. Hydration
+                val today = java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val isToday = waterDate >= today
+                
+                val glasses = if (isToday) water / 8 else 0
+                items.add(
+                    ChecklistItem(
+                        title = "Hydration",
+                        status = "$glasses/8 glasses",
+                        isCompleted = glasses >= 8,
+                        icon = Icons.Default.WaterDrop
+                    )
+                )
+                
+                items
+            }.collect { items ->
+                _uiState.update { it.copy(checklistItems = items) }
             }
         }
 
@@ -444,6 +625,12 @@ class ProgressViewModel @Inject constructor(
         viewModelScope.launch {
             val yesterday = LocalDate.now().minusDays(1)
             streakFreezeRepository.useFreeze(yesterday)
+        }
+    }
+
+    fun setHasSeenWalkthrough(seen: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setHasSeenProgressWalkthrough(seen)
         }
     }
 }

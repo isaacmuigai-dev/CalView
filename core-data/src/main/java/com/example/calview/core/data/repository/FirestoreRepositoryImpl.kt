@@ -58,13 +58,23 @@ class FirestoreRepositoryImpl @Inject constructor(
     
     override suspend fun getUserData(userId: String): UserData? {
         return try {
+            Log.d(TAG, "getUserData called for userId: $userId")
             val snapshot = firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .get()
                 .await()
             
-            snapshot.toObject(UserData::class.java)
+            if (snapshot.exists()) {
+                Log.d(TAG, "✅ Document EXISTS for user: $userId")
+                val userData = snapshot.toObject(UserData::class.java)
+                Log.d(TAG, "   isOnboardingComplete = ${userData?.isOnboardingComplete}")
+                userData
+            } else {
+                Log.w(TAG, "⚠️ Document DOES NOT EXIST for user: $userId")
+                null
+            }
         } catch (e: Exception) {
+            Log.e(TAG, "❌ Error getting user data for $userId", e)
             e.printStackTrace()
             null
         }

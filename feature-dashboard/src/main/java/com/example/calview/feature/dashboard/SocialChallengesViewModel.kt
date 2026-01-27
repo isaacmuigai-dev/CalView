@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.calview.core.data.notification.NotificationHandler
 import javax.inject.Inject
 
 data class SocialChallengesUiState(
@@ -25,7 +26,8 @@ data class SocialChallengesUiState(
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SocialChallengesViewModel @Inject constructor(
-    private val socialChallengeRepository: SocialChallengeRepository
+    private val socialChallengeRepository: SocialChallengeRepository,
+    private val notificationHandler: NotificationHandler
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(SocialChallengesUiState())
@@ -33,6 +35,7 @@ class SocialChallengesViewModel @Inject constructor(
     
     init {
         loadChallenges()
+        checkAndSettleExpiredChallenges()
     }
     
     private fun loadChallenges() {
@@ -107,6 +110,13 @@ class SocialChallengesViewModel @Inject constructor(
             result.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false) }
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_SOCIAL,
+                        channelId = NotificationHandler.CHANNEL_SOCIAL,
+                        title = "🤝 Challenge Joined!",
+                        message = "You've successfully joined the challenge. Time to compete!",
+                        navigateTo = "challenges"
+                    )
                 },
                 onFailure = { error ->
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
@@ -123,6 +133,59 @@ class SocialChallengesViewModel @Inject constructor(
     fun leaveChallenge(challengeId: String) {
         viewModelScope.launch {
             socialChallengeRepository.leaveChallenge(challengeId)
+        }
+    }
+
+    fun endChallenge(challengeId: String) {
+        viewModelScope.launch {
+            socialChallengeRepository.endChallenge(challengeId)
+            notificationHandler.showNotification(
+                id = NotificationHandler.ID_SOCIAL,
+                channelId = NotificationHandler.CHANNEL_SOCIAL,
+                title = "🏁 Challenge Ended",
+                message = "You have successfully ended the challenge.",
+                navigateTo = "challenges"
+            )
+        }
+    }
+
+    /**
+     * Automatically settle challenges that have reached their end date.
+     * This replicates Cloud Function behavior locally.
+     */
+    private fun checkAndSettleExpiredChallenges() {
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val allActive = socialChallengeRepository.getAllActiveUserChallengesSync()
+            
+            val expired = allActive.filter { it.endDate < now }
+            
+            if (expired.isEmpty()) return@launch
+            
+            expired.forEach { challenge ->
+                Log.d("SocialChallengesVM", "Auto-settling expired challenge: ${challenge.title}")
+                socialChallengeRepository.endChallenge(challenge.id)
+            }
+            
+            // Show a consolidated notification if multiple challenges ended
+            if (expired.size == 1) {
+                val challenge = expired[0]
+                notificationHandler.showNotification(
+                    id = NotificationHandler.ID_SOCIAL,
+                    channelId = NotificationHandler.CHANNEL_SOCIAL,
+                    title = "⌛ Challenge Time's Up!",
+                    message = "The challenge '${challenge.title}' has ended. View the final leaderboard!",
+                    navigateTo = "challenges"
+                )
+            } else {
+                notificationHandler.showNotification(
+                    id = NotificationHandler.ID_SOCIAL,
+                    channelId = NotificationHandler.CHANNEL_SOCIAL,
+                    title = "⌛ ${expired.size} Challenges Ended",
+                    message = "Multiple challenges have ended. Check the results now!",
+                    navigateTo = "challenges"
+                )
+            }
         }
     }
 }

@@ -184,13 +184,14 @@ fun SocialChallengesScreen(
                             }
                             
                             items(uiState.challenges) { challenge ->
-                                ChallengeCard(
-                                    challenge = challenge,
-                                    participants = uiState.participantsMap[challenge.id] ?: emptyList(),
-                                    currentUserId = uiState.currentUserId,
-                                    onShareClick = { viewModel.shareChallenge(challenge) },
-                                    onLeaveClick = { viewModel.leaveChallenge(challenge.id) }
-                                )
+                                    ChallengeCard(
+                                        challenge = challenge,
+                                        participants = uiState.participantsMap[challenge.id] ?: emptyList(),
+                                        currentUserId = uiState.currentUserId,
+                                        onShareClick = { viewModel.shareChallenge(challenge) },
+                                        onLeaveClick = { viewModel.leaveChallenge(challenge.id) },
+                                        onEndClick = { viewModel.endChallenge(challenge.id) }
+                                    )
                             }
                         }
                     } else {
@@ -230,7 +231,8 @@ fun SocialChallengesScreen(
                                         participants = uiState.participantsMap[challenge.id] ?: emptyList(),
                                         currentUserId = uiState.currentUserId,
                                         onShareClick = { viewModel.shareChallenge(challenge) },
-                                        onLeaveClick = { viewModel.leaveChallenge(challenge.id) }
+                                        onLeaveClick = { viewModel.leaveChallenge(challenge.id) },
+                                        onEndClick = { viewModel.endChallenge(challenge.id) }
                                     )
                                 }
                             }
@@ -325,7 +327,8 @@ private fun ChallengeCard(
     participants: List<ChallengeParticipantEntity>,
     currentUserId: String?,
     onShareClick: () -> Unit,
-    onLeaveClick: () -> Unit
+    onLeaveClick: () -> Unit,
+    onEndClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -363,6 +366,13 @@ private fun ChallengeCard(
                 
                 Row {
                     val context = LocalContext.current
+                    
+                    if (challenge.creatorId == currentUserId) {
+                        IconButton(onClick = onEndClick) {
+                            Icon(Icons.Default.StopCircle, "End challenge", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+
                     IconButton(onClick = {
                         val shareIntent = android.content.Intent().apply {
                             action = android.content.Intent.ACTION_SEND

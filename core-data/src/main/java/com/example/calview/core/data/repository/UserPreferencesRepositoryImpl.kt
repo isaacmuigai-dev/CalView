@@ -92,8 +92,13 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
         // Walkthrough flags
         val HAS_SEEN_DASHBOARD_WALKTHROUGH = booleanPreferencesKey("has_seen_dashboard_walkthrough")
+        val HAS_SEEN_PROGRESS_WALKTHROUGH = booleanPreferencesKey("has_seen_progress_walkthrough")
         val HAS_SEEN_FEATURE_INTRO = booleanPreferencesKey("has_seen_feature_intro")
         val WEIGHT_CHANGE_PER_WEEK = floatPreferencesKey("weight_change_per_week")
+        val USER_XP = intPreferencesKey("user_xp")
+        val USER_LEVEL = intPreferencesKey("user_level")
+        val LAST_ACTIVITY_TIMESTAMP = longPreferencesKey("last_activity_timestamp")
+        val WATER_SERVING_SIZE = intPreferencesKey("water_serving_size")
     }
     
     // Coroutine scope for background sync operations
@@ -133,6 +138,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             language = preferences[PreferencesKeys.LANGUAGE] ?: "en",
             lastRolloverDate = preferences[PreferencesKeys.LAST_ROLLOVER_DATE] ?: 0L,
             hasSeenDashboardWalkthrough = preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] ?: false,
+            hasSeenProgressWalkthrough = preferences[PreferencesKeys.HAS_SEEN_PROGRESS_WALKTHROUGH] ?: false,
             hasSeenFeatureIntro = preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] ?: false,
             waterConsumed = preferences[PreferencesKeys.WATER_CONSUMED] ?: 0,
             waterDate = preferences[PreferencesKeys.WATER_DATE] ?: 0L,
@@ -142,7 +148,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             recordBurn = preferences[PreferencesKeys.RECORD_BURN] ?: 0,
             hasSeenCameraTutorial = preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] ?: false,
             widgetDarkTheme = preferences[PreferencesKeys.WIDGET_DARK_THEME] ?: false,
-            weightChangePerWeek = preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] ?: 0.5f
+            weightChangePerWeek = preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] ?: 0.5f,
+            userXp = preferences[PreferencesKeys.USER_XP] ?: 0,
+            userLevel = preferences[PreferencesKeys.USER_LEVEL] ?: 1,
+            lastActivityTimestamp = preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] ?: 0L
         )
     }
     
@@ -335,8 +344,28 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] ?: false
     }
 
+    override val hasSeenProgressWalkthrough: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.HAS_SEEN_PROGRESS_WALKTHROUGH] ?: false
+    }
+
     override val hasSeenFeatureIntro: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] ?: false
+    }
+
+    override val userXp: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.USER_XP] ?: 0
+    }
+
+    override val userLevel: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.USER_LEVEL] ?: 1
+    }
+
+    override val lastActivityTimestamp: Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] ?: 0L
+    }
+
+    override val waterServingSize: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.WATER_SERVING_SIZE] ?: 8
     }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
@@ -574,9 +603,43 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         syncToFirestore()
     }
 
+    override suspend fun setHasSeenProgressWalkthrough(seen: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_SEEN_PROGRESS_WALKTHROUGH] = seen
+        }
+        syncToFirestore()
+    }
+
     override suspend fun setHasSeenFeatureIntro(seen: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] = seen
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setUserXp(xp: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.USER_XP] = xp
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setUserLevel(level: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.USER_LEVEL] = level
+        }
+        syncToFirestore()
+    }
+    
+    override suspend fun setLastActivityTimestamp(timestamp: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] = timestamp
+        }
+    }
+
+    override suspend fun setWaterServingSize(ml: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WATER_SERVING_SIZE] = ml
         }
         syncToFirestore()
     }
@@ -598,13 +661,17 @@ class UserPreferencesRepositoryImpl @Inject constructor(
      */
     override suspend fun restoreFromCloud(): Boolean {
         val userId = authRepository.getUserId()
+        android.util.Log.d("RestoreData", "restoreFromCloud called for userId: '$userId'")
         if (userId.isEmpty()) {
+            android.util.Log.w("RestoreData", "Skipping restore: userId is empty")
             return false
         }
         
         return try {
+            android.util.Log.d("RestoreData", "Fetching user data from Firestore...")
             val userData = firestoreRepository.getUserData(userId)
             if (userData != null) {
+                android.util.Log.d("RestoreData", "✅ User data found. isOnboardingComplete=${userData.isOnboardingComplete}")
                 // Update local DataStore with cloud data
                 context.dataStore.edit { preferences ->
                     preferences[PreferencesKeys.IS_ONBOARDING_COMPLETE] = userData.isOnboardingComplete
@@ -633,6 +700,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.LANGUAGE] = userData.language
                     preferences[PreferencesKeys.LAST_ROLLOVER_DATE] = userData.lastRolloverDate
                     preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] = userData.hasSeenDashboardWalkthrough
+                    preferences[PreferencesKeys.HAS_SEEN_PROGRESS_WALKTHROUGH] = userData.hasSeenProgressWalkthrough
                     preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] = userData.hasSeenFeatureIntro
                     preferences[PreferencesKeys.WATER_CONSUMED] = userData.waterConsumed
                     preferences[PreferencesKeys.WATER_DATE] = userData.waterDate
@@ -643,12 +711,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.HAS_SEEN_CAMERA_TUTORIAL] = userData.hasSeenCameraTutorial
                     preferences[PreferencesKeys.WIDGET_DARK_THEME] = userData.widgetDarkTheme
                     preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] = userData.weightChangePerWeek
+                    preferences[PreferencesKeys.USER_XP] = userData.userXp
+                    preferences[PreferencesKeys.USER_LEVEL] = userData.userLevel
+                    preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] = userData.lastActivityTimestamp
                 }
+                android.util.Log.d("RestoreData", "Local DataStore updated from cloud.")
                 true
             } else {
+                android.util.Log.w("RestoreData", "⚠️ No user data found in Firestore (userData is null)")
                 false
             }
         } catch (e: Exception) {
+            android.util.Log.e("RestoreData", "❌ Error restoring from cloud", e)
             e.printStackTrace()
             false
         } finally {

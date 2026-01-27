@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(tableName = "daily_logs")
 data class DailyLogEntity(
-    @PrimaryKey val date: String, // Format: YYYY-MM-DD
+    @PrimaryKey val date: String = "", // Format: YYYY-MM-DD
     val steps: Int = 0,
     val waterIntake: Int = 0, // in ml
     val weight: Float = 0f, // in kg

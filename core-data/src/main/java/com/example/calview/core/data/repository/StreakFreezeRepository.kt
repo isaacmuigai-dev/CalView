@@ -26,15 +26,16 @@ class StreakFreezeRepository @Inject constructor(
     }
 
     /**
-     * Calculates the current streak by merging meal dates and frozen dates.
+     * Calculates the current streak by merging all meal dates and all historical frozen dates.
      * @param mealDates List of dates where meals were logged.
      * @return Flow of Int representing the current streak.
      */
-    fun getStreakData(mealDates: List<LocalDate>): Flow<Int> = observeCurrentMonthFreezes().map { freeze ->
-        val frozenDates = freeze?.frozenDates?.split(",")
-            ?.filter { it.isNotEmpty() }
-            ?.map { LocalDate.parse(it, dateFormatter) }
-            ?: emptyList()
+    fun getStreakData(mealDates: List<LocalDate>): Flow<Int> = streakFreezeDao.observeAllFreezes().map { freezes ->
+        val frozenDates = freezes.flatMap { freeze ->
+            freeze.frozenDates.split(",")
+                .filter { it.isNotEmpty() }
+                .map { LocalDate.parse(it, dateFormatter) }
+        }
 
         val allActiveDates = (mealDates + frozenDates).distinct().sortedDescending()
         
@@ -62,11 +63,12 @@ class StreakFreezeRepository @Inject constructor(
      * Note: Current implementation only has monthly freezes. For a true best streak,
      * we would need historical freeze data.
      */
-    fun calculateBestStreak(mealDates: List<LocalDate>, currentStreak: Int): Flow<Int> = observeCurrentMonthFreezes().map { freeze ->
-        val frozenDates = freeze?.frozenDates?.split(",")
-            ?.filter { it.isNotEmpty() }
-            ?.map { LocalDate.parse(it, dateFormatter) }
-            ?: emptyList()
+    fun calculateBestStreak(mealDates: List<LocalDate>, currentStreak: Int): Flow<Int> = streakFreezeDao.observeAllFreezes().map { freezes ->
+        val frozenDates = freezes.flatMap { freeze ->
+            freeze.frozenDates.split(",")
+                .filter { it.isNotEmpty() }
+                .map { LocalDate.parse(it, dateFormatter) }
+        }
 
         val allActiveDates = (mealDates + frozenDates).distinct().sorted()
         

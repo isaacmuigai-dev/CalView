@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 interface SocialChallengeDao {
     
     // Challenge CRUD
-    @Query("SELECT * FROM social_challenges WHERE isActive = 1 ORDER BY startDate DESC")
-    fun observeActiveChallenges(): Flow<List<SocialChallengeEntity>>
+    @Query("SELECT * FROM social_challenges WHERE isActive = 1 AND endDate > :currentTime ORDER BY startDate DESC")
+    fun observeActiveChallenges(currentTime: Long = System.currentTimeMillis()): Flow<List<SocialChallengeEntity>>
     
     @Query("SELECT * FROM social_challenges WHERE id = :id")
     suspend fun getChallengeById(id: String): SocialChallengeEntity?
@@ -48,18 +48,25 @@ interface SocialChallengeDao {
     @Query("""
         SELECT sc.* FROM social_challenges sc
         INNER JOIN challenge_participants cp ON sc.id = cp.challengeId
-        WHERE cp.odsmUserId = :userId AND sc.isActive = 1
+        WHERE cp.odsmUserId = :userId AND sc.isActive = 1 AND sc.endDate > :currentTime
         ORDER BY sc.startDate DESC
     """)
-    fun observeUserChallenges(userId: String): Flow<List<SocialChallengeEntity>>
+    fun observeUserChallenges(userId: String, currentTime: Long = System.currentTimeMillis()): Flow<List<SocialChallengeEntity>>
+
+    @Query("""
+        SELECT sc.* FROM social_challenges sc
+        INNER JOIN challenge_participants cp ON sc.id = cp.challengeId
+        WHERE cp.odsmUserId = :userId AND sc.isActive = 1 AND sc.endDate > :currentTime
+        ORDER BY sc.startDate DESC
+    """)
+    suspend fun getActiveChallengesSync(userId: String, currentTime: Long = System.currentTimeMillis()): List<SocialChallengeEntity>
 
     @Query("""
         SELECT sc.* FROM social_challenges sc
         INNER JOIN challenge_participants cp ON sc.id = cp.challengeId
         WHERE cp.odsmUserId = :userId AND sc.isActive = 1
-        ORDER BY sc.startDate DESC
     """)
-    suspend fun getActiveChallengesSync(userId: String): List<SocialChallengeEntity>
+    suspend fun getAllActiveUserChallengesSync(userId: String): List<SocialChallengeEntity>
 
     @Query("DELETE FROM social_challenges")
     suspend fun deleteAllChallenges()

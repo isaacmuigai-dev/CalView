@@ -11,6 +11,9 @@ interface StreakFreezeDao {
     @Query("SELECT * FROM streak_freezes WHERE month = :month")
     fun observeFreezeForMonth(month: String): Flow<StreakFreezeEntity?>
 
+    @Query("SELECT * FROM streak_freezes")
+    fun observeAllFreezes(): Flow<List<StreakFreezeEntity>>
+
     @Query("SELECT * FROM streak_freezes WHERE month = :month")
     suspend fun getFreezeForMonth(month: String): StreakFreezeEntity?
 

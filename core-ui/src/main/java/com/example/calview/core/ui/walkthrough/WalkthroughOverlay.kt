@@ -14,9 +14,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -62,18 +65,19 @@ fun WalkthroughOverlay(
     // Animate the spotlight coordinates for smooth transitions
     val activeRect = currentStep.targetRect ?: Rect.Zero
     
-    val animatedLeft by animateFloatAsState(targetValue = activeRect.left, animationSpec = tween(300), label = "left")
-    val animatedTop by animateFloatAsState(targetValue = activeRect.top, animationSpec = tween(300), label = "top")
-    val animatedRight by animateFloatAsState(targetValue = activeRect.right, animationSpec = tween(300), label = "right")
-    val animatedBottom by animateFloatAsState(targetValue = activeRect.bottom, animationSpec = tween(300), label = "bottom")
+    // Animate the spotlight coordinates for smooth transitions - speed up slightly
+    val animatedLeft by animateFloatAsState(targetValue = activeRect.left, animationSpec = tween(200), label = "left")
+    val animatedTop by animateFloatAsState(targetValue = activeRect.top, animationSpec = tween(200), label = "top")
+    val animatedRight by animateFloatAsState(targetValue = activeRect.right, animationSpec = tween(200), label = "right")
+    val animatedBottom by animateFloatAsState(targetValue = activeRect.bottom, animationSpec = tween(200), label = "bottom")
     
     val animatedRect = Rect(animatedLeft, animatedTop, animatedRight, animatedBottom)
     
-    // Pulse animation for the spotlight - slightly faster pulse
+    // Pulse animation for the spotlight
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.04f,
+        targetValue = 1.03f,
         animationSpec = infiniteRepeatable(
             animation = tween(800),
             repeatMode = RepeatMode.Reverse
@@ -91,17 +95,17 @@ fun WalkthroughOverlay(
                 indication = null
             ) { /* Disable background interaction */ }
     ) {
-        val screenHeightPx = constraints.maxHeight.toFloat()
+        val screenHeight = maxHeight.value * LocalDensity.current.density
         
         // Dimmed Background with Animated Spotlight
         Canvas(modifier = Modifier.fillMaxSize()) {
             val spotlightPath = Path().apply {
                 if (animatedRect != Rect.Zero) {
-                    val inflation = 8.dp.toPx() * pulseScale
+                    val inflation = 6.dp.toPx() * pulseScale
                     addRoundRect(
                         RoundRect(
                             rect = animatedRect.inflate(inflation),
-                            cornerRadius = CornerRadius(20.dp.toPx())
+                            cornerRadius = CornerRadius(24.dp.toPx())
                         )
                     )
                 }
@@ -109,23 +113,51 @@ fun WalkthroughOverlay(
 
             clipPath(spotlightPath, clipOp = ClipOp.Difference) {
                 drawRect(
-                    color = Color.Black.copy(alpha = 0.8f),
+                    color = Color.Black.copy(alpha = 0.75f),
                     size = size
                 )
             }
         }
 
-        // Tooltip UI
+        // Tooltip UI - Adaptive positioning
         if (activeRect != Rect.Zero) {
-            TooltipContent(
-                step = currentStep,
-                onNext = onNext,
-                onSkip = onSkip,
-                isLastStep = currentStepIndex == steps.size - 1,
-                targetRect = activeRect,
-                screenHeightPx = screenHeightPx,
-                modifier = Modifier.padding(16.dp)
-            )
+            // Determine if the target is in the bottom half of the screen
+            val targetCenterY = animatedRect.center.y
+            val showAtTop = targetCenterY > screenHeight * 0.6f
+            
+            AnimatedContent(
+                targetState = showAtTop,
+                transitionSpec = {
+                    if (targetState) {
+                        // Sliding to top
+                        (slideInVertically { height -> -height } + fadeIn(animationSpec = tween(400)))
+                            .togetherWith(slideOutVertically { height -> height } + fadeOut(animationSpec = tween(400)))
+                    } else {
+                        // Sliding to bottom
+                        (slideInVertically { height -> height } + fadeIn(animationSpec = tween(400)))
+                            .togetherWith(slideOutVertically { height -> -height } + fadeOut(animationSpec = tween(400)))
+                    }
+                },
+                label = "tooltipPosition",
+                modifier = Modifier.fillMaxSize()
+            ) { targetShowAtTop ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    TooltipContent(
+                        step = currentStep,
+                        onNext = onNext,
+                        onSkip = onSkip,
+                        isLastStep = currentStepIndex == steps.size - 1,
+                        modifier = Modifier
+                            .align(if (targetShowAtTop) Alignment.TopCenter else Alignment.BottomCenter)
+                            .padding(16.dp)
+                            .padding(
+                                top = if (targetShowAtTop) 32.dp else 0.dp,
+                                bottom = if (targetShowAtTop) 0.dp else 32.dp
+                            )
+                            .safeDrawingPadding() // Handle system bars
+                    )
+                }
+            }
         }
     }
 }
@@ -136,13 +168,8 @@ private fun TooltipContent(
     onNext: () -> Unit,
     onSkip: () -> Unit,
     isLastStep: Boolean,
-    targetRect: Rect,
-    screenHeightPx: Float,
     modifier: Modifier = Modifier
 ) {
-    val density = LocalDensity.current
-    val tooltipAbove = targetRect.center.y > screenHeightPx / 2
-    
     // Debounce to prevent rapid jumping
     var lastClickTime by remember { mutableLongStateOf(0L) }
     val debounceMs = 500L
@@ -163,110 +190,108 @@ private fun TooltipContent(
         }
     }
     
-    Box(
-        modifier = Modifier.fillMaxSize()
+    Card(
+        modifier = modifier
+            .widthIn(max = 400.dp)
+            .animateContentSize(animationSpec = tween(300)),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            // Glassmorphism effect: Semi-transparent surface
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
-        Card(
-            modifier = modifier
-                .align(if (tooltipAbove) Alignment.BottomCenter else Alignment.TopCenter)
-                .padding(
-                    bottom = if (tooltipAbove) {
-                        with(density) { (screenHeightPx - targetRect.top + 16.dp.toPx()).toDp() }
-                    } else 0.dp,
-                    top = if (!tooltipAbove) {
-                        with(density) { (targetRect.bottom + 16.dp.toPx()).toDp() }
-                    } else 0.dp
-                )
-                .widthIn(max = 340.dp)
-                .heightIn(max = screenHeightPx.let { with(density) { (it * 0.4f).toDp() } }.coerceAtLeast(300.dp))
-                .animateContentSize(animationSpec = tween(300)),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Content area becomes scrollable ONLY if it exceeds max height
+            // But we keep it simple here as text is usually short
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                shape = CircleShape,
+                modifier = Modifier.size(40.dp)
             ) {
-                // Content area - No weight or fixed scroll here unless absolutely necessary
-                // This allows the card to grow/shrink based on text
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                    shape = CircleShape,
-                    modifier = Modifier.size(48.dp)
+                val icon = when {
+                    step.id.contains("nutrition", true) -> Icons.Default.PieChart
+                    step.id.contains("score", true) -> Icons.Default.AutoAwesome
+                    step.id.contains("water", true) -> Icons.Default.WaterDrop
+                    step.id.contains("scan", true) -> Icons.Default.CameraAlt
+                    step.id.contains("calendar", true) -> Icons.Default.CalendarToday
+                    step.id.contains("health", true) -> Icons.Default.Favorite
+                    step.id.contains("meal", true) -> Icons.Default.Restaurant
+                    else -> Icons.Default.Info
+                }
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = step.title,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = step.description,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
+                    fontSize = 14.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Actions area - pinned to the bottom of the card
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = safeOnSkip,
+                    contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
-                    val icon = when {
-                        step.id.contains("nutrition", true) -> Icons.Default.PieChart
-                        step.id.contains("score", true) -> Icons.Default.AutoAwesome
-                        step.id.contains("water", true) -> Icons.Default.WaterDrop
-                        step.id.contains("scan", true) -> Icons.Default.CameraAlt
-                        else -> Icons.Default.Info
-                    }
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                    Text(
+                        "Skip tour", 
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            fontSize = 12.sp
                         )
-                    }
+                    )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = step.title,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center
-                )
-                
-                Spacer(modifier = Modifier.height(10.dp))
-                
-                Text(
-                    text = step.description,
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 22.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Actions area
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Button(
+                    onClick = safeOnNext,
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                    modifier = Modifier.height(44.dp)
                 ) {
-                    TextButton(onClick = safeOnSkip) {
-                        Text(
-                            "Skip tour", 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-                    }
-                    
-                    Button(
-                        onClick = safeOnNext,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
-                    ) {
-                        Text(
-                            if (isLastStep) "Get Started" else "Next",
+                    Text(
+                        if (isLastStep) "Get Started" else "Next Step",
+                        style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
+                            fontSize = 13.sp
                         )
-                    }
+                    )
                 }
             }
         }

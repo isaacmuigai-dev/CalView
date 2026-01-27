@@ -5,12 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "badges")
 data class BadgeEntity(
-    @PrimaryKey val id: String,
-    val name: String,
-    val description: String,
-    val iconResName: String, // e.g., "ic_badge_streak_7"
-    val dateUnlocked: Long,
-    val tier: BadgeTier
+    @PrimaryKey val id: String = "",
+    val name: String = "",
+    val description: String = "",
+    val iconResName: String = "", // e.g., "ic_badge_streak_7"
+    val dateUnlocked: Long = 0,
+    val tier: BadgeTier = BadgeTier.BRONZE
 )
 
 enum class BadgeTier {

@@ -38,6 +38,7 @@ fun SignInBottomSheet(
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     isLoading: Boolean = false,
+    loadingText: String? = null,
     sheetState: SheetState = rememberModalBottomSheetState()
 ) {
     ModalBottomSheet(
@@ -92,7 +93,8 @@ fun SignInBottomSheet(
             // Google Sign-In Button
             GoogleSignInButton(
                 onClick = onGoogleSignIn,
-                isLoading = isLoading
+                isLoading = isLoading,
+                loadingText = loadingText
             )
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -103,7 +105,7 @@ fun SignInBottomSheet(
             ) {
                 Row {
                     Text(
-                        text = "By continuing, you agree to Cal AI's ",
+                        text = "By continuing, you agree to CalViewAI's ",
                         fontFamily = Inter,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -158,6 +160,7 @@ fun SignInBottomSheet(
 fun GoogleSignInButton(
     onClick: () -> Unit,
     isLoading: Boolean = false,
+    loadingText: String? = null,
     modifier: Modifier = Modifier
 ) {
     OutlinedButton(
@@ -177,11 +180,26 @@ fun GoogleSignInButton(
         )
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (loadingText != null) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = loadingText,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         } else {
             Row(
                 horizontalArrangement = Arrangement.Center,

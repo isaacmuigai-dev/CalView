@@ -127,7 +127,14 @@ class SettingsViewModel @Inject constructor(
                     maxFreezes = freeze?.maxFreezes ?: 2
                 )
             }.collect { state ->
-                _uiState.value = state
+                // Preserve transient flags (deletion status) when applying repo updates
+                _uiState.update { current ->
+                    state.copy(
+                        isDeletingAccount = current.isDeletingAccount,
+                        deletionProgressMessage = current.deletionProgressMessage,
+                        isDeletionComplete = current.isDeletionComplete
+                    )
+                }
             }
         }
     }
@@ -207,7 +214,7 @@ class SettingsViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             _uiState.update { it.copy(isDeletingAccount = true, deletionProgressMessage = "Preparing to delete account...") }
-            kotlinx.coroutines.delay(800)
+            kotlinx.coroutines.delay(1000)
             
             val userId = authRepository.getUserId()
             if (userId.isEmpty()) {
@@ -215,17 +222,27 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
 
-            // 1. Delete Firestore Data
+            // 1. Delete Firestore Data (Must happen while authenticated)
             _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data...") }
             try {
                 firestoreRepository.deleteUserData(userId)
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to delete Firestore data", e)
-                // Continue with local cleanup
             }
             kotlinx.coroutines.delay(1000)
 
-            // 2. Clear Local Data
+            // 2. Delete Firebase Auth Account (Crucial for sign-out)
+            _uiState.update { it.copy(deletionProgressMessage = "Finalizing account deletion...") }
+            kotlinx.coroutines.delay(500)
+            val result = authRepository.deleteAccount()
+            
+            if (!result.isSuccess) {
+                val exception = result.exceptionOrNull()
+                _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Failed to delete account: ${exception?.message}") }
+                return@launch
+            }
+
+            // 3. Clear Local Repositories (Excluding preferences)
             _uiState.update { it.copy(deletionProgressMessage = "Clearing local data and cache...") }
             try {
                 mealRepository.clearAllMeals()
@@ -236,34 +253,35 @@ class SettingsViewModel @Inject constructor(
                 waterReminderRepository.clearAllData()
                 socialChallengeRepository.clearAllData()
                 gamificationRepository.clearAllData()
-                userPreferencesRepository.clearAllData()
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to clear some local data", e)
             }
             kotlinx.coroutines.delay(1000)
 
-            // 3. Delete Firebase Auth Account
-            _uiState.update { it.copy(deletionProgressMessage = "Finalizing account deletion...") }
-            kotlinx.coroutines.delay(800)
-            val result = authRepository.deleteAccount()
-            
-            if (result.isSuccess) {
-                _uiState.update { it.copy(deletionProgressMessage = "Account deleted successfully. Redirecting...") }
-                kotlinx.coroutines.delay(2000)
-                _uiState.update { it.copy(isDeletionComplete = true) }
-            } else {
-                val exception = result.exceptionOrNull()
-                _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Failed to delete account: ${exception?.message}") }
+            // 4. Show final message before the (potential) activity restart
+            _uiState.update { it.copy(deletionProgressMessage = "Account deleted successfully. Redirecting...") }
+            kotlinx.coroutines.delay(2000)
+
+            // 5. Clear Preferences (This triggers Activity restart!)
+            try {
+                userPreferencesRepository.clearAllData()
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to clear preferences", e)
             }
+
+            // Final safety flag (navigation will likely be handled by Splash after restart)
+            _uiState.update { it.copy(isDeletionComplete = true) }
         }
     }
 
     fun logout() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isDeletingAccount = true, deletionProgressMessage = "Logging out...") }
+            
             // Sync preferences one last time
             userPreferencesRepository.syncToCloud()
             
-            // Clear all local data for privacy
+            // Clear all local data for privacy (Excluding preferences)
             try {
                 mealRepository.clearAllMeals()
                 dailyLogRepository.clearAllLogs()
@@ -273,15 +291,21 @@ class SettingsViewModel @Inject constructor(
                 waterReminderRepository.clearAllData()
                 socialChallengeRepository.clearAllData()
                 gamificationRepository.clearAllData()
-                userPreferencesRepository.clearAllData()
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to clear local data during logout", e)
             }
             
             authRepository.signOut()
-            _uiState.update { it.copy(deletionProgressMessage = "Logging out...", isDeletingAccount = true) }
             kotlinx.coroutines.delay(1000)
-            _uiState.update { it.copy(isDeletionComplete = true) } // Use this flag to trigger navigation
+
+            // Clear Preferences last
+            try {
+                userPreferencesRepository.clearAllData()
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to clear preferences during logout", e)
+            }
+            
+            _uiState.update { it.copy(isDeletionComplete = true) }
         }
     }
 }

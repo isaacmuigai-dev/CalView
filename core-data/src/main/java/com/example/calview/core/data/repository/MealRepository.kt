@@ -16,6 +16,12 @@ interface MealRepository {
     suspend fun restoreFromCloud(): Boolean
     
     /**
+     * Check if user has any meals logged.
+     * Used to identify returning users even if isOnboardingComplete is false.
+     */
+    suspend fun hasAnyMeals(): Boolean
+    
+    /**
      * Clear all meals from local database.
      * Called during account deletion to remove all local data.
      */

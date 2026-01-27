@@ -8,6 +8,12 @@ import com.google.firebase.auth.FirebaseUser
 interface AuthRepository {
     
     /**
+     * Flow of the current signed-in user.
+     * Emits the user object when signed in, or null when signed out.
+     */
+    val authState: kotlinx.coroutines.flow.Flow<com.google.firebase.auth.FirebaseUser?>
+
+    /**
      * Check if a user is currently signed in.
      */
     fun isSignedIn(): Boolean

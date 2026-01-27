@@ -13,9 +13,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.calview.core.data.notification.NotificationHandler
 import javax.inject.Inject
 
 /**
@@ -26,7 +28,8 @@ import javax.inject.Inject
 class FeedbackHubViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository,
     private val authRepository: AuthRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val notificationHandler: NotificationHandler
 ) : ViewModel() {
     
     companion object {
@@ -64,8 +67,14 @@ class FeedbackHubViewModel @Inject constructor(
     private val _comments = MutableStateFlow<List<CommentDto>>(emptyList())
     val comments: StateFlow<List<CommentDto>> = _comments.asStateFlow()
     
+    private var commentsJob: kotlinx.coroutines.Job? = null
+    
+    // Status tracking for notifications
+    private val lastSeenStatuses = mutableMapOf<String, String>()
+    
     init {
         loadCurrentUser()
+        monitorStatusChanges()
     }
     
     private fun loadCurrentUser() {
@@ -85,6 +94,33 @@ class FeedbackHubViewModel @Inject constructor(
                 Log.d(TAG, "Loaded user: ${_currentUserName.value} (${_currentUserId.value})")
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading current user", e)
+            }
+        }
+    }
+
+    /**
+     * Monitor status changes for requests authored by the current user.
+     */
+    private fun monitorStatusChanges() {
+        viewModelScope.launch {
+            combine(featureRequests, _currentUserId) { requests, userId ->
+                if (userId.isEmpty()) emptyList() else requests.filter { it.authorId == userId }
+            }.collect { userRequests ->
+                userRequests.forEach { request ->
+                    val previousStatus = lastSeenStatuses[request.id]
+                    if (previousStatus != null && previousStatus != request.status) {
+                        // Status changed!
+                        notificationHandler.showNotification(
+                            id = NotificationHandler.ID_FEATURE_REQUEST,
+                            channelId = NotificationHandler.CHANNEL_SYSTEM,
+                            title = "📢 Request Update: ${request.status}",
+                            message = "The status of your feature request '${request.title}' has been updated to ${request.status}.",
+                            navigateTo = "feedback"
+                        )
+                    }
+                    // Update cache
+                    lastSeenStatuses[request.id] = request.status
+                }
             }
         }
     }
@@ -118,6 +154,13 @@ class FeedbackHubViewModel @Inject constructor(
                 )
                 firestoreRepository.postFeatureRequest(request)
                 Log.d(TAG, "Feature request posted successfully")
+                notificationHandler.showNotification(
+                    id = NotificationHandler.ID_FEATURE_REQUEST,
+                    channelId = NotificationHandler.CHANNEL_SYSTEM,
+                    title = "📩 Feedback Received",
+                    message = "Thanks for your feedback! Our team has received your request: '${request.title}'",
+                    navigateTo = "feedback"
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Error posting feature request", e)
                 _error.value = "Failed to post request: ${e.message}"
@@ -158,9 +201,10 @@ class FeedbackHubViewModel @Inject constructor(
      */
     fun selectRequest(requestId: String?) {
         _selectedRequestId.value = requestId
+        commentsJob?.cancel() // Cancel previous observation
         
         if (requestId != null) {
-            viewModelScope.launch {
+            commentsJob = viewModelScope.launch {
                 firestoreRepository.observeComments(requestId)
                     .collect { commentsList ->
                         _comments.value = commentsList
@@ -211,6 +255,13 @@ class FeedbackHubViewModel @Inject constructor(
                 firestoreRepository.updateCommentCount(requestId, newCount)
                 
                 Log.d(TAG, "Comment posted successfully")
+                notificationHandler.showNotification(
+                    id = NotificationHandler.ID_FEATURE_REQUEST,
+                    channelId = NotificationHandler.CHANNEL_SYSTEM,
+                    title = "💬 Comment Posted",
+                    message = "Your comment has been added to the discussion.",
+                    navigateTo = "feedback"
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Error posting comment", e)
                 _error.value = "Failed to post comment: ${e.message}"

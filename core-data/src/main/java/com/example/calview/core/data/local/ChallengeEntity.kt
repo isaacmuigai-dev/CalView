@@ -5,14 +5,14 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "challenges")
 data class ChallengeEntity(
-    @PrimaryKey val id: String,
-    val title: String,
-    val description: String,
-    val type:  ChallengeType,
-    val targetValue: Int,
+    @PrimaryKey val id: String = "",
+    val title: String = "",
+    val description: String = "",
+    val type:  ChallengeType = ChallengeType.STREAK,
+    val targetValue: Int = 0,
     val currentProgress: Int = 0,
-    val startDate: Long,
-    val endDate: Long,
+    val startDate: Long = 0,
+    val endDate: Long = 0,
     val isCompleted: Boolean = false,
     val badgeRewardId: String? = null
 )

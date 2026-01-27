@@ -25,13 +25,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.example.calview.core.data.notification.NotificationHandler
 
 /**
  * Manages Billing via native Google Play Billing Library.
  */
 @Singleton
 class BillingManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val notificationHandler: NotificationHandler
 ) : PurchasesUpdatedListener {
 
     companion object {
@@ -180,6 +182,13 @@ class BillingManager @Inject constructor(
             }
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             Log.d(TAG, "User cancelled the purchase")
+            notificationHandler.showNotification(
+                id = NotificationHandler.ID_PREMIUM,
+                channelId = NotificationHandler.CHANNEL_PREMIUM,
+                title = "🔒 Premium Offer Still Available",
+                message = "Unlock all features like Streaks and Water Tracking for as low as $1.99. Tap to see plans again!",
+                navigateTo = "paywall"
+            )
         } else {
             Log.e(TAG, "Purchase error: ${billingResult.debugMessage}")
         }
@@ -199,6 +208,13 @@ class BillingManager @Inject constructor(
                     if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                         Log.d(TAG, "Purchase acknowledged successfully")
                         _isPremium.value = true
+                        notificationHandler.showNotification(
+                            id = NotificationHandler.ID_PREMIUM,
+                            channelId = NotificationHandler.CHANNEL_PREMIUM,
+                            title = "👑 Welcome to Premium!",
+                            message = "Your subscription is now active. Enjoy all the premium features of CalView!",
+                            navigateTo = "main?tab=0"
+                        )
                     } else {
                         Log.e(TAG, "Purchase acknowledgement failed: ${billingResult.debugMessage}")
                     }
@@ -214,7 +230,9 @@ class BillingManager @Inject constructor(
      * Query existing purchases to restore state
      */
     fun queryPurchases() {
+        Log.d(TAG, "queryPurchases called. userEmail='$currentUserEmail'")
         if (!_billingClient.isReady) {
+            Log.w(TAG, "BillingClient not ready, starting connection...")
             startConnection()
             return
         }
@@ -225,9 +243,11 @@ class BillingManager @Inject constructor(
             
         _billingClient.queryPurchasesAsync(params) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "queryPurchasesAsync OK. Found ${purchases.size} purchases.")
                 var hasActiveSubscription = false
                 if (purchases.isNotEmpty()) {
                     for (purchase in purchases) {
+                        Log.d(TAG, "  Purchase: products=${purchase.products}, state=${purchase.purchaseState}, acknowledged=${purchase.isAcknowledged}")
                         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
                             hasActiveSubscription = true
                             // Ensure it's acknowledged if it's not already
@@ -241,8 +261,10 @@ class BillingManager @Inject constructor(
                 // If not found in SUBS, check INAPP if you support that
                 // otherwise set value
                 if (hasActiveSubscription) {
+                    Log.d(TAG, "✅ Active subscription found. Setting isPremium=true")
                     _isPremium.value = true
                 } else {
+                    Log.d(TAG, "⚠️ No active subscription found. Checking test account...")
                     // Only flip to false if we haven't manually granted access via test email
                     checkTestAccount()
                 }

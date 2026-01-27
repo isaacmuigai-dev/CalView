@@ -157,7 +157,7 @@ fun CreateAccountScreen(
         ) {
             Row {
                 Text(
-                    text = "By continuing, you agree to Cal AI's ",
+                    text = "By continuing, you agree to CalViewAI's ",
                     fontFamily = Inter,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

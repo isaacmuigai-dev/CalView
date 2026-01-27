@@ -31,6 +31,7 @@ import javax.inject.Inject
 class ScannerViewModel @Inject constructor(
     private val foodAnalysisService: FoodAnalysisService,
     private val mealRepository: MealRepository,
+    private val gamificationRepository: com.example.calview.core.data.repository.GamificationRepository,
     private val userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -180,6 +181,7 @@ class ScannerViewModel @Inject constructor(
                                 detectedItemsJson = detectedItemsJsonStr
                             )
                             mealRepository.updateMeal(updatedMeal)
+                            gamificationRepository.grantXp(50) // Bonus for AI analysis
                             updateWidget()
                             
                             _uiState.value = ScannerUiState.Redirecting(activeMealId)
@@ -318,6 +320,7 @@ class ScannerViewModel @Inject constructor(
                                 detectedItemsJson = detectedItemsJsonStr
                             )
                             mealRepository.updateMeal(updatedMeal)
+                            gamificationRepository.grantXp(50) // Bonus for voice AI
                             updateWidget()
                             
                             _uiState.value = ScannerUiState.Redirecting(activeMealId)
@@ -490,6 +493,7 @@ class ScannerViewModel @Inject constructor(
      */
     suspend fun logMealDirectly(meal: MealEntity): Long {
         val id = mealRepository.logMeal(meal)
+        gamificationRepository.grantXp(20)
         updateWidget()
         return id
     }
@@ -523,6 +527,7 @@ class ScannerViewModel @Inject constructor(
                 analysisProgress = 100f
             )
             mealRepository.logMeal(meal)
+            gamificationRepository.grantXp(20)
             updateWidget()
         }
     }
@@ -550,6 +555,7 @@ class ScannerViewModel @Inject constructor(
                 confidenceScore = 60f // Lower confidence for quick AR detection
             )
             val id = mealRepository.logMeal(meal)
+            gamificationRepository.grantXp(15) // XP for quick AR log
             updateWidget()
             _uiState.value = ScannerUiState.Redirecting(id)
         }
@@ -587,6 +593,7 @@ class ScannerViewModel @Inject constructor(
                 analysisProgress = 100f
             )
             val id = mealRepository.logMeal(meal)
+            gamificationRepository.grantXp(20) // XP for barcode log
             updateWidget()
             _uiState.value = ScannerUiState.Redirecting(id)
         }
@@ -620,6 +627,7 @@ class ScannerViewModel @Inject constructor(
                 analysisProgress = 100f
             )
             val id = mealRepository.logMeal(meal)
+            gamificationRepository.grantXp(20) // XP for OCR log
             updateWidget()
             _uiState.value = ScannerUiState.Redirecting(id)
         }

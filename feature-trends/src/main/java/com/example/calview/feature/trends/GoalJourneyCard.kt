@@ -2,6 +2,7 @@ package com.example.calview.feature.trends
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -36,21 +37,22 @@ fun GoalJourneyCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Text(
                 text = "Your Goal Journey",
                 fontFamily = Inter,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Current Weight → Goal Weight
             Row(
@@ -70,17 +72,25 @@ fun GoalJourneyCard(
                         text = "${currentWeight.toInt()} kg",
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
+                        fontSize = 22.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 // Arrow
-                Text(
-                    text = "→",
-                    fontSize = 24.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "→",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 // Goal Weight
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -94,82 +104,48 @@ fun GoalJourneyCard(
                         text = "${targetWeight.toInt()} kg",
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
+                        fontSize = 22.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Details Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Weekly Pace
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "⚡ Weekly Pace",
-                        fontFamily = Inter,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${"%.1f".format(weeklyPace)} kg",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                JourneyStatItem(
+                    label = "⚡ Weekly Pace",
+                    value = "${"%.1f".format(weeklyPace)} kg",
+                    modifier = Modifier.weight(1f)
+                )
 
                 // To ${actionWord}
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "📊 To $actionWord",
-                        fontFamily = Inter,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "$weightDiff kg",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                JourneyStatItem(
+                    label = "📊 To $actionWord",
+                    value = "$weightDiff kg",
+                    modifier = Modifier.weight(1f)
+                )
 
                 // Time Estimate
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "⏱️ Estimated",
-                        fontFamily = Inter,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "$weeksToGoal weeks",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                JourneyStatItem(
+                    label = "⏱️ Estimated",
+                    value = "$weeksToGoal weeks",
+                    modifier = Modifier.weight(1f)
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Target Date
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             ) {
                 Row(
                     modifier = Modifier
@@ -181,18 +157,45 @@ fun GoalJourneyCard(
                     Text(
                         text = "🎯 Estimated Goal Date: ",
                         fontFamily = Inter,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = targetDateStr,
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun JourneyStatItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = label,
+            fontFamily = Inter,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            fontFamily = Inter,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

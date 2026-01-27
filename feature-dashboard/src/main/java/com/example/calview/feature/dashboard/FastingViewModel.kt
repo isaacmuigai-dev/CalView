@@ -8,6 +8,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.calview.feature.dashboard.worker.FastCompletionWorker
+import com.example.calview.core.data.notification.NotificationHandler
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 data class FastingUiState(
@@ -33,20 +38,34 @@ enum class FastType(val label: String, val fastingHours: Int, val eatingHours: I
 
 @HiltViewModel
 class FastingViewModel @Inject constructor(
-    private val fastingRepository: FastingRepository
+    private val fastingRepository: FastingRepository,
+    private val notificationHandler: NotificationHandler,
+    private val workManager: WorkManager
 ) : ViewModel() {
+    
+    companion object {
+        private const val FAST_WORK_TAG = "fast_completion_work"
+    }
     
     private val _uiState = MutableStateFlow(FastingUiState())
     val uiState: StateFlow<FastingUiState> = _uiState.asStateFlow()
     
     init {
-        // Observe active fast
+        // Observe active fast and run timer only when active
         viewModelScope.launch {
-            fastingRepository.activeFast.collect { session ->
+            fastingRepository.activeFast.collectLatest { session ->
                 _uiState.update { it.copy(
                     isActive = session != null,
                     currentSession = session
                 )}
+                
+                // If there is an active session, run the timer
+                if (session != null) {
+                    while (true) {
+                        updateElapsedTime()
+                        delay(1000)
+                    }
+                }
             }
         }
         
@@ -59,9 +78,21 @@ class FastingViewModel @Inject constructor(
 
         // Observe current streak
         viewModelScope.launch {
-            fastingRepository.currentStreak.collect { streak ->
-                _uiState.update { it.copy(currentStreak = streak) }
-            }
+            fastingRepository.currentStreak
+                .distinctUntilChanged()
+                .collect { streak ->
+                    val previousStreak = _uiState.value.currentStreak
+                    if (streak > previousStreak && streak > 0) {
+                        notificationHandler.showNotification(
+                            id = NotificationHandler.ID_FASTING,
+                            channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                            title = "🔥 Fasting Streak!",
+                            message = "Amazing! You've reached a $streak-day fasting streak. Keep it up!",
+                            navigateTo = "fasting"
+                        )
+                    }
+                    _uiState.update { it.copy(currentStreak = streak) }
+                }
         }
         
         // Observe recent sessions
@@ -71,13 +102,6 @@ class FastingViewModel @Inject constructor(
             }
         }
         
-        // Timer tick - update elapsed time every minute
-        viewModelScope.launch {
-            while (true) {
-                delay(1000) // Update every second for smoother UI
-                updateElapsedTime()
-            }
-        }
     }
     
     private fun updateElapsedTime() {
@@ -107,6 +131,21 @@ class FastingViewModel @Inject constructor(
                 targetDurationMinutes = type.targetMinutes,
                 fastingType = type.label
             )
+            
+            // Schedule notification
+            val request = OneTimeWorkRequestBuilder<FastCompletionWorker>()
+                .setInitialDelay(type.targetMinutes.toLong(), TimeUnit.MINUTES)
+                .addTag(FAST_WORK_TAG)
+                .build()
+            workManager.enqueue(request)
+
+            notificationHandler.showNotification(
+                id = NotificationHandler.ID_FASTING,
+                channelId = NotificationHandler.CHANNEL_SYSTEM,
+                title = "⏱️ Fast Started",
+                message = "Your ${type.label} fast has begun. Good luck!",
+                navigateTo = "fasting"
+            )
         }
     }
     
@@ -115,12 +154,27 @@ class FastingViewModel @Inject constructor(
             val state = _uiState.value
             val isCompleted = state.elapsedMinutes >= (state.currentSession?.targetDurationMinutes ?: 0)
             fastingRepository.endFast(completed = isCompleted)
+            
+            // Cancel scheduled notification
+            workManager.cancelAllWorkByTag(FAST_WORK_TAG)
+
+            if (isCompleted) {
+                notificationHandler.showNotification(
+                    id = NotificationHandler.ID_FASTING,
+                    channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                    title = "🎉 Fast Completed!",
+                    message = "Congratulations! You've successfully completed your ${state.currentSession?.fastingType} fast.",
+                    navigateTo = "fasting"
+                )
+            }
         }
     }
     
     fun cancelFast() {
         viewModelScope.launch {
             fastingRepository.cancelFast()
+            // Cancel scheduled notification
+            workManager.cancelAllWorkByTag(FAST_WORK_TAG)
         }
     }
 }

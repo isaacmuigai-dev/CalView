@@ -16,7 +16,8 @@ class MealRepositoryImpl @Inject constructor(
     private val storageRepository: StorageRepository,
     private val socialChallengeRepository: SocialChallengeRepository,
     private val streakFreezeRepository: StreakFreezeRepository,
-    private val dailyLogRepository: DailyLogRepository
+    private val dailyLogRepository: DailyLogRepository,
+    private val gamificationRepository: GamificationRepository
 ) : MealRepository {
     
     // Scope for background sync operations
@@ -128,6 +129,9 @@ class MealRepositoryImpl @Inject constructor(
                 streakFreezeRepository.getStreakData(mealDates).firstOrNull()?.let { streak ->
                     socialChallengeRepository.updateUserProgressForType(SocialChallengeType.STREAK, streak)
                 }
+                
+                // 3. Update Individual Challenges & Badges
+                gamificationRepository.checkChallengeProgress()
             } catch (e: Exception) {
                 android.util.Log.e("MealRepository", "Error updating challenge progress", e)
             }
@@ -156,9 +160,10 @@ class MealRepositoryImpl @Inject constructor(
             }
         }
 
-        // Update DailyLog totals
+        // Update DailyLog totals and challenges
         scope.launch {
             syncTotalsForDate(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(meal.timestamp))
+            gamificationRepository.checkChallengeProgress()
         }
     }
 
@@ -177,9 +182,10 @@ class MealRepositoryImpl @Inject constructor(
             }
         }
 
-        // Update DailyLog totals
+        // Update DailyLog totals and challenges
         scope.launch {
             syncTotalsForDate(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(meal.timestamp))
+            gamificationRepository.checkChallengeProgress()
         }
     }
     
@@ -241,6 +247,19 @@ class MealRepositoryImpl @Inject constructor(
             android.util.Log.e("MealRepository", "Error clearing meals", e)
         }
     }
+    
+    override suspend fun hasAnyMeals(): Boolean {
+        return try {
+            val meals = getAllMeals().firstOrNull() ?: emptyList()
+            val hasMeals = meals.isNotEmpty()
+            android.util.Log.d("MealRepository", "hasAnyMeals check: $hasMeals (count=${meals.size})")
+            hasMeals
+        } catch (e: Exception) {
+            android.util.Log.e("MealRepository", "Error checking hasAnyMeals", e)
+            false
+        }
+    }
+
     private suspend fun syncTotalsForDate(dateString: String) {
         try {
             val meals = getMealsForDate(dateString).firstOrNull() ?: emptyList()

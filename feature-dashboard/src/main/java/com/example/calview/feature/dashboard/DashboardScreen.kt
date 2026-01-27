@@ -49,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -58,6 +59,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -196,7 +198,7 @@ fun DashboardScreen(
     
     // State for showing streak lost dialog
     var showStreakLostDialog by remember { mutableStateOf(false) }
-    var hasShownStreakLostDialog by remember { mutableStateOf(false) }
+    var hasShownStreakLostDialog by rememberSaveable { mutableStateOf(false) }
     
     // State for showing food detail screen
     var selectedMeal by remember { mutableStateOf<com.example.calview.core.data.local.MealEntity?>(null) }
@@ -204,6 +206,8 @@ fun DashboardScreen(
     // NOTE: Removed annoying burned calories notification (snackbar)
     // The notification was triggered too frequently and displayed misleading calorie values
     
+    // Check if streak lost and show dialog once per session
+    // Specifically targeting the first time it's true after load
     // Check if streak lost and show dialog once per session
     LaunchedEffect(state.streakLost) {
         if (state.streakLost && !hasShownStreakLostDialog) {
@@ -317,6 +321,7 @@ fun DashboardScreen(
                 onWaterReminderEnabledChange = { viewModel.setWaterReminderEnabled(it) },
                 onWaterReminderIntervalChange = { viewModel.setWaterReminderInterval(it) },
                 onWaterReminderDailyGoalChange = { viewModel.setWaterReminderDailyGoal(it) },
+                onWaterServingSizeChange = { viewModel.setWaterServingSize(it) },
                 onUpgradeClick = { /* Navigate to Paywall - handled via top level nav if needed, or callback */ },
                 onWalkthroughComplete = { viewModel.setHasSeenWalkthrough(true) }
             )
@@ -347,6 +352,7 @@ fun DashboardContent(
     onWaterReminderEnabledChange: (Boolean) -> Unit = {},
     onWaterReminderIntervalChange: (Int) -> Unit = {},
     onWaterReminderDailyGoalChange: (Int) -> Unit = {},
+    onWaterServingSizeChange: (Int) -> Unit = {},
     onUpgradeClick: () -> Unit = {},
     onWalkthroughComplete: () -> Unit = {}
 ) {
@@ -359,6 +365,9 @@ fun DashboardContent(
     var nutritionRect by remember { mutableStateOf<Rect?>(null) }
     var healthScoreRect by remember { mutableStateOf<Rect?>(null) }
     var waterRect by remember { mutableStateOf<Rect?>(null) }
+    var calendarRect by remember { mutableStateOf<Rect?>(null) }
+    var healthConnectRect by remember { mutableStateOf<Rect?>(null) }
+    var recentMealsRect by remember { mutableStateOf<Rect?>(null) }
     
     var currentStepIndex by remember(state.hasSeenWalkthrough) { 
         mutableIntStateOf(if (!state.hasSeenWalkthrough) 0 else -1) 
@@ -372,39 +381,58 @@ fun DashboardContent(
             targetRect = nutritionRect
         ),
         WalkthroughStep(
+            id = "calendar",
+            title = "Historical Data",
+            description = "Use the calendar to navigate between days and view your historical nutrition logs.",
+            targetRect = calendarRect
+        ),
+        WalkthroughStep(
             id = "score",
             title = "AI Health Coach",
             description = "Your Health Score updates dynamically. Check the AI Coach tips for personalized nutrition advice.",
             targetRect = healthScoreRect
         ),
         WalkthroughStep(
+            id = "health",
+            title = "Health Connect",
+            description = "Sync with Google Fit or Samsung Health via Health Connect to automatically track your steps and activity.",
+            targetRect = healthConnectRect
+        ),
+        WalkthroughStep(
             id = "water",
             title = "Hydration Tracker",
             description = "Staying hydrated is key to your health. Quickly log your water intake throughout the day.",
             targetRect = waterRect
+        ),
+        WalkthroughStep(
+            id = "meal",
+            title = "Scanned Meals",
+            description = "Your recently scanned meals appear here. Tap any meal to see detailed nutrition information.",
+            targetRect = recentMealsRect
         )
     )
 
     // Auto-scroll logic for walkthrough steps to ensure target items are visible
-    LaunchedEffect(currentStepIndex, nutritionRect, healthScoreRect, waterRect) {
+    LaunchedEffect(currentStepIndex) {
         if (currentStepIndex != -1) {
-            // Small delay to let any previous scroll finish
-            kotlinx.coroutines.delay(100)
+            // Give layout a moment to settle and for rects to be captured
+            kotlinx.coroutines.delay(150)
             
-            // Only proceed if the target rect for current step is captured
-            // This prevents the tour from starting at the bottom (0,0 or default)
-            val hasRect = when (currentStepIndex) {
-                0 -> nutritionRect != null
-                1 -> healthScoreRect != null
-                2 -> waterRect != null
-                else -> true
+            val targetScrollIndex = when (currentStepIndex) {
+                0 -> 1 // Nutrition
+                1 -> 0 // Calendar/Header
+                2 -> 2 // Health Score
+                3 -> 3 // Health Connect (if visible) or Unified Activity
+                4 -> if (!state.isHealthConnected) 5 else 4 // Water Tracker
+                5 -> if (!state.isHealthConnected) 7 else 6 // Recently Uploaded First Meal
+                else -> -1
             }
             
-            if (hasRect) {
-                when (currentStepIndex) {
-                    0 -> lazyListState.animateScrollToItem(1) // Nutrition
-                    1 -> lazyListState.animateScrollToItem(2) // Health Score
-                    2 -> lazyListState.animateScrollToItem(4) // Water Tracker
+            if (targetScrollIndex != -1) {
+                try {
+                    lazyListState.animateScrollToItem(targetScrollIndex)
+                } catch (e: Exception) {
+                    android.util.Log.e("DashboardScreen", "Error scrolling to walkthrough item", e)
                 }
             }
         }
@@ -448,6 +476,7 @@ fun DashboardContent(
             
             Spacer(modifier = Modifier.height(4.dp))
             DateSelector(
+                modifier = Modifier.onPositionedRect { calendarRect = it },
                 selectedDate = state.selectedDate, 
                 onDateSelected = onDateSelected,
                 allMealDates = state.allMealDates
@@ -497,7 +526,8 @@ fun DashboardContent(
             item {
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .onPositionedRect { healthConnectRect = it },
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 2.dp
@@ -633,7 +663,8 @@ fun DashboardContent(
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
-                )
+                ),
+                modifier = Modifier.onPositionedRect { recentMealsRect = it }
             )
         }
 
@@ -770,6 +801,9 @@ fun MicroCard(
                 modifier = Modifier
                     .size(70.dp)
                     .align(Alignment.CenterHorizontally)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "$label progress: ${(progress * 100).toInt()}%"
+                    }
             ) {
                 // Draw ring using Canvas for proper visibility
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
@@ -888,7 +922,10 @@ fun HeaderSection(streakDays: Int = 0) {
         if (streakDays > 0) {
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    contentDescription = "$streakDays day streak"
+                }
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -913,6 +950,7 @@ fun HeaderSection(streakDays: Int = 0) {
 
 @Composable
 fun DateSelector(
+    modifier: Modifier = Modifier,
     selectedDate: Calendar, 
     onDateSelected: (Calendar) -> Unit,
     allMealDates: List<Long> = emptyList()
@@ -976,7 +1014,7 @@ fun DateSelector(
         return dateStart.after(todayStart)
     }
     
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth()) {
         // Month and Year Header with week indicator
         Row(
             modifier = Modifier
@@ -2881,13 +2919,15 @@ fun WaterSettingsDialog(
                     startHour = waterReminderStartHour,
                     endHour = waterReminderEndHour,
                     dailyGoalMl = waterReminderDailyGoal,
+                    servingSize = currentServingSize,
                     onEnabledChange = onWaterReminderEnabledChange,
                     onIntervalChange = onWaterReminderIntervalChange,
                     onStartHourChange = { /* TODO: Implement time picker logic here or in ViewModel */ },
                     onEndHourChange = { /* TODO */ },
                     onDailyGoalChange = onWaterReminderDailyGoalChange,
+                    onServingSizeChange = onServingSizeChange,
                     onUpgradeClick = onUpgradeClick,
-                     modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -3151,7 +3191,7 @@ fun HealthConnectOnboardingScreen(
 
 /**
  * Streak Lost Dialog - Shows when user hasn't logged food in 24 hours
- * Matches the design from mockup with Cal AI header, gray flame, week indicators
+ * Matches the design from mockup with CalView AI header, gray flame, week indicators
  */
 @Composable
 fun StreakLostDialog(
@@ -3183,21 +3223,21 @@ fun StreakLostDialog(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header with Cal AI and streak count
+                // Header with CalView AI and streak count
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Cal AI icon placeholder - fire emoji
+                        // CalView AI icon placeholder - fire emoji
                         Text(
                             text = "🔥",
                             fontSize = 18.sp
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Cal AI",
+                            text = "CalView AI",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black

@@ -65,6 +65,9 @@ class DashboardViewModel @Inject constructor(
     val hasSeenWalkthrough = userPreferencesRepository.hasSeenDashboardWalkthrough
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    private val lastActivityTimestamp = userPreferencesRepository.lastActivityTimestamp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
     fun setHasSeenWalkthrough(seen: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setHasSeenDashboardWalkthrough(seen)
@@ -80,10 +83,23 @@ class DashboardViewModel @Inject constructor(
         dailyLogRepository.getLogForDate(dateString).map { it?.waterIntake ?: 0 }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
-    // Observe repository for water updates and date checks
     init {
         viewModelScope.launch {
             checkRollover()
+            
+            // Initial health data sync
+            if (healthConnectManager.isAvailable()) {
+                healthConnectManager.readTodayData()
+            }
+            
+            // Mark activity timestamp after a small delay to allow coach tip generation
+            kotlinx.coroutines.delay(1000)
+            userPreferencesRepository.setLastActivityTimestamp(System.currentTimeMillis())
+        }
+        
+        // Sync steps to DataStore for Widget
+        viewModelScope.launch {
+            healthConnectManager.healthData.collect { userPreferencesRepository.setLastKnownSteps(it.steps.toInt()) }
         }
     }
 
@@ -152,7 +168,21 @@ class DashboardViewModel @Inject constructor(
     private val allMeals = mealRepository.getAllMeals()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
-    val dashboardState = combine(coreState, recentUploads, stepsGoal, rolloverEnabled, rolloverAmount) { core, recent, stepGoal, rolloverOn, rolloverAmt ->
+    val dashboardState = combine(
+        coreState, 
+        recentUploads, 
+        stepsGoal, 
+        rolloverEnabled, 
+        rolloverAmount,
+        userPreferencesRepository.waterServingSize
+    ) { flows ->
+        val core = flows[0] as CoreState
+        val recent = flows[1] as List<MealEntity>
+        val stepGoal = flows[2] as Int
+        val rolloverOn = flows[3] as Boolean
+        val rolloverAmt = flows[4] as Int
+        val servingSize = flows[5] as Int
+        
         // Only count completed meals for calorie totals
         val completedMeals = core.meals.filter { 
             it.analysisStatus == AnalysisStatus.COMPLETED 
@@ -181,7 +211,8 @@ class DashboardViewModel @Inject constructor(
             fats = fats,
             fiber = fiber,
             sugar = sugar,
-            sodium = sodium
+            sodium = sodium,
+            waterServingSize = servingSize
         )
     }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
          Pair(intermediate, waterSettings)
@@ -246,7 +277,8 @@ class DashboardViewModel @Inject constructor(
             waterReminderIntervalHours = waterSettings?.intervalHours ?: 2,
             waterReminderStartHour = waterSettings?.startHour ?: 8,
             waterReminderEndHour = waterSettings?.endHour ?: 22,
-            waterReminderDailyGoalMl = waterSettings?.dailyGoalMl ?: 2500
+            waterReminderDailyGoalMl = waterSettings?.dailyGoalMl ?: 2500,
+            waterServingSize = intermediate.waterServingSize
         )
     }.combine(userPreferencesRepository.hasSeenDashboardWalkthrough) { state, hasSeen ->
         state.copy(hasSeenWalkthrough = hasSeen)
@@ -336,7 +368,7 @@ class DashboardViewModel @Inject constructor(
                     fatsGoal = state.fatsGoal
                 )
                 
-                state.copy(
+                val finalState = state.copy(
                     streakLost = streakLost,
                     currentStreak = streak,
                     completedDays = completedDays,
@@ -344,6 +376,20 @@ class DashboardViewModel @Inject constructor(
                     healthRecommendation = healthRecommendation,
                     allMealDates = allMealsList.filter { it.analysisStatus == AnalysisStatus.COMPLETED }.map { it.timestamp }
                 )
+
+                // Generate health score tip using the persisted last activity time
+                val coachTip = coachMessageGenerator.generateHealthScoreTip(
+                    currentScore = finalState.healthScore,
+                    previousScore = 0, // In future turn we could persist previous score
+                    lastActivityTimestamp = lastActivityTimestamp.value
+                )
+
+                // If health coach has a high-priority tip (like welcome back), use it
+                if (coachTip.emoji == "👋") {
+                   finalState.copy(coachTip = coachTip)
+                } else {
+                   finalState
+                }
             }
         }
     }.scan(DashboardState()) { previous, current ->
@@ -352,7 +398,7 @@ class DashboardViewModel @Inject constructor(
              val tip = coachMessageGenerator.generateHealthScoreTip(
                  currentScore = current.healthScore,
                  previousScore = previous.healthScore,
-                 lastActivityTimestamp = System.currentTimeMillis() // Simplified tracking
+                 lastActivityTimestamp = lastActivityTimestamp.value
              )
              current.copy(coachTip = tip)
         } else {
@@ -360,28 +406,7 @@ class DashboardViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
 
-    
-    init {
-        // Check Health Connect availability and read data on init
-        viewModelScope.launch {
-            if (healthConnectManager.isAvailable()) {
-                healthConnectManager.readTodayData()
-            }
-        }
-        
-        // Sync steps to DataStore for Widget
-        viewModelScope.launch {
-            healthConnectManager.healthData.collect { data ->
-                // Always sync to ensure widget resets to 0 on new days
-                userPreferencesRepository.setLastKnownSteps(data.steps.toInt())
-                userPreferencesRepository.setActivityStats(
-                    caloriesBurned = data.caloriesBurned.toInt(),
-                    weeklyBurn = data.weeklyCaloriesBurned.toInt(),
-                    recordBurn = data.maxCaloriesBurnedRecord.toInt()
-                )
-            }
-        }
-    }
+
     
     fun selectDate(date: Calendar) {
         _selectedDate.value = date
@@ -398,11 +423,12 @@ class DashboardViewModel @Inject constructor(
         }
     }
     
-    fun addWater(amount: Int = 1) {
+    fun addWater(amount: Int? = null) {
         viewModelScope.launch {
+            val servingSize = amount ?: userPreferencesRepository.waterServingSize.first()
             val dateString = dateFormat.format(_selectedDate.value.time)
             val currentWater = waterConsumed.value
-            val newValue = currentWater + amount
+            val newValue = currentWater + servingSize
             
             // Update daily log for historical tracking
             dailyLogRepository.updateWater(dateString, newValue)
@@ -424,11 +450,12 @@ class DashboardViewModel @Inject constructor(
         }
     }
     
-    fun removeWater(amount: Int = 1) {
+    fun removeWater(amount: Int? = null) {
         viewModelScope.launch {
+            val servingSize = amount ?: userPreferencesRepository.waterServingSize.first()
             val dateString = dateFormat.format(_selectedDate.value.time)
             val currentWater = waterConsumed.value
-            val newValue = (currentWater - amount).coerceAtLeast(0)
+            val newValue = (currentWater - servingSize).coerceAtLeast(0)
             
             // Update daily log for historical tracking
             dailyLogRepository.updateWater(dateString, newValue)
@@ -606,9 +633,10 @@ class DashboardViewModel @Inject constructor(
         
         // Hydration (max 2 points) - 8 glasses target
         val waterTarget = 8
+        val glasses = waterConsumed / 8
         score += when {
-            waterConsumed >= waterTarget -> 2f
-            waterConsumed >= waterTarget / 2 -> 1f
+            glasses >= waterTarget -> 2f
+            glasses >= waterTarget / 2 -> 1f
             else -> 0f
         }
         
@@ -724,6 +752,10 @@ class DashboardViewModel @Inject constructor(
     fun setWaterReminderDailyGoal(ml: Int) {
         viewModelScope.launch { waterReminderRepository.setDailyGoal(ml) }
     }
+
+    fun setWaterServingSize(flOz: Int) {
+        viewModelScope.launch { userPreferencesRepository.setWaterServingSize(flOz) }
+    }
 }
 
 // Internal data class for intermediate combine state
@@ -748,7 +780,8 @@ private data class IntermediateState(
     val fats: Int,
     val fiber: Int,
     val sugar: Int,
-    val sodium: Int
+    val sodium: Int,
+    val waterServingSize: Int
 )
 
 private data class MacroState(
@@ -806,6 +839,7 @@ data class DashboardState(
     val waterReminderStartHour: Int = 8,
     val waterReminderEndHour: Int = 22,
     val waterReminderDailyGoalMl: Int = 2500,
+    val waterServingSize: Int = 8,
     val hasSeenWalkthrough: Boolean = true,
     val allMealDates: List<Long> = emptyList()
 )

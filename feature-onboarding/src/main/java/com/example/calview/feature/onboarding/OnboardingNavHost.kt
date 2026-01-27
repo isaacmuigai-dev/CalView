@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.util.Log
 
 /**
  * Consolidated onboarding navigation flow.
@@ -17,12 +18,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
  */
 @Composable
 fun OnboardingNavHost(
+    isSignedIn: Boolean = false,
+    isRedirecting: Boolean = false,
     onOnboardingComplete: () -> Unit,
     onSignIn: () -> Unit,
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {}
 ) {
+    Log.d("OnboardingNav", "OnboardingNavHost entered: isSignedIn=$isSignedIn, isRedirecting=$isRedirecting")
     val navController = rememberNavController()
+    
+    // Automatically navigate to profile_setup if user signs in while on welcome screen
+    LaunchedEffect(isSignedIn, isRedirecting) {
+        Log.d("OnboardingNav", "Auth state changed: isSignedIn=$isSignedIn, isRedirecting=$isRedirecting")
+        // CRITICAL: Only navigate if signed in AND NOT redirecting.
+        // This prevents the "profile setup" screen from showing while MainActivity is still checking for returning users.
+        if (isSignedIn && !isRedirecting) {
+            val currentRoute = navController.currentDestination?.route
+            Log.d("OnboardingNav", "Current internal route: $currentRoute")
+            if (currentRoute == "welcome" || currentRoute == "onboarding" || currentRoute == "splash" || currentRoute == null) {
+                Log.d("OnboardingNav", "Navigating to profile_setup")
+                navController.navigate("profile_setup") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
+
     val viewModel: OnboardingViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     

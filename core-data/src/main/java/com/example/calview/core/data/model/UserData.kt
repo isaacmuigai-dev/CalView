@@ -50,6 +50,7 @@ data class UserData(
     val language: String = "en",
     val lastRolloverDate: Long = 0L,
     val hasSeenDashboardWalkthrough: Boolean = false,
+    val hasSeenProgressWalkthrough: Boolean = false,
     val hasSeenFeatureIntro: Boolean = false,
     
     // Missing fields for complete backup
@@ -61,5 +62,12 @@ data class UserData(
     val recordBurn: Int = 0,
     val hasSeenCameraTutorial: Boolean = false,
     val widgetDarkTheme: Boolean = false,
-    val weightChangePerWeek: Float = 0.5f
+    val weightChangePerWeek: Float = 0.5f,
+    
+    // Gamification
+    val userXp: Int = 0,
+    val userLevel: Int = 1,
+    
+    // Activity tracking
+    val lastActivityTimestamp: Long = 0L
 )

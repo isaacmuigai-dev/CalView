@@ -1,5 +1,6 @@
 package com.example.calview
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -167,18 +168,31 @@ class MainActivity : AppCompatActivity() {
                 }
         }
         
+        // Dummy reference to force keep BeginSignInRequest
+        // Dummy reference to force keep BeginSignInRequest
+        try {
+            // Force reference to CREATOR to ensure it's kept for Unmarshalling
+            val creator = com.google.android.gms.auth.api.identity.BeginSignInRequest.CREATOR
+            Log.d("KeptClass", "Class kept: ${com.google.android.gms.auth.api.identity.BeginSignInRequest::class.java.name}, Creator: $creator")
+        } catch (e: Throwable) {
+            // Ignore
+        }
+        
         setContent {
             // Calculate window size class for adaptive layouts
             val windowSizeClass = calculateWindowSizeClass(this)
             
-            // Collect appearance mode from preferences
+            // Collect appearance mode and onboarding status from preferences
             val appearanceMode by userPreferencesRepository.appearanceMode.collectAsState(initial = "automatic")
+            val isOnboardingComplete by userPreferencesRepository.isOnboardingComplete.collectAsState(initial = false)
+            val currentUser by authRepository.authState.collectAsState(initial = authRepository.getCurrentUser())
             
             // Provide WindowSizeClass to the entire app
             CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {
                 CalViewTheme(appearanceMode = appearanceMode) {
                     AppNavigation(
-                        isSignedIn = authRepository.isSignedIn(),
+                        isSignedIn = currentUser != null,
+                        isOnboardingComplete = isOnboardingComplete,
                         userPreferencesRepository = userPreferencesRepository,
                         authRepository = authRepository,
                         mealRepository = mealRepository,
@@ -198,10 +212,21 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+// Helper to find Activity from context
+fun Context.findActivity(): android.app.Activity? {
+    var context = this
+    while (context is android.content.ContextWrapper) {
+        if (context is android.app.Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     isSignedIn: Boolean = false,
+    isOnboardingComplete: Boolean = true,
     userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
     authRepository: AuthRepository? = null,
     mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
@@ -222,6 +247,24 @@ fun AppNavigation(
     // State for sign-in bottom sheet
     var showSignInSheet by remember { mutableStateOf(false) }
     var isSigningIn by remember { mutableStateOf(false) }
+    var isRedirecting by remember { mutableStateOf(false) }
+    
+    // Global navigation redirect based on state
+    LaunchedEffect(isSignedIn, isOnboardingComplete) {
+        Log.d("Navigation", "State changed: isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete")
+        if (isSignedIn && isOnboardingComplete) {
+            val currentRoute = navController.currentDestination?.route
+            Log.d("Navigation", "Current route before global redirect: $currentRoute")
+            if (currentRoute == "onboarding" || currentRoute == "splash") {
+                Log.d("Navigation", "Triggering global redirect to main")
+                showSignInSheet = false
+                isRedirecting = false
+                navController.navigate("main") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
     
     // Always start at splash - it will redirect based on auth state
     val startDestination = "splash"
@@ -244,86 +287,109 @@ fun AppNavigation(
                     .addCredentialOption(googleIdOption)
                     .build()
                 
+                val activity = context.findActivity()
+                if (activity == null) {
+                    Log.e("SignIn", "Could not find activity from context")
+                    isSigningIn = false
+                    return@launch
+                }
+                
+                Log.d("SignIn", "Calling getCredential...")
                 val result = credentialManager.getCredential(
                     request = request,
-                    context = context as android.app.Activity
+                    context = activity
                 )
+                Log.d("SignIn", "getCredential result received: $result")
                 
-                handleSignInResult(result) { success, displayName, photoUrl ->
+                handleSignInResult(result) { success, displayName, photoUrl, email ->
+                    Log.d("SignIn", "Result handled: success=$success, email=$email")
                     isSigningIn = false
                     if (success) {
+                        isRedirecting = true
+                        Log.d("SignIn", "Google Sign-In successful for $displayName")
+                        // Crucial: Update BillingManager with email and check for existing purchases
+                        billingManager?.setUserEmail(email)
+                        billingManager?.queryPurchases()
+                        
                         // Save Google profile info and restore data from cloud
                         scope.launch {
-                            // Check if user already completed onboarding as a guest
+                            // Check if user already completed onboarding locally
                             val localOnboardingComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
                             
-                            var restored = false
-                            if (!localOnboardingComplete) {
-                                // Only restore if they haven't already filled out local data
-                                restored = userPreferencesRepository?.restoreFromCloud() ?: false
-                                // Also restore meals and daily logs
-                                mealRepository?.restoreFromCloud()
-                                dailyLogRepository?.restoreFromCloud()
-                            } else {
-                                // If they already filled out onboarding as guest, upload that data!
-                                userPreferencesRepository?.syncToCloud()
-                                // Also sync name/photo from Google to the newly created local profile
-                                userPreferencesRepository?.setUserName(displayName)
-                                userPreferencesRepository?.setPhotoUrl(photoUrl)
-                            }
+                            // Restore from cloud
+                            val restored = userPreferencesRepository?.restoreFromCloud() ?: false
+                            // Also restore other entities
+                            mealRepository?.restoreFromCloud()
+                            dailyLogRepository?.restoreFromCloud()
+                            streakFreezeRepository?.restoreFromCloud()
+                            fastingRepository?.restoreFromCloud()
                             
-                            if (!restored && !localOnboardingComplete) {
-                                // If no cloud data found (new user) AND no local data
-                                userPreferencesRepository?.setUserName(displayName)
-                                userPreferencesRepository?.setPhotoUrl(photoUrl)
-                                // Generate referral code if needed
-                                val code = com.example.calview.core.data.repository.UserPreferencesRepositoryImpl.generateReferralCode()
-                                userPreferencesRepository?.setReferralCode(code)
-                            } else if (restored) {
-                                // Cloud data restored - update name/photo if they changed
-                                userPreferencesRepository?.setUserName(displayName)
-                                userPreferencesRepository?.setPhotoUrl(photoUrl)
-                            }
+                            // If restored, were we complete?
+                            val cloudOnboardingComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
                             
-                            if (restored) {
+                            // Check if user has any actual data (meals) - indicates returning user
+                            val hasMeals = mealRepository?.hasAnyMeals() ?: false
+                            Log.d("SignIn", "restored=$restored, cloudOnboardingComplete=$cloudOnboardingComplete, hasMeals=$hasMeals, localOnboardingComplete=$localOnboardingComplete")
+                            
+                            if (restored && cloudOnboardingComplete) {
+                                Log.d("SignIn", "Old user restored with completed onboarding. Navigating to main.")
                                 showSignInSheet = false
-                                // Navigate to main (dashboard)
+                                isRedirecting = false
+                                
+                                // HIGHER IMPORTANCE: Suppress tours for returning users
+                                userPreferencesRepository?.setHasSeenDashboardWalkthrough(true)
+                                userPreferencesRepository?.setHasSeenProgressWalkthrough(true)
+                                
                                 navController.navigate("main") {
-                                    popUpTo("onboarding") { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } else if (restored && hasMeals) {
+                                // User has data but isOnboardingComplete was false - fix the flag and navigate
+                                Log.d("SignIn", "Returning user with data but incomplete flag. Fixing and navigating to main.")
+                                userPreferencesRepository?.setOnboardingComplete(true)
+                                userPreferencesRepository?.syncToCloud()
+                                
+                                showSignInSheet = false
+                                isRedirecting = false
+                                
+                                // Suppress tours for returning users
+                                userPreferencesRepository?.setHasSeenDashboardWalkthrough(true)
+                                userPreferencesRepository?.setHasSeenProgressWalkthrough(true)
+                                
+                                navController.navigate("main") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } else if (localOnboardingComplete) {
+                                Log.d("SignIn", "User completed onboarding locally. Syncing and navigating to main.")
+                                userPreferencesRepository?.syncToCloud()
+                                userPreferencesRepository?.setUserName(displayName)
+                                userPreferencesRepository?.setPhotoUrl(photoUrl)
+                                
+                                showSignInSheet = false
+                                isRedirecting = false
+                                navController.navigate("main") {
+                                    popUpTo(0) { inclusive = true }
                                 }
                             } else {
-                                // Logic:
-                                // If user signed in but no data found (new user / deleted data),
-                                // check if they just finished onboarding logic (isOnboardingComplete=true locally).
-                                // If yes -> Sync local data to cloud & Go to Main.
-                                // If no (signed in at Welcome screen) -> user should complete onboarding.
+                                Log.d("SignIn", "New user detected. Redirecting to profile_setup via state change.")
+                                userPreferencesRepository?.setUserName(displayName)
+                                userPreferencesRepository?.setPhotoUrl(photoUrl)
                                 
-                                val isComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
-                                if (isComplete) {
-                                    // Form filled, just syncing
-                                    userPreferencesRepository?.syncToCloud()
-                                    // mealRepository/dailyLogRepository sync if needed, but likely empty for new user
-                                    
-                                    showSignInSheet = false
-                                    navController.navigate("main") {
-                                        popUpTo("onboarding") { inclusive = true }
-                                    }
-                                } else {
-                                    // Signed in at Welcome.
-                                    // User Rule: "if no data found for current user it should ask them to create data via onboarding screens"
-                                    // Stay on onboarding screen (Welcome). Sheet closes.
-                                    showSignInSheet = false
-                                    
-                                    // Optional: Redirect to profile setup if they are at Welcome?
-                                    // If we are at "welcome", we are already there.
-                                    // If they click "Get Started" now, they flow through onboarding authenticated.
+                                if (userPreferencesRepository?.referralCode?.first().isNullOrEmpty()) {
+                                    val code = com.example.calview.core.data.repository.UserPreferencesRepositoryImpl.generateReferralCode()
+                                    userPreferencesRepository?.setReferralCode(code)
                                 }
+                                
+                                showSignInSheet = false
+                                isRedirecting = false
+                                // Navigation to profile_setup will now happen in OnboardingNavHost
+                                // because isSignedIn will be true and isOnboardingComplete will be false.
                             }
                         }
                     }
                 }
-            } catch (e: GetCredentialException) {
-                Log.e("GoogleSignIn", "Sign-in failed", e)
+            } catch (e: Throwable) {
+                Log.e("GoogleSignIn", "Sign-in failed with fatal error", e)
                 isSigningIn = false
             }
         }
@@ -332,7 +398,11 @@ fun AppNavigation(
     // Sign-in bottom sheet
     if (showSignInSheet) {
         SignInBottomSheet(
-            onDismiss = { showSignInSheet = false },
+            onDismiss = { 
+                showSignInSheet = false
+                isSigningIn = false
+                isRedirecting = false
+            },
             onGoogleSignIn = { signInWithGoogle() },
             onTermsClick = { 
                 showSignInSheet = false
@@ -342,7 +412,8 @@ fun AppNavigation(
                 showSignInSheet = false
                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://isaacmuigai-dev.github.io/CalView/privacy_policy.html")))
             },
-            isLoading = isSigningIn
+            isLoading = isSigningIn || isRedirecting,
+            loadingText = if (isRedirecting) "Redirecting..." else null
         )
     }
 
@@ -355,26 +426,8 @@ fun AppNavigation(
         composable("splash") {
             com.example.calview.feature.onboarding.SplashScreen(
                 onTimeout = {
-                    // Check if signed in AND onboarding complete
-                    // If signed in but no data (e.g. glitch), force onboarding
-                    // We need to check flow/UserPrefs synchronously or via State
-                    // But Splash should be fast.
-                    // For now, assume if isSignedIn, they are good, UNLESS logic in SignIn/Logout handles state.
-                    // Logout clears data -> isSignedIn becomes false (via AuthRepo)?
-                    // AuthRepo.isSignedIn check firebase user.
-                    // If I logout, firebase user is null. isSignedIn is false. Splash -> Onboarding. Correct.
-                    
-                    // If I Login -> !Restored -> Stay Onboarding.
-                    // If I kill app and restart?
-                    // isSignedIn = true.
-                    // DataStore (isOnboardingComplete) = false.
-                    // Splash -> Main ? -> Main has 0s.
-                    // We probably should check isOnboardingComplete here too to be safe.
-                    // However, we don't have easy access to UserPrefs value synchronously here without blocking.
-                    // Let's stick to "if isSignedIn" for now, as Login logic enforces onboarding completion before enabling 'main' via state?
-                    // Actually if we go to Main with 0s, it's okay per "default to 0".
-                    
-                    val destination = if (isSignedIn) "main" else "onboarding"
+                    val destination = if (isSignedIn && isOnboardingComplete) "main" else "onboarding"
+                    Log.d("Navigation", "Splash timeout: destination=$destination (isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete)")
                     navController.navigate(destination) {
                         popUpTo("splash") { inclusive = true }
                     }
@@ -384,6 +437,8 @@ fun AppNavigation(
         
         composable("onboarding") {
             OnboardingNavHost(
+                isSignedIn = isSignedIn,
+                isRedirecting = isRedirecting,
                 onOnboardingComplete = {
                     navController.navigate("main") {
                         popUpTo("onboarding") { inclusive = true }
@@ -811,7 +866,7 @@ fun AppNavigation(
  */
 private fun handleSignInResult(
     result: GetCredentialResponse,
-    onComplete: (success: Boolean, displayName: String, photoUrl: String) -> Unit
+    onComplete: (success: Boolean, displayName: String, photoUrl: String, email: String?) -> Unit
 ) {
     when (val credential = result.credential) {
         is CustomCredential -> {
@@ -832,23 +887,24 @@ private fun handleSignInResult(
                                 // Save Google profile info
                                 val displayName = googleIdTokenCredential.displayName ?: ""
                                 val photoUrl = googleIdTokenCredential.profilePictureUri?.toString() ?: ""
-                                onComplete(true, displayName, photoUrl)
+                                val email = googleIdTokenCredential.id
+                                onComplete(true, displayName, photoUrl, email)
                             } else {
-                                onComplete(false, "", "")
+                                onComplete(false, "", "", null)
                             }
                         }
                 } catch (e: GoogleIdTokenParsingException) {
                     Log.e("GoogleSignIn", "Invalid Google ID Token", e)
-                    onComplete(false, "", "")
+                    onComplete(false, "", "", null)
                 }
             } else {
                 Log.e("GoogleSignIn", "Unexpected credential type")
-                onComplete(false, "", "")
+                onComplete(false, "", "", null)
             }
         }
         else -> {
             Log.e("GoogleSignIn", "Unexpected credential type")
-            onComplete(false, "", "")
+            onComplete(false, "", "", null)
         }
     }
 }

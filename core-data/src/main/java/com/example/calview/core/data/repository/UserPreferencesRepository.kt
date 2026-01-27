@@ -56,7 +56,15 @@ interface UserPreferencesRepository {
 
     // Walkthrough flags
     val hasSeenDashboardWalkthrough: Flow<Boolean>
+    val hasSeenProgressWalkthrough: Flow<Boolean>
     val hasSeenFeatureIntro: Flow<Boolean>
+    
+    // Gamification
+    val userXp: Flow<Int>
+    val userLevel: Flow<Int>
+    
+    // Activity tracking
+    val lastActivityTimestamp: Flow<Long>
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -102,6 +110,8 @@ interface UserPreferencesRepository {
     suspend fun setWeightChangePerWeek(pace: Float)
     
     // Widget Data methods
+    val waterServingSize: Flow<Int> // Default 8 fl oz
+    suspend fun setWaterServingSize(ml: Int)
     suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long)
     suspend fun setLastKnownSteps(steps: Int)
     suspend fun setActivityStats(caloriesBurned: Int, weeklyBurn: Int, recordBurn: Int)
@@ -114,7 +124,13 @@ interface UserPreferencesRepository {
     
     // Walkthrough methods
     suspend fun setHasSeenDashboardWalkthrough(seen: Boolean)
+    suspend fun setHasSeenProgressWalkthrough(seen: Boolean)
     suspend fun setHasSeenFeatureIntro(seen: Boolean)
+    
+    suspend fun setUserXp(xp: Int)
+    suspend fun setUserLevel(level: Int)
+    
+    suspend fun setLastActivityTimestamp(timestamp: Long)
     
     /**
      * Restore user data from Firestore cloud storage

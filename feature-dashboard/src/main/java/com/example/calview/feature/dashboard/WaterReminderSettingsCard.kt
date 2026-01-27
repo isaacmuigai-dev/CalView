@@ -27,11 +27,13 @@ fun WaterReminderSettingsCard(
     startHour: Int,
     endHour: Int,
     dailyGoalMl: Int,
+    servingSize: Int, // fl oz
     onEnabledChange: (Boolean) -> Unit,
     onIntervalChange: (Int) -> Unit,
     onStartHourChange: (Int) -> Unit,
     onEndHourChange: (Int) -> Unit,
     onDailyGoalChange: (Int) -> Unit,
+    onServingSizeChange: (Int) -> Unit,
     onUpgradeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -159,11 +161,11 @@ fun WaterReminderSettingsCard(
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
-                                onClick = { onDailyGoalChange((dailyGoalMl - 240).coerceAtLeast(500)) } // ~8 oz decrement
+                                onClick = { onDailyGoalChange((dailyGoalMl - 240).coerceAtLeast(500)) } 
                             ) {
                                 Icon(Icons.Default.Remove, "Decrease", tint = Color(0xFF2196F3))
                             }
-                            // Convert ml to fl oz for display (1 ml = 0.033814 fl oz)
+                            // Convert ml to fl oz for display
                             val dailyGoalFlOz = (dailyGoalMl * 0.033814).toInt()
                             Text(
                                 text = "${dailyGoalFlOz} fl oz",
@@ -172,9 +174,38 @@ fun WaterReminderSettingsCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             IconButton(
-                                onClick = { onDailyGoalChange((dailyGoalMl + 240).coerceAtMost(5000)) } // ~8 oz increment
+                                onClick = { onDailyGoalChange((dailyGoalMl + 240).coerceAtMost(5000)) }
                             ) {
                                 Icon(Icons.Default.Add, "Increase", tint = Color(0xFF2196F3))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Serving Size Selection
+                    Column {
+                        Text(
+                            text = "Default serving size",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf(8, 12, 16).forEach { size ->
+                                val selected = servingSize == size
+                                FilterChip(
+                                    selected = selected,
+                                    onClick = { onServingSizeChange(size) },
+                                    label = { Text("${size} fl oz") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF2196F3),
+                                        selectedLabelColor = Color.White
+                                    )
+                                )
                             }
                         }
                     }
