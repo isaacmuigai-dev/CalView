@@ -36,4 +36,18 @@ class Converters {
             SocialChallengeType.LOGGING
         }
     }
+    
+    @TypeConverter
+    fun fromExerciseType(type: ExerciseType): String {
+        return type.name
+    }
+    
+    @TypeConverter
+    fun toExerciseType(type: String): ExerciseType {
+        return try {
+            ExerciseType.valueOf(type)
+        } catch (e: Exception) {
+            ExerciseType.OTHER
+        }
+    }
 }

@@ -12,13 +12,14 @@ import androidx.room.TypeConverters
         FastingSessionEntity::class,
         ChallengeEntity::class,
         BadgeEntity::class,
+        ExerciseEntity::class,
         // Premium features
         StreakFreezeEntity::class,
         WaterReminderSettingsEntity::class,
         SocialChallengeEntity::class,
         ChallengeParticipantEntity::class
     ], 
-    version = 8, 
+    version = 9, 
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -28,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun weightHistoryDao(): WeightHistoryDao
     abstract fun fastingDao(): FastingDao
     abstract fun gamificationDao(): GamificationDao
+    abstract fun exerciseDao(): ExerciseDao
     
     // Premium feature DAOs
     abstract fun streakFreezeDao(): StreakFreezeDao

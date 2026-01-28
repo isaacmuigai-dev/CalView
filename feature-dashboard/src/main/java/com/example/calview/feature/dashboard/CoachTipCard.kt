@@ -39,7 +39,7 @@ fun CoachTipCard(
                 .padding(16.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top // Align emoji to top for longer messages
             ) {
                 // Emoji Container
                 Box(
@@ -57,12 +57,15 @@ fun CoachTipCard(
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "AI Coach Check-in",
+                            text = "AI Coach",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -85,13 +88,13 @@ fun CoachTipCard(
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
                         text = tip.message,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 20.sp
+                        lineHeight = 22.sp // Slightly increased for better readability of multi-line text
                     )
                 }
             }

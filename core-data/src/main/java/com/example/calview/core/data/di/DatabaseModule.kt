@@ -51,6 +51,11 @@ object DatabaseModule {
         return database.gamificationDao()
     }
     
+    @Provides
+    fun provideExerciseDao(database: AppDatabase): ExerciseDao {
+        return database.exerciseDao()
+    }
+    
     // Premium feature DAOs
     @Provides
     fun provideStreakFreezeDao(database: AppDatabase): StreakFreezeDao {

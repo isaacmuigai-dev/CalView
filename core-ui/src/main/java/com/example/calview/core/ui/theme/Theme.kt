@@ -1,6 +1,7 @@
 package com.example.calview.core.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -101,7 +102,16 @@ fun CalViewTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
+            
+            // For Android 15+ (SDK 35), edge-to-edge is enforced by default
+            // We only need to set the status bar appearance (light/dark icons)
+            // For older versions, we also set the status bar color for compatibility
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                @Suppress("DEPRECATION")
+                window.statusBarColor = Color.Transparent.toArgb()
+            }
+            
+            // Set status bar icon colors (light icons for dark theme, dark icons for light theme)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
         }
     }

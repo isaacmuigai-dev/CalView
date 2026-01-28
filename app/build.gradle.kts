@@ -58,6 +58,14 @@ android {
     buildFeatures {
         compose = true
     }
+    
+    // Support for 16 KB page sizes (Android 15+)
+    // This ensures native libraries are properly aligned for devices with 16 KB page sizes
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {

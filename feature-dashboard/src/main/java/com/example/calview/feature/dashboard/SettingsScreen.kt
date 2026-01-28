@@ -215,6 +215,7 @@ fun SettingsContent(
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
+                .statusBarsPadding() // Handle edge-to-edge for status bar
                 .verticalScroll(scrollState)
                 .padding(horizontalPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)

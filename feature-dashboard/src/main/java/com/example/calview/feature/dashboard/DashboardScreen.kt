@@ -468,6 +468,7 @@ fun DashboardContent(
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
+                .statusBarsPadding() // Handle edge-to-edge for status bar
                 .padding(horizontal = horizontalPadding),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -604,6 +605,16 @@ fun DashboardContent(
                 calories = state.caloriesBurned,
                 isConnected = state.isHealthConnected
             )
+        }
+        
+        // Exercise Summary Card - shows logged exercises
+        if (state.exercises.isNotEmpty()) {
+            item {
+                ExerciseSummaryCard(
+                    exercises = state.exercises,
+                    totalCalories = state.manualExerciseCalories
+                )
+            }
         }
         
         // Water Tracker Card - Premium design
@@ -1485,7 +1496,7 @@ fun MicroCardUnified(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val remaining = goalValue - consumedValue
+    val remaining = maxOf(0, goalValue - consumedValue)
     
     // Calculate progress
     val progress = if (goalValue > 0) (consumedValue.toFloat() / goalValue).coerceIn(0f, 1f) else 0f
@@ -2260,7 +2271,7 @@ fun MacroCardUnified(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val remaining = goalValue - consumedValue
+    val remaining = maxOf(0, goalValue - consumedValue)
     
     // Calculate progress
     val progress = if (goalValue > 0) (consumedValue.toFloat() / goalValue).coerceIn(0f, 1f) else 0f
@@ -3363,5 +3374,160 @@ fun StreakLostDialog(
                 }
             }
         }
+    }
+}
+
+// Exercise Summary Card - Shows logged exercises for today
+@Composable
+fun ExerciseSummaryCard(
+    exercises: List<com.example.calview.core.data.local.ExerciseEntity>,
+    totalCalories: Int,
+    modifier: Modifier = Modifier
+) {
+    CalAICard(
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                contentDescription = "Today's exercise summary. ${exercises.size} ${if (exercises.size == 1) "exercise" else "exercises"} logged, $totalCalories calories burned"
+            }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        tint = Color(0xFF4CAF50),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Today's Exercise",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                // Total calories badge
+                Surface(
+                    color = Color(0xFF4CAF50).copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocalFireDepartment,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$totalCalories cal",
+                            color = Color(0xFF4CAF50),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Exercise list (show max 3)
+            exercises.take(3).forEachIndexed { index, exercise ->
+                val typeName = exercise.type.name.lowercase().replaceFirstChar { it.uppercase() }
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
+                        .semantics {
+                            contentDescription = "${exercise.name}, ${exercise.durationMinutes} minutes, ${exercise.caloriesBurned} calories, $typeName exercise"
+                        },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = getExerciseIcon(exercise.type),
+                            contentDescription = null,
+                            tint = getExerciseColor(exercise.type),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = exercise.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${exercise.durationMinutes} min",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                    
+                    Text(
+                        text = "${exercise.caloriesBurned} cal",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4CAF50)
+                    )
+                }
+            }
+            
+            // Show "and X more" if more than 3 exercises
+            if (exercises.size > 3) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "+${exercises.size - 3} more exercise${if (exercises.size - 3 > 1) "s" else ""}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+// Helper function to get exercise type icon
+private fun getExerciseIcon(type: com.example.calview.core.data.local.ExerciseType): androidx.compose.ui.graphics.vector.ImageVector {
+    return when (type) {
+        com.example.calview.core.data.local.ExerciseType.CARDIO -> Icons.Default.DirectionsRun
+        com.example.calview.core.data.local.ExerciseType.STRENGTH -> Icons.Default.FitnessCenter
+        com.example.calview.core.data.local.ExerciseType.FLEXIBILITY -> Icons.Default.SelfImprovement
+        com.example.calview.core.data.local.ExerciseType.SPORT -> Icons.Default.SportsBaseball
+        com.example.calview.core.data.local.ExerciseType.OTHER -> Icons.Default.DirectionsBike
+    }
+}
+
+// Helper function to get exercise type color
+private fun getExerciseColor(type: com.example.calview.core.data.local.ExerciseType): Color {
+    return when (type) {
+        com.example.calview.core.data.local.ExerciseType.CARDIO -> Color(0xFFE53935)
+        com.example.calview.core.data.local.ExerciseType.STRENGTH -> Color(0xFF1E88E5)
+        com.example.calview.core.data.local.ExerciseType.FLEXIBILITY -> Color(0xFF43A047)
+        com.example.calview.core.data.local.ExerciseType.SPORT -> Color(0xFFFF9800)
+        com.example.calview.core.data.local.ExerciseType.OTHER -> Color(0xFF9C27B0)
     }
 }

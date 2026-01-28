@@ -65,6 +65,11 @@ interface UserPreferencesRepository {
     
     // Activity tracking
     val lastActivityTimestamp: Flow<Long>
+    
+    // Smart Coach tracking
+    val coachLastMessageTime: Flow<Long>
+    val coachMessageCountToday: Flow<Int>
+    val coachLastMessageDate: Flow<String>
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -131,6 +136,8 @@ interface UserPreferencesRepository {
     suspend fun setUserLevel(level: Int)
     
     suspend fun setLastActivityTimestamp(timestamp: Long)
+    
+    suspend fun setCoachMessageTracking(timestamp: Long, count: Int, date: String)
     
     /**
      * Restore user data from Firestore cloud storage

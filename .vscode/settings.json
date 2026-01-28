@@ -1,0 +1,21 @@
+{
+  // Java configuration for Cursor/VSCode
+  // Points to Android Studio's bundled Java (JBR) for Java/Kotlin language support
+  "java.home": "C:\\Program Files\\Android\\Android Studio\\jbr",
+  
+  // Additional Java Language Server settings
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\Android\\Android Studio\\jbr",
+      "default": true
+    }
+  ],
+  
+  // Kotlin language server settings (if Kotlin extension is installed)
+  "kotlin.languageServer.enabled": true,
+  
+  // Gradle settings (workspace-level, complements gradle.properties)
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.wrapper.enabled": true
+}

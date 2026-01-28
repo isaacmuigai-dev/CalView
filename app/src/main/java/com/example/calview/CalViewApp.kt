@@ -4,9 +4,15 @@ import android.app.Application
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
+import com.example.calview.worker.BadgeNotificationWorker
 import com.example.calview.worker.CoachNotificationWorker
+import com.example.calview.worker.DailyEngagementWorker
 import com.example.calview.worker.DailySyncWorker
+import com.example.calview.worker.InactivityWorker
+import com.example.calview.worker.SocialChallengeNotificationWorker
+import com.example.calview.worker.StreakReminderWorker
 import com.example.calview.worker.WaterReminderWorker
+import com.example.calview.worker.WeeklySummaryWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -42,6 +48,12 @@ class CalViewApp : Application(), Configuration.Provider {
         // Schedule premium feature workers
         scheduleCoachNotifications()
         scheduleWaterReminders()
+        
+        // Schedule engagement notifications (available for all users)
+        scheduleEngagementNotifications()
+        
+        // Schedule premium social/gamification workers
+        scheduleSocialAndGamificationWorkers()
     }
 
     override fun attachBaseContext(base: android.content.Context) {
@@ -152,5 +164,148 @@ class CalViewApp : Application(), Configuration.Provider {
         )
         
         Log.d("CalViewApp", "💧 Scheduled water reminder worker")
+    }
+    
+    /**
+     * Schedule engagement notification workers that are available for all users.
+     * These help maintain user engagement and streak protection.
+     */
+    private fun scheduleEngagementNotifications() {
+        val workManager = WorkManager.getInstance(this)
+        
+        // 1. Streak Reminder Worker - runs at 8 PM to remind users to log meals
+        scheduleWorkerAtTime(
+            workManager = workManager,
+            workerClass = StreakReminderWorker::class.java,
+            targetHour = 20, // 8 PM
+            workName = StreakReminderWorker.WORK_NAME
+        )
+        
+        // 2. Daily Engagement Worker - runs at 8 PM for users who haven't logged
+        scheduleWorkerAtTime(
+            workManager = workManager,
+            workerClass = DailyEngagementWorker::class.java,
+            targetHour = 20,
+            workName = DailyEngagementWorker.WORK_NAME
+        )
+        
+        // 3. Weekly Summary Worker - runs Sunday at 10 AM
+        scheduleWeeklySummary(workManager)
+        
+        // 4. Inactivity Worker - runs daily to check for inactive users
+        val inactivityRequest = PeriodicWorkRequestBuilder<InactivityWorker>(
+            24, TimeUnit.HOURS
+        )
+            .setInitialDelay(6, TimeUnit.HOURS) // Start 6 hours after install
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            InactivityWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            inactivityRequest
+        )
+        
+        Log.d("CalViewApp", "📢 Scheduled engagement notification workers")
+    }
+    
+    /**
+     * Schedule premium social and gamification workers.
+     * Premium checks happen within the workers themselves.
+     */
+    private fun scheduleSocialAndGamificationWorkers() {
+        val workManager = WorkManager.getInstance(this)
+        
+        // 1. Badge Notification Worker - checks daily for new badges
+        val badgeRequest = PeriodicWorkRequestBuilder<BadgeNotificationWorker>(
+            12, TimeUnit.HOURS // Check twice daily
+        )
+            .setInitialDelay(2, TimeUnit.HOURS)
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            BadgeNotificationWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            badgeRequest
+        )
+        
+        // 2. Social Challenge Notification Worker - checks daily for challenge updates
+        val socialRequest = PeriodicWorkRequestBuilder<SocialChallengeNotificationWorker>(
+            12, TimeUnit.HOURS // Check twice daily
+        )
+            .setInitialDelay(3, TimeUnit.HOURS)
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            SocialChallengeNotificationWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            socialRequest
+        )
+        
+        Log.d("CalViewApp", "🎮 Scheduled social and gamification workers")
+    }
+    
+    /**
+     * Helper to schedule a worker at a specific hour daily.
+     */
+    private fun <T : CoroutineWorker> scheduleWorkerAtTime(
+        workManager: WorkManager,
+        workerClass: Class<T>,
+        targetHour: Int,
+        workName: String
+    ) {
+        val currentTime = Calendar.getInstance()
+        val targetTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, targetHour)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            if (before(currentTime)) {
+                add(Calendar.DAY_OF_MONTH, 1)
+            }
+        }
+        
+        val initialDelay = targetTime.timeInMillis - currentTime.timeInMillis
+        
+        val request = PeriodicWorkRequest.Builder(
+            workerClass,
+            24, TimeUnit.HOURS
+        )
+            .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            workName,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+    
+    /**
+     * Schedule weekly summary for Sunday mornings.
+     */
+    private fun scheduleWeeklySummary(workManager: WorkManager) {
+        val currentTime = Calendar.getInstance()
+        val targetTime = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+            set(Calendar.HOUR_OF_DAY, 10) // 10 AM
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            if (before(currentTime)) {
+                add(Calendar.WEEK_OF_YEAR, 1)
+            }
+        }
+        
+        val initialDelay = targetTime.timeInMillis - currentTime.timeInMillis
+        
+        val summaryRequest = PeriodicWorkRequestBuilder<WeeklySummaryWorker>(
+            7, TimeUnit.DAYS // Once a week
+        )
+            .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            WeeklySummaryWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            summaryRequest
+        )
     }
 }

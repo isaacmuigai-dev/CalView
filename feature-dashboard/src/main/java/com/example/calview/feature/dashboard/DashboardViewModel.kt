@@ -28,10 +28,12 @@ class DashboardViewModel @Inject constructor(
     val healthConnectManager: HealthConnectManager,
     private val foodAnalysisService: FoodAnalysisService,
     private val coachMessageGenerator: com.example.calview.core.data.coach.CoachMessageGenerator,
+    private val smartCoachService: com.example.calview.core.data.coach.SmartCoachService,
     private val selectedDateHolder: SelectedDateHolder,
     private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository,
     private val streakFreezeRepository: StreakFreezeRepository,
     private val dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository,
+    private val exerciseRepository: com.example.calview.core.data.repository.ExerciseRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -67,6 +69,10 @@ class DashboardViewModel @Inject constructor(
 
     private val lastActivityTimestamp = userPreferencesRepository.lastActivityTimestamp
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+    
+    // Smart coach tip state
+    private val _smartCoachTip = MutableStateFlow<com.example.calview.core.data.coach.CoachMessageGenerator.CoachTip?>(null)
+    private val smartCoachTip = _smartCoachTip.asStateFlow()
 
     fun setHasSeenWalkthrough(seen: Boolean) {
         viewModelScope.launch {
@@ -100,6 +106,42 @@ class DashboardViewModel @Inject constructor(
         // Sync steps to DataStore for Widget
         viewModelScope.launch {
             healthConnectManager.healthData.collect { userPreferencesRepository.setLastKnownSteps(it.steps.toInt()) }
+        }
+        
+        // Smart Coach: Generate initial tip and refresh periodically
+        viewModelScope.launch {
+            // Wait for dashboard state to be populated
+            kotlinx.coroutines.delay(2000)
+            refreshSmartCoachTip()
+        }
+    }
+    
+    /**
+     * Refresh the smart coach tip by analyzing current app data.
+     * Called on init and can be triggered when significant data changes.
+     */
+    private suspend fun refreshSmartCoachTip() {
+        try {
+            val state = dashboardState.value
+            val tip = smartCoachService.getCurrentOrGenerateTip(
+                caloriesConsumed = state.consumedCalories,
+                caloriesGoal = state.goalCalories,
+                proteinConsumed = state.proteinG,
+                proteinGoal = state.proteinGoal,
+                carbsConsumed = state.carbsG,
+                carbsGoal = state.carbsGoal,
+                fatsConsumed = state.fatsG,
+                fatsGoal = state.fatsGoal,
+                waterConsumed = state.waterConsumed,
+                steps = state.steps,
+                stepsGoal = state.stepsGoal,
+                caloriesBurned = state.caloriesBurned,
+                currentStreak = state.currentStreak,
+                healthScore = state.healthScore
+            )
+            _smartCoachTip.value = tip
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -149,6 +191,18 @@ class DashboardViewModel @Inject constructor(
         mealRepository.getMealsForDate(dateString)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
+    // Exercises for selected date
+    val exercises = selectedDate.flatMapLatest { date ->
+        val dateString = dateFormat.format(date.time)
+        exerciseRepository.getExercisesForDate(dateString)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
+    // Manual exercise calories for the selected date
+    val manualExerciseCalories = selectedDate.flatMapLatest { date ->
+        val dateString = dateFormat.format(date.time)
+        exerciseRepository.getTotalCaloriesBurnedForDate(dateString)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    
     // Recent uploads for the "Recently uploaded" section
     val recentUploads = mealRepository.getRecentUploads()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -174,7 +228,9 @@ class DashboardViewModel @Inject constructor(
         stepsGoal, 
         rolloverEnabled, 
         rolloverAmount,
-        userPreferencesRepository.waterServingSize
+        userPreferencesRepository.waterServingSize,
+        manualExerciseCalories,
+        exercises
     ) { flows ->
         val core = flows[0] as CoreState
         val recent = flows[1] as List<MealEntity>
@@ -182,6 +238,9 @@ class DashboardViewModel @Inject constructor(
         val rolloverOn = flows[3] as Boolean
         val rolloverAmt = flows[4] as Int
         val servingSize = flows[5] as Int
+        val exerciseCals = flows[6] as Int
+        @Suppress("UNCHECKED_CAST")
+        val exercisesList = flows[7] as List<com.example.calview.core.data.local.ExerciseEntity>
         
         // Only count completed meals for calorie totals
         val completedMeals = core.meals.filter { 
@@ -212,7 +271,9 @@ class DashboardViewModel @Inject constructor(
             fiber = fiber,
             sugar = sugar,
             sodium = sodium,
-            waterServingSize = servingSize
+            waterServingSize = servingSize,
+            manualExerciseCalories = exerciseCals,
+            exercises = exercisesList
         )
     }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
          Pair(intermediate, waterSettings)
@@ -228,9 +289,11 @@ class DashboardViewModel @Inject constructor(
         val addCaloriesOn = macroState.addCaloriesOn
         val waterSettings = macroState.waterSettings
         
-        // Calculate burned calories added to goal (only if setting is ON)
-        val burnedCalories = intermediate.core.health.caloriesBurned.toInt()
-        val effectiveBurned = if (addCaloriesOn) burnedCalories else 0
+        // Calculate burned calories: Health Connect + Manual Exercise logs
+        val healthConnectBurned = intermediate.core.health.caloriesBurned.toInt()
+        val manualBurned = intermediate.manualExerciseCalories
+        val totalBurnedCalories = healthConnectBurned + manualBurned
+        val effectiveBurned = if (addCaloriesOn) totalBurnedCalories else 0
         
         // Use stored macro goals or calculate from calories if not set
         val calorieGoal = intermediate.core.goal
@@ -262,7 +325,7 @@ class DashboardViewModel @Inject constructor(
             selectedDate = intermediate.core.date,
             waterConsumed = intermediate.core.water,
             steps = intermediate.core.health.steps,
-            caloriesBurned = burnedCalories,
+            caloriesBurned = totalBurnedCalories,
             isHealthConnected = intermediate.core.health.isConnected,
             isHealthAvailable = intermediate.core.health.isAvailable,
             recentUploads = intermediate.recent,
@@ -278,7 +341,10 @@ class DashboardViewModel @Inject constructor(
             waterReminderStartHour = waterSettings?.startHour ?: 8,
             waterReminderEndHour = waterSettings?.endHour ?: 22,
             waterReminderDailyGoalMl = waterSettings?.dailyGoalMl ?: 2500,
-            waterServingSize = intermediate.waterServingSize
+            waterServingSize = intermediate.waterServingSize,
+            // Exercise tracking
+            exercises = intermediate.exercises,
+            manualExerciseCalories = intermediate.manualExerciseCalories
         )
     }.combine(userPreferencesRepository.hasSeenDashboardWalkthrough) { state, hasSeen ->
         state.copy(hasSeenWalkthrough = hasSeen)
@@ -404,6 +470,13 @@ class DashboardViewModel @Inject constructor(
         } else {
              current
         }
+    }.combine(smartCoachTip) { state, smartTip ->
+        // Use smart coach tip when available, otherwise use the default tip
+        if (smartTip != null) {
+            state.copy(coachTip = smartTip)
+        } else {
+            state
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
 
 
@@ -447,6 +520,9 @@ class DashboardViewModel @Inject constructor(
             if (healthConnectManager.isAvailable()) {
                 healthConnectManager.readTodayData()
             }
+            // Also refresh the smart coach tip
+            kotlinx.coroutines.delay(500) // Wait for data to update
+            refreshSmartCoachTip()
         }
     }
     
@@ -536,6 +612,13 @@ class DashboardViewModel @Inject constructor(
      * @param servingCount Number of servings
      * @return Updated MealEntity with recalculated nutrition, or null if failed
      */
+    /**
+     * Recalibrate a meal using AI with additional ingredients that were missed.
+     * @param meal Original meal entity
+     * @param additionalIngredients List of ingredients user added that AI missed
+     * @param servingCount Number of servings
+     * @return Updated MealEntity with recalculated nutrition, or null if failed
+     */
     suspend fun recalibrateMeal(
         meal: MealEntity,
         additionalIngredients: List<String>,
@@ -563,13 +646,15 @@ class DashboardViewModel @Inject constructor(
             
             val bitmap = BitmapFactory.decodeFile(meal.imagePath) ?: return null
             
-            // Re-analyze with AI
-            val result = foodAnalysisService.analyzeFoodImage(bitmap)
+            // Re-analyze with AI, including any additional ingredients the user specified
+            val result = foodAnalysisService.analyzeFoodImageWithIngredients(
+                bitmap = bitmap,
+                additionalIngredients = additionalIngredients
+            )
             bitmap.recycle()
             
             result.getOrNull()?.let { response ->
-                // Calculate adjustments for additional ingredients if needed
-                // For now, just use the AI's new analysis multiplied by serving count
+                // Use the AI's new analysis (which includes additional ingredients) multiplied by serving count
                 val total = response.total
                 meal.copy(
                     calories = total.calories * servingCount,
@@ -781,7 +866,9 @@ private data class IntermediateState(
     val fiber: Int,
     val sugar: Int,
     val sodium: Int,
-    val waterServingSize: Int
+    val waterServingSize: Int,
+    val manualExerciseCalories: Int = 0,
+    val exercises: List<com.example.calview.core.data.local.ExerciseEntity> = emptyList()
 )
 
 private data class MacroState(
@@ -841,7 +928,10 @@ data class DashboardState(
     val waterReminderDailyGoalMl: Int = 2500,
     val waterServingSize: Int = 8,
     val hasSeenWalkthrough: Boolean = true,
-    val allMealDates: List<Long> = emptyList()
+    val allMealDates: List<Long> = emptyList(),
+    // Exercise tracking
+    val exercises: List<com.example.calview.core.data.local.ExerciseEntity> = emptyList(),
+    val manualExerciseCalories: Int = 0
 )
 
 

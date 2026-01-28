@@ -17,11 +17,15 @@ import com.example.calview.core.data.repository.SocialChallengeRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.random.Random
 
 /**
  * WorkManager worker for social challenge notifications.
- * Checks for new participants, rank changes, and challenge updates.
+ * Checks for active challenges and sends reminders/updates.
  * Premium feature only.
  */
 @HiltWorker
@@ -36,6 +40,10 @@ class SocialChallengeNotificationWorker @AssistedInject constructor(
         const val WORK_NAME = "social_challenge_notification_work"
         const val CHANNEL_ID = "social_challenge_notifications"
         const val NOTIFICATION_ID_BASE = 5000
+        
+        // SharedPrefs keys for tracking
+        const val PREF_LAST_CHALLENGE_CHECK = "last_challenge_check"
+        const val PREF_NOTIFIED_CHALLENGES = "notified_challenges"
     }
     
     override suspend fun doWork(): Result {
@@ -45,50 +53,77 @@ class SocialChallengeNotificationWorker @AssistedInject constructor(
         }
         
         try {
-            val userId = socialChallengeRepository.getCurrentUserId() ?: return Result.success()
-            val challenges = socialChallengeRepository.observeUserChallenges().first()
+            val challenges: List<com.example.calview.core.data.local.SocialChallengeEntity> = 
+                socialChallengeRepository.getAllActiveUserChallengesSync()
             
-            for (challenge in challenges) {
-                // Check for new participants or rank changes
-                // In a real implementation, we would compare with last known state stored in prefs
-                // For now, we'll simulate a check for demonstration or rely on server-side push notifications
-                // typically handling this via FCM is better, but worker can poll for updates
-                
-                // This worker is mainly a placeholder for local polling if FCM isn't used
-                // Implementation depends on how we track "new" events locally
+            if (challenges.isEmpty()) {
+                return Result.success()
             }
             
-            // Example notification logic (commented out as we need state tracking)
-            /*
-            val message = "Someone joined your challenge!"
-            showNotification(message, challenge.id)
-            */
+            val prefs = applicationContext.getSharedPreferences("challenge_prefs", Context.MODE_PRIVATE)
+            val notifiedChallenges = prefs.getStringSet(PREF_NOTIFIED_CHALLENGES, emptySet()) ?: emptySet()
+            val newNotifiedSet = notifiedChallenges.toMutableSet()
+            
+            for (challenge in challenges) {
+                val endDate = Instant.ofEpochMilli(challenge.endDate)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                val daysRemaining = ChronoUnit.DAYS.between(LocalDate.now(), endDate)
+                
+                // Notify about challenges ending soon (1-3 days remaining)
+                if (daysRemaining in 1..3) {
+                    val notifyKey = "${challenge.id}_ending_$daysRemaining"
+                    if (!notifiedChallenges.contains(notifyKey)) {
+                        showChallengeEndingNotification(
+                            challengeTitle = challenge.title,
+                            challengeId = challenge.id,
+                            daysRemaining = daysRemaining.toInt()
+                        )
+                        newNotifiedSet.add(notifyKey)
+                    }
+                }
+                
+                // Notify about new challenges (created in last 24 hours)
+                val createdHoursAgo = ChronoUnit.HOURS.between(
+                    Instant.ofEpochMilli(challenge.startDate).atZone(ZoneId.systemDefault()),
+                    Instant.now().atZone(ZoneId.systemDefault())
+                )
+                if (createdHoursAgo <= 24) {
+                    val notifyKey = "${challenge.id}_new"
+                    if (!notifiedChallenges.contains(notifyKey)) {
+                        // This would be for challenges others created that you joined
+                        // Skip self-created challenges notification
+                        if (challenge.creatorId != socialChallengeRepository.getCurrentUserId()) {
+                            showNewChallengeNotification(
+                                challengeTitle = challenge.title,
+                                challengeId = challenge.id,
+                                creatorName = challenge.creatorName
+                            )
+                            newNotifiedSet.add(notifyKey)
+                        }
+                    }
+                }
+            }
+            
+            // Update notified set
+            prefs.edit().putStringSet(PREF_NOTIFIED_CHALLENGES, newNotifiedSet).apply()
             
         } catch (e: Exception) {
-            return Result.failure()
+            android.util.Log.e("SocialChallengeWorker", "Error checking challenges", e)
+            return Result.success() // Don't retry on error, just skip
         }
         
         return Result.success()
     }
     
-    fun showNotification(message: String, challengeId: String) {
+    private fun showChallengeEndingNotification(challengeTitle: String, challengeId: String, daysRemaining: Int) {
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Social Challenges",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Updates about your social challenges"
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
+        createNotificationChannel(notificationManager)
         
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "challenges")
-            putExtra("challenge_id", challengeId)
         }
         
         val pendingIntent = PendingIntent.getActivity(
@@ -96,16 +131,61 @@ class SocialChallengeNotificationWorker @AssistedInject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
+        val daysText = if (daysRemaining == 1) "1 day" else "$daysRemaining days"
+        
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Use appropriate icon
-            .setContentTitle("Challenge Update")
-            .setContentText(message)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("🏁 Challenge Ending Soon!")
+            .setContentText("\"$challengeTitle\" ends in $daysText")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("Your challenge \"$challengeTitle\" ends in $daysText! Make sure to complete your goals and check the leaderboard."))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
         
-        notificationManager.notify(NOTIFICATION_ID_BASE + Random.nextInt(1000), notification)
+        notificationManager.notify(NOTIFICATION_ID_BASE + challengeId.hashCode() % 1000, notification)
+    }
+    
+    private fun showNewChallengeNotification(challengeTitle: String, challengeId: String, creatorName: String) {
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        createNotificationChannel(notificationManager)
+        
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("navigate_to", "challenges")
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext, 1, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("🎯 New Challenge!")
+            .setContentText("$creatorName invited you to \"$challengeTitle\"")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("$creatorName has invited you to join \"$challengeTitle\"! Accept the challenge and compete with friends."))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+        
+        notificationManager.notify(NOTIFICATION_ID_BASE + challengeId.hashCode() % 1000 + 500, notification)
+    }
+    
+    private fun createNotificationChannel(notificationManager: NotificationManager) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Social Challenges",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Updates about your social challenges with friends"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }

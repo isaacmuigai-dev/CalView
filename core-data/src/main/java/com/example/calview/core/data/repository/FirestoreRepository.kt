@@ -104,6 +104,23 @@ interface FirestoreRepository {
      */
     suspend fun getWeightHistory(userId: String): List<com.example.calview.core.data.local.WeightHistoryEntity>
     
+    // ==================== EXERCISE METHODS ====================
+    
+    /**
+     * Save an exercise to Firestore
+     */
+    suspend fun saveExercise(userId: String, exercise: com.example.calview.core.data.local.ExerciseEntity)
+    
+    /**
+     * Get all exercises for a user from Firestore
+     */
+    suspend fun getExercises(userId: String): List<com.example.calview.core.data.local.ExerciseEntity>
+    
+    /**
+     * Delete an exercise from Firestore
+     */
+    suspend fun deleteExercise(userId: String, firestoreId: String)
+    
     // ==================== FEATURE REQUEST METHODS ====================
     
     /**

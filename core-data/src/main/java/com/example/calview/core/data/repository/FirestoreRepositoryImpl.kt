@@ -253,6 +253,55 @@ class FirestoreRepositoryImpl @Inject constructor(
         }
     }
     
+    // ==================== EXERCISE IMPLEMENTATIONS ====================
+    
+    override suspend fun saveExercise(userId: String, exercise: com.example.calview.core.data.local.ExerciseEntity) {
+        try {
+            Log.d(TAG, "Saving exercise to Firestore: ${exercise.name}, ID: ${exercise.firestoreId}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("exercises")
+                .document(exercise.firestoreId)
+                .set(exercise)
+                .await()
+            Log.d(TAG, "Exercise saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving exercise to Firestore", e)
+            throw e
+        }
+    }
+    
+    override suspend fun getExercises(userId: String): List<com.example.calview.core.data.local.ExerciseEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("exercises")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.ExerciseEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting exercises from Firestore", e)
+            emptyList()
+        }
+    }
+    
+    override suspend fun deleteExercise(userId: String, firestoreId: String) {
+        try {
+            Log.d(TAG, "Deleting exercise from Firestore: $firestoreId")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("exercises")
+                .document(firestoreId)
+                .delete()
+                .await()
+            Log.d(TAG, "Exercise deleted successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting exercise from Firestore", e)
+            throw e
+        }
+    }
+    
     // ==================== FEATURE REQUEST IMPLEMENTATIONS ====================
     
     override fun observeFeatureRequests(): Flow<List<FeatureRequestDto>> = callbackFlow {
@@ -485,6 +534,18 @@ class FirestoreRepositoryImpl @Inject constructor(
                 Log.d(TAG, "Deleted weight entry: ${weightDoc.id}")
             }
             Log.d(TAG, "Deleted ${weightHistorySnapshot.size()} weight entries")
+            
+            // 5.5 Delete all exercises in the exercises subcollection
+            val exercisesCollection = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("exercises")
+            
+            val exercisesSnapshot = exercisesCollection.get().await()
+            for (exerciseDoc in exercisesSnapshot.documents) {
+                exerciseDoc.reference.delete().await()
+                Log.d(TAG, "Deleted exercise: ${exerciseDoc.id}")
+            }
+            Log.d(TAG, "Deleted ${exercisesSnapshot.size()} exercises")
 
             // 6. Delete challenge participation
             val participationQuery = firestore.collection("challenge_participants")

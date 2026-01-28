@@ -195,6 +195,7 @@ fun ProgressContent(
             modifier = Modifier
                 .widthIn(max = maxContentWidth)
                 .fillMaxSize()
+                .statusBarsPadding() // Handle edge-to-edge for status bar
                 .onGloballyPositioned { containerTop = it.positionInWindow().y }
                 .verticalScroll(scrollState)
                 .padding(horizontal = horizontalPadding, vertical = 16.dp),

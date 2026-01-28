@@ -99,6 +99,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val USER_LEVEL = intPreferencesKey("user_level")
         val LAST_ACTIVITY_TIMESTAMP = longPreferencesKey("last_activity_timestamp")
         val WATER_SERVING_SIZE = intPreferencesKey("water_serving_size")
+        
+        // Smart Coach tracking
+        val COACH_LAST_MESSAGE_TIME = longPreferencesKey("coach_last_message_time")
+        val COACH_MESSAGE_COUNT_TODAY = intPreferencesKey("coach_message_count_today")
+        val COACH_LAST_MESSAGE_DATE = stringPreferencesKey("coach_last_message_date")
     }
     
     // Coroutine scope for background sync operations
@@ -366,6 +371,19 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override val waterServingSize: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.WATER_SERVING_SIZE] ?: 8
+    }
+    
+    // Smart Coach tracking
+    override val coachLastMessageTime: Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.COACH_LAST_MESSAGE_TIME] ?: 0L
+    }
+    
+    override val coachMessageCountToday: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.COACH_MESSAGE_COUNT_TODAY] ?: 0
+    }
+    
+    override val coachLastMessageDate: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.COACH_LAST_MESSAGE_DATE] ?: ""
     }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
@@ -642,6 +660,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.WATER_SERVING_SIZE] = ml
         }
         syncToFirestore()
+    }
+    
+    override suspend fun setCoachMessageTracking(timestamp: Long, count: Int, date: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.COACH_LAST_MESSAGE_TIME] = timestamp
+            preferences[PreferencesKeys.COACH_MESSAGE_COUNT_TODAY] = count
+            preferences[PreferencesKeys.COACH_LAST_MESSAGE_DATE] = date
+        }
     }
     
     override suspend fun setWidgetDarkTheme(isDark: Boolean) {

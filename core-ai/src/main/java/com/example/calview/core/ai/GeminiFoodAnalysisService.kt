@@ -19,12 +19,34 @@ class GeminiFoodAnalysisService @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun analyzeFoodImage(bitmap: Bitmap): Result<FoodAnalysisResponse> {
+        return analyzeFoodImageWithIngredients(bitmap, emptyList())
+    }
+    
+    override suspend fun analyzeFoodImageWithIngredients(
+        bitmap: Bitmap,
+        additionalIngredients: List<String>
+    ): Result<FoodAnalysisResponse> {
         return try {
             android.util.Log.d("GeminiAI", "Starting food image analysis...")
             
+            // Build additional ingredients section if provided
+            val additionalIngredientsSection = if (additionalIngredients.isNotEmpty()) {
+                """
+                
+                IMPORTANT - USER-PROVIDED INGREDIENTS:
+                The user has indicated that the following ingredients are present in this meal but may have been missed:
+                ${additionalIngredients.joinToString(", ")}
+                
+                You MUST include these ingredients in your analysis with their nutritional values.
+                Look carefully at the image to estimate appropriate portions for these items.
+                If you cannot see them clearly, estimate a reasonable serving size based on typical portions.
+                
+                """.trimIndent()
+            } else ""
+            
             val prompt = """
                 Analyze the provided food image and provide nutritional estimates.
-                
+                $additionalIngredientsSection
                 IMPORTANT NAMING RULES:
                 1. Include QUANTITY in item names (e.g., "4 limes", "2 slices of bread", "3 eggs")
                 2. Be DESCRIPTIVE with food names (e.g., "white rice" not just "rice", "grilled chicken breast" not just "chicken")
@@ -60,7 +82,7 @@ class GeminiFoodAnalysisService @Inject constructor(
                 If no food is detected, return: {"error": "No food detected"}
             """.trimIndent()
 
-            android.util.Log.d("GeminiAI", "Sending request to Gemini API...")
+            android.util.Log.d("GeminiAI", "Sending request to Gemini API with ${additionalIngredients.size} additional ingredients...")
             
             val response = generativeModel.generateContent(
                 content {

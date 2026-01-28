@@ -1165,7 +1165,7 @@ private fun ShareFoodSheet(
                                         id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
                                     ),
                                     contentDescription = "CalViewAI Logo",
-                                    modifier = Modifier.size(80.dp)
+                                    modifier = Modifier.size(120.dp)
                                 )
                                 
                                 Spacer(modifier = Modifier.width(2.dp))
@@ -1655,7 +1655,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
 
         // --- DRAW BOTTOM BRANDING CARD ---
         val density = context.resources.displayMetrics.density
-        val logoSize = (80 * density).toInt().coerceAtLeast(100)
+        val logoSize = (110 * density).toInt().coerceAtLeast(150)
         
         // Available width for text (full width - margins - padding - logo)
         val textLeft = horizontalMargin + padding + logoSize + padding * 0.8f
@@ -1671,7 +1671,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         val textHeight = staticLayout.height.toFloat()
         val brandHeight = appBrandPaint.textSize * 1.2f
         
-        val minCardHeight = height * 0.12f
+        val minCardHeight = height * 0.18f
         val cardHeight = (padding * 2 + textHeight + brandHeight).coerceAtLeast(minCardHeight)
         val cardRadius = width * 0.025f
         

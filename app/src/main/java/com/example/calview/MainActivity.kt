@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -85,6 +86,7 @@ import com.example.calview.feature.dashboard.ChallengesScreen
 
 import com.example.calview.feature.dashboard.SocialChallengesScreen
 import com.example.calview.feature.dashboard.SocialChallengesViewModel
+import com.example.calview.feature.dashboard.LogExerciseScreen
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -250,13 +252,15 @@ fun AppNavigation(
     var isRedirecting by remember { mutableStateOf(false) }
     
     // Global navigation redirect based on state
+    // Note: Only redirect from "onboarding", NOT from "splash"
+    // This ensures splash screen always shows for the full duration on cold start
     LaunchedEffect(isSignedIn, isOnboardingComplete) {
         Log.d("Navigation", "State changed: isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete")
         if (isSignedIn && isOnboardingComplete) {
             val currentRoute = navController.currentDestination?.route
             Log.d("Navigation", "Current route before global redirect: $currentRoute")
-            if (currentRoute == "onboarding" || currentRoute == "splash") {
-                Log.d("Navigation", "Triggering global redirect to main")
+            if (currentRoute == "onboarding") {
+                Log.d("Navigation", "Triggering global redirect to main from onboarding")
                 showSignInSheet = false
                 isRedirecting = false
                 navController.navigate("main") {
@@ -508,6 +512,7 @@ fun AppNavigation(
                 onFastingClick = { navController.navigate("fasting") },
                 onChallengesClick = { navController.navigate("challenges") },
                 onAchievementsClick = { navController.navigate("achievements") },
+                onLogExerciseClick = { navController.navigate("log_exercise") },
                 onDeleteAccount = {
                     // Navigation is now triggered by SettingsViewModel's isDeletionComplete flag
                     // but we still provide this for cleanup/safety
@@ -858,6 +863,15 @@ fun AppNavigation(
                 }
             )
         }
+        
+        composable("log_exercise") {
+            LogExerciseScreen(
+                onNavigateBack = { 
+                    navController.previousBackStackEntry?.savedStateHandle?.set("showScanMenu", true)
+                    navController.popBackStack("main", false)
+                }
+            )
+        }
     }
 }
 
@@ -935,6 +949,7 @@ fun MainTabs(
     onFastingClick: () -> Unit = {},
     onChallengesClick: () -> Unit = {},
     onAchievementsClick: () -> Unit = {},
+    onLogExerciseClick: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -1039,7 +1054,7 @@ fun MainTabs(
                     )
                 }
 
-                // Row 3: Achievements
+                // Row 3: Achievements & Log Exercise
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -1054,8 +1069,16 @@ fun MainTabs(
                             onAchievementsClick()
                         }
                     )
-                    // Spacer for grid balance
-                    Spacer(modifier = Modifier.weight(1f))
+                    // Log Exercise
+                    CameraMenuItem(
+                        icon = Icons.Filled.FitnessCenter,
+                        label = "Log Exercise",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showCameraMenu = false
+                            onLogExerciseClick()
+                        }
+                    )
                 }
             }
             
