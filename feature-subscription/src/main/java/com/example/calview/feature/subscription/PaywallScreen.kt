@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.data.billing.BillingManager
 import com.example.calview.core.ui.theme.CalViewTheme
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import androidx.compose.ui.res.stringResource
@@ -149,15 +151,17 @@ fun PaywallScreen(
                         .padding(top = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // PRO text with SageGreen styling
+                    // PRO text with SageGreen styling - Premium typography
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = PaywallPrimary
                     ) {
                         Text(
                             text = "PRO",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.02).sp,
                             color = Color.White,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                         )
@@ -363,6 +367,7 @@ fun PremiumFeatureItem(text: String) {
         Spacer(modifier = Modifier.width(14.dp))
         Text(
             text = text,
+            fontFamily = InterFontFamily,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Medium
@@ -427,8 +432,9 @@ fun PremiumSubscriptionCard(
                 Column {
                     Text(
                         text = title,
+                        fontFamily = InterFontFamily,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = if (isSelected) PaywallPrimary else MaterialTheme.colorScheme.onSurface
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -454,10 +460,13 @@ fun PremiumSubscriptionCard(
                         }
                     }
                 }
+                // Price with premium Space Grotesk
                 Text(
                     text = price,
+                    fontFamily = SpaceGroteskFontFamily,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.02).sp,
                     color = if (isSelected) PaywallPrimary else MaterialTheme.colorScheme.onSurface
                 )
             }

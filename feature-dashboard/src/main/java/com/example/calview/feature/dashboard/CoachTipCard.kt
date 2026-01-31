@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.data.coach.CoachMessageGenerator
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @Composable
 fun CoachTipCard(
@@ -66,9 +67,10 @@ fun CoachTipCard(
                     ) {
                         Text(
                             text = "AI Coach",
+                            fontFamily = InterFontFamily,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         SuggestionChip(
@@ -92,7 +94,9 @@ fun CoachTipCard(
                     
                     Text(
                         text = tip.message,
+                        fontFamily = InterFontFamily,
                         style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 22.sp // Slightly increased for better readability of multi-line text
                     )

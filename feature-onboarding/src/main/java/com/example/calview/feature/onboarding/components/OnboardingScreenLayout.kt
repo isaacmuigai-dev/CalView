@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 /**
  * Shared layout for onboarding screens with back button, progress bar, title, and continue button.
@@ -92,7 +92,7 @@ fun OnboardingScreenLayout(
             // Title
             Text(
                 text = title,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 lineHeight = 36.sp,
@@ -104,7 +104,7 @@ fun OnboardingScreenLayout(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = subtitle,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -137,7 +137,7 @@ fun OnboardingScreenLayout(
                 ) {
                     Text(
                         text = "Continue",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = if (continueEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant

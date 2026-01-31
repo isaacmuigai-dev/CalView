@@ -23,7 +23,6 @@ rootProject.name = "CalView"
 include(":app")
 include(":core-ai")
 include(":core-data")
-include(":core-ml")
 include(":core-ui")
 include(":feature-onboarding")
 include(":feature-dashboard")

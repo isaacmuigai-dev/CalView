@@ -38,6 +38,8 @@ import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,31 +119,42 @@ fun FastingScreen(
                     if (uiState.isActive) {
                         Text(
                             text = formatTime(uiState.elapsedMinutes),
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = stringResource(R.string.elapsed_label),
+                            fontFamily = InterFontFamily,
                             fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "${formatTime(uiState.remainingMinutes)} ${stringResource(R.string.left_suffix)}",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         Text(
                             text = uiState.selectedFastType.label,
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = stringResource(R.string.fast_hour_suffix, uiState.selectedFastType.fastingHours),
+                            fontFamily = InterFontFamily,
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -329,8 +342,10 @@ private fun FastTypeChip(
         ) {
             Text(
                 text = type.label,
+                fontFamily = SpaceGroteskFontFamily,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp,
                 color = if (isSelected) 
                     MaterialTheme.colorScheme.onPrimary 
                 else 
@@ -338,7 +353,9 @@ private fun FastTypeChip(
             )
             Text(
                 text = stringResource(R.string.fast_hour_suffix, type.fastingHours),
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = if (isSelected) 
                     MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) 
                 else 
@@ -367,12 +384,16 @@ private fun StatCard(
         ) {
             Text(
                 text = value,
+                fontFamily = SpaceGroteskFontFamily,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp
             )
             Text(
                 text = label,
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -403,11 +424,14 @@ private fun RecentFastCard(session: com.example.calview.core.data.local.FastingS
             Column {
                 Text(
                     text = dateFormat.format(Date(session.startTime)),
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = session.fastingType,
+                    fontFamily = InterFontFamily,
                     fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -417,7 +441,9 @@ private fun RecentFastCard(session: com.example.calview.core.data.local.FastingS
             ) {
                 Text(
                     text = formatTime(duration),
-                    fontWeight = FontWeight.Bold
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp
                 )
                 if (session.isCompleted) {
                     Icon(

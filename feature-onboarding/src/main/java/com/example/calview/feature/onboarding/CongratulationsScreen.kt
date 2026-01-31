@@ -27,7 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
@@ -169,7 +170,7 @@ fun CongratulationsScreen(
             // Congratulations title
             Text(
                 text = "Congratulations\nyour custom plan is ready!",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -203,7 +204,7 @@ fun CongratulationsScreen(
                     ) {
                         Text(
                             text = "Your Goal Journey",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
@@ -221,15 +222,16 @@ fun CongratulationsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Current",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "${currentWeight.toInt()} kg",
-                                    fontFamily = Inter,
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = SpaceGroteskFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontSize = 24.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -245,15 +247,16 @@ fun CongratulationsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Goal",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "${targetWeight.toInt()} kg",
-                                    fontFamily = Inter,
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = SpaceGroteskFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontSize = 24.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -274,15 +277,16 @@ fun CongratulationsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "⚡ Weekly Pace",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "${"%.1f".format(weeklyPace)} kg",
-                                    fontFamily = Inter,
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -291,15 +295,16 @@ fun CongratulationsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "📊 To $actionWord",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "$weightDiff kg",
-                                    fontFamily = Inter,
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -308,15 +313,16 @@ fun CongratulationsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "⏱️ Estimated",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "$weeksToGoal weeks",
-                                    fontFamily = Inter,
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -339,15 +345,16 @@ fun CongratulationsScreen(
                             ) {
                                 Text(
                                     text = "🎯 Estimated Goal Date: ",
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = targetDateStr,
-                                    fontFamily = Inter,
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = SpaceGroteskFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -361,7 +368,7 @@ fun CongratulationsScreen(
             // Daily Recommendation section
             Text(
                 text = "Daily Recommendation",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onBackground
@@ -369,7 +376,7 @@ fun CongratulationsScreen(
             
             Text(
                 text = "You can edit this any time",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -467,7 +474,7 @@ fun CongratulationsScreen(
                     ) {
                         Text(
                             text = "Health score",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
@@ -503,9 +510,10 @@ fun CongratulationsScreen(
                     
                     Text(
                         text = "${animatedHealthScore.toInt()}/10",
-                        fontFamily = Inter,
+                        fontFamily = SpaceGroteskFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -524,7 +532,7 @@ fun CongratulationsScreen(
                 ) {
                     Text(
                         text = "How to reach your goals:",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -565,7 +573,7 @@ fun CongratulationsScreen(
             // Medical sources
             Text(
                 text = "Plan based on the following sources, among other peer-reviewed medical studies:",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -599,7 +607,7 @@ fun CongratulationsScreen(
         ) {
             Text(
                 text = "Continue",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
             )
@@ -654,7 +662,7 @@ private fun AnimatedMacroCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = title,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -692,9 +700,10 @@ private fun AnimatedMacroCard(
                     }
                     Text(
                         text = value,
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -730,7 +739,7 @@ private fun GoalTip(emoji: String, text: String) {
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = text,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -744,7 +753,7 @@ private fun GoalTip(emoji: String, text: String) {
 private fun SourceItem(text: String) {
     Text(
         text = "• $text",
-        fontFamily = Inter,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onBackground,

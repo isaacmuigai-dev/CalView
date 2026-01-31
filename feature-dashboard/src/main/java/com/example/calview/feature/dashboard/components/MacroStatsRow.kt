@@ -37,6 +37,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAICard
+import com.example.calview.core.ui.theme.CalViewTheme
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @Composable
 fun MacroStatsRow(
@@ -123,6 +126,9 @@ fun MacroGaugeCard(
             horizontalAlignment = Alignment.Start
         ) {
             // Animated content transition between eaten/left
+            // Premium typography: Space Grotesk for numbers, Inter for labels
+            val typography = CalViewTheme.typography
+            
             AnimatedContent(
                 targetState = showEaten,
                 transitionSpec = {
@@ -133,68 +139,78 @@ fun MacroGaugeCard(
             ) { isEaten ->
                 Column {
                     if (isEaten) {
-                        // "Eaten" view: shows consumed/goal - matching reference exactly
+                        // "Eaten" view: shows consumed/goal with premium typography
                         Text(
                             text = buildAnnotatedString {
+                                // Macro number with Space Grotesk - tight tracking for premium feel
                                 withStyle(SpanStyle(
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp, // Tight tracking
                                     color = MaterialTheme.colorScheme.onSurface
                                 )) {
                                     append(consumedValue.toString())
                                 }
+                                // Goal with Inter - lighter weight
                                 withStyle(SpanStyle(
-                                    fontSize = 14.sp,
+                                    fontFamily = InterFontFamily,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )) {
                                     append(" /${goalValue}g")
                                 }
                             }
                         )
                         Spacer(modifier = Modifier.height(2.dp))
+                        // Label with Inter - Medium weight for secondary labels
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Normal,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )) {
                                     append("$label ")
                                 }
                                 withStyle(SpanStyle(
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = InterFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )) {
                                     append("eaten")
                                 }
                             },
-                            fontSize = 13.sp
+                            style = typography.macroLabel
                         )
                     } else {
-                        // "Left" view: shows remaining only - matching reference exactly
+                        // "Left" view: shows remaining with premium typography
                         Text(
                             text = "${remaining}g",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = typography.macroNumber,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(2.dp))
+                        // Label with Inter - Medium weight for secondary labels
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Normal,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )) {
                                     append("$label ")
                                 }
                                 withStyle(SpanStyle(
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = InterFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )) {
                                     append("left")
                                 }
                             },
-                            fontSize = 13.sp
+                            style = typography.macroLabel
                         )
                     }
                 }

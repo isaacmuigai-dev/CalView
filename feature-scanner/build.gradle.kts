@@ -37,13 +37,21 @@ android {
     buildFeatures {
         compose = true
     }
+    
+    // Support for 16 KB page sizes (Android 15+)
+    // ML Kit libraries need proper alignment for 16KB page size devices
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
     implementation(project(":core-ai"))
-    implementation(project(":core-ml"))
+    
     
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

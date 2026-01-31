@@ -25,7 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import kotlin.math.roundToInt
 
 /**
@@ -118,7 +119,7 @@ fun GoalPreferencesScreen(
             // Title
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goals_title),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground
@@ -126,7 +127,7 @@ fun GoalPreferencesScreen(
             
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.goals_subtitle),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
@@ -200,14 +201,15 @@ fun GoalPreferencesScreen(
                         ) {
                             Text(
                                 text = displayWeight,
-                                fontFamily = Inter,
-                                fontWeight = FontWeight.Bold,
+                                fontFamily = SpaceGroteskFontFamily,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 36.sp,
+                                letterSpacing = (-0.02).sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = diffText,
-                                fontFamily = Inter,
+                                fontFamily = InterFontFamily,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -243,7 +245,7 @@ fun GoalPreferencesScreen(
                     // Current vs Target weight display
                     Text(
                         text = "${currentWeightKg.roundToInt()} kg → $displayWeight",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -258,9 +260,10 @@ fun GoalPreferencesScreen(
                     val paceDesc = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.cd_pace_per_week, paceDisplay)
                     Text(
                         text = paceDisplay,
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 32.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -330,19 +333,19 @@ fun GoalPreferencesScreen(
                     ) {
                         Text(
                             text = "0.1 kg",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "0.8 kg",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "1.5 kg",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -364,7 +367,7 @@ fun GoalPreferencesScreen(
                                 weightChangePerWeek <= 1.3f -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_fast)
                                 else -> androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.pace_warning)
                             },
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp,
                             color = when {
@@ -387,7 +390,7 @@ fun GoalPreferencesScreen(
             
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.diet_preference_subtitle),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 13.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -475,14 +478,14 @@ fun GoalPreferencesScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.enable_rollover),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.rollover_desc),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -523,14 +526,14 @@ fun GoalPreferencesScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.add_daily_goal),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.add_burned_desc),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -570,7 +573,7 @@ fun GoalPreferencesScreen(
         ) {
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.continue_button),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
             )
@@ -588,7 +591,7 @@ private fun GoalSectionTitle(title: String, emoji: String) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onBackground
@@ -629,14 +632,14 @@ private fun GoalOption(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -684,7 +687,7 @@ private fun DietChip(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 14.sp,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurface

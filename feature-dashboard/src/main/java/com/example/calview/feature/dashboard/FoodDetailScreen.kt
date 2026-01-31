@@ -60,6 +60,8 @@ import java.io.FileOutputStream
 import java.util.*
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 
 // NOTE: Use MaterialTheme.colorScheme for all colors - no hardcoded values
 
@@ -191,6 +193,7 @@ fun FoodDetailScreen(
                     
                     Text(
                         text = stringResource(R.string.food_details_title),
+                        fontFamily = InterFontFamily,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White
@@ -336,8 +339,10 @@ fun FoodDetailScreen(
                             }
                             Text(
                                 text = servingCount.toString(),
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 modifier = Modifier.padding(horizontal = 8.dp)
                             )
                             IconButton(
@@ -395,13 +400,17 @@ fun FoodDetailScreen(
                                         Column {
                                             Text(
                                                 text = stringResource(R.string.calories_label),
+                                                fontFamily = InterFontFamily,
                                                 fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
                                                 color = onSurfaceVariantColor
                                             )
                                             Text(
                                                 text = "${meal.calories * servingCount}",
+                                                fontFamily = SpaceGroteskFontFamily,
                                                 fontSize = 32.sp,
-                                                fontWeight = FontWeight.Bold,
+                                                fontWeight = FontWeight.SemiBold,
+                                                letterSpacing = (-0.02).sp,
                                                 color = onSurfaceColor
                                             )
                                         }
@@ -499,6 +508,7 @@ fun FoodDetailScreen(
                                             Column {
                                                 Text(
                                                     text = stringResource(R.string.health_score),
+                                                    fontFamily = InterFontFamily,
                                                     fontSize = 16.sp,
                                                     fontWeight = FontWeight.Medium,
                                                     color = onSurfaceColor
@@ -528,8 +538,10 @@ fun FoodDetailScreen(
                                         }
                                         Text(
                                             text = "$healthScore/10",
+                                            fontFamily = SpaceGroteskFontFamily,
                                             fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = (-0.02).sp,
                                             color = onSurfaceColor
                                         )
                                     }
@@ -595,8 +607,9 @@ fun FoodDetailScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = stringResource(R.string.what_detected),
+                                        fontFamily = InterFontFamily,
                                         fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.SemiBold,
                                         color = onSurfaceColor
                                     )
                                     Spacer(modifier = Modifier.weight(1f))
@@ -613,8 +626,10 @@ fun FoodDetailScreen(
                                             Text(
                                                 "${meal.confidenceScore.toInt()}% ${stringResource(R.string.confident_suffix)}",
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                fontFamily = SpaceGroteskFontFamily,
                                                 fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                letterSpacing = (-0.02).sp,
                                                 color = when {
                                                     meal.confidenceScore >= 80f -> Color(0xFF4CAF50)
                                                     meal.confidenceScore >= 60f -> Color(0xFFFFC107)
@@ -712,8 +727,9 @@ fun FoodDetailScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.ingredients_title),
+                        fontFamily = InterFontFamily,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = onSurfaceColor
                     )
                     TextButton(onClick = { showAddIngredientDialog = true }) {
@@ -958,13 +974,17 @@ private fun MacroDetailCard(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
+                fontFamily = SpaceGroteskFontFamily,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -992,13 +1012,17 @@ private fun MicroDetailCard(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
+                fontFamily = SpaceGroteskFontFamily,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -1115,23 +1139,34 @@ private fun ShareFoodSheet(
                             ) {
                                 Text(
                                     text = "🔥 ${meal.calories * servingCount} kcal",
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = Color.White
                                 )
                                 Text(
                                     text = "P ${meal.protein * servingCount}g",
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = Color(0xFFEF5350)
                                 )
                                 Text(
                                     text = "C ${meal.carbs * servingCount}g",
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = Color(0xFFFFA726)
                                 )
                                 Text(
                                     text = "F ${meal.fats * servingCount}g",
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = Color(0xFF42A5F5)
                                 )
                             }
@@ -1165,7 +1200,7 @@ private fun ShareFoodSheet(
                                         id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
                                     ),
                                     contentDescription = "CalViewAI Logo",
-                                    modifier = Modifier.size(120.dp)
+                                    modifier = Modifier.size(90.dp)
                                 )
                                 
                                 Spacer(modifier = Modifier.width(2.dp))
@@ -1175,7 +1210,7 @@ private fun ShareFoodSheet(
                                     Text(
                                         text = meal.name,
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
+                                        fontWeight = FontWeight.Normal,
                                         color = Color.Black
                                     )
                                     Text(
@@ -1206,7 +1241,7 @@ private fun ShareFoodSheet(
                         }
                     )
                     ShareOptionButton(
-                        icon = Icons.Outlined.Download,
+                        icon = Icons.Filled.Download,
                         label = "Save",
                         onClick = {
                             scope.launch {
@@ -1215,7 +1250,7 @@ private fun ShareFoodSheet(
                         }
                     )
                     ShareOptionButton(
-                        icon = Icons.Outlined.ContentCopy,
+                        icon = Icons.Filled.ContentCopy,
                         label = "Copy",
                         onClick = {
                             val text = "${meal.name}\n${meal.calories} cal | P: ${meal.protein}g | C: ${meal.carbs}g | F: ${meal.fats}g\n\nTracked with CalViewAI"
@@ -1592,7 +1627,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
             color = android.graphics.Color.BLACK
             textSize = width * 0.03f
             isAntiAlias = true
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         }
         
         val appBrandPaint = TextPaint().apply {
@@ -1655,10 +1690,11 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
 
         // --- DRAW BOTTOM BRANDING CARD ---
         val density = context.resources.displayMetrics.density
-        val logoSize = (110 * density).toInt().coerceAtLeast(150)
+        // Use a smaller, more proportional logo size (60dp equivalent)
+        val logoSize = (90 * density).toInt()
         
         // Available width for text (full width - margins - padding - logo)
-        val textLeft = horizontalMargin + padding + logoSize + padding * 0.8f
+        val textLeft = horizontalMargin + padding + logoSize + padding * 1.5f
         val textRight = width - horizontalMargin - padding
         val availableTextWidth = (textRight - textLeft).toInt().coerceAtLeast(100)
         
@@ -1671,7 +1707,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         val textHeight = staticLayout.height.toFloat()
         val brandHeight = appBrandPaint.textSize * 1.2f
         
-        val minCardHeight = height * 0.18f
+        val minCardHeight = height * 0.14f
         val cardHeight = (padding * 2 + textHeight + brandHeight).coerceAtLeast(minCardHeight)
         val cardRadius = width * 0.025f
         
@@ -1684,21 +1720,37 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         }
         canvas.drawRoundRect(cardRect, cardRadius, cardRadius, glassPaint)
         
-        // Draw Logo
+        // Draw Logo - preserve aspect ratio
         val logoBitmap = try {
             val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.ic_calview_logo)
             if (drawable != null) {
-                val b = Bitmap.createBitmap(logoSize, logoSize, Bitmap.Config.ARGB_8888)
+                // Get intrinsic dimensions to preserve aspect ratio
+                val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: logoSize
+                val intrinsicHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: logoSize
+                val aspectRatio = intrinsicWidth.toFloat() / intrinsicHeight
+                
+                val drawWidth: Int
+                val drawHeight: Int
+                if (aspectRatio > 1) {
+                    drawWidth = logoSize
+                    drawHeight = (logoSize / aspectRatio).toInt()
+                } else {
+                    drawHeight = logoSize
+                    drawWidth = (logoSize * aspectRatio).toInt()
+                }
+                
+                val b = Bitmap.createBitmap(drawWidth, drawHeight, Bitmap.Config.ARGB_8888)
                 val c = Canvas(b)
-                drawable.setBounds(0, 0, logoSize, logoSize)
+                drawable.setBounds(0, 0, drawWidth, drawHeight)
                 drawable.draw(c)
                 b
             } else null
         } catch (e: Exception) { null }
         
         if (logoBitmap != null) {
-            val logoY = cardTop + (cardHeight - logoSize) / 2
-            canvas.drawBitmap(logoBitmap, horizontalMargin + padding, logoY, null)
+            val logoY = cardTop + (cardHeight - logoBitmap.height) / 2
+            val logoX = horizontalMargin + padding
+            canvas.drawBitmap(logoBitmap, logoX, logoY, null)
             logoBitmap.recycle()
         }
         

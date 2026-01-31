@@ -67,7 +67,11 @@ class CoachMessageGenerator @Inject constructor() {
                 category = TipCategory.MOTIVATION
             )
             else -> CoachTip(
-                message = "Good morning! Set an intention today: What's one healthy choice you'll make?",
+                message = listOf(
+                    "Good morning! Set an intention today: What's one healthy choice you'll make?",
+                    "Rise and shine! Ready to crush your goals today?",
+                    "New day, new opportunities. What are we tracking first?"
+                ).random(),
                 emoji = "☀️",
                 category = TipCategory.MOTIVATION
             )
@@ -119,7 +123,11 @@ class CoachMessageGenerator @Inject constructor() {
                 category = TipCategory.ACHIEVEMENT
             )
             else -> CoachTip(
-                message = "Another day of progress! Every meal logged is a step toward your goals.",
+                message = listOf(
+                    "Another day of progress! Every meal logged is a step toward your goals.",
+                    "Great work today! Consistency is the secret to change.",
+                    "Day complete! Your future self will thank you for today's logs."
+                ).random(),
                 emoji = "✨",
                 category = TipCategory.MOTIVATION
             )
@@ -169,7 +177,11 @@ class CoachMessageGenerator @Inject constructor() {
                 category = TipCategory.NUTRITION
             )
             else -> CoachTip(
-                message = "You're doing great! Keep making balanced choices.",
+                message = listOf(
+                    "You're doing great! Keep making balanced choices.",
+                    "Solid progress! Your macros are looking balanced.",
+                    "Nice work! You're staying consistent with your logging."
+                ).random(),
                 emoji = "👍",
                 category = TipCategory.MOTIVATION
             )
@@ -185,32 +197,56 @@ class CoachMessageGenerator @Inject constructor() {
         
         return when {
             hoursSinceLastActivity > 24 -> CoachTip(
-                message = "Welcome back! Let's get your health score up by logging today's meals.",
+                message = listOf(
+                    "Welcome back! Let's get your health score up by logging today's meals.",
+                    "Missed you! A quick meal log will refresh your health score.",
+                    "Ready to get back on track? Log your first meal to update your score."
+                ).random(),
                 emoji = "👋",
                 category = TipCategory.MOTIVATION
             )
             scoreDiff > 0 -> CoachTip(
-                message = "Your health score went up by $scoreDiff points! Whatever you're doing, it's working.",
+                message = listOf(
+                    "Your health score went up by $scoreDiff points! Whatever you're doing, it's working.",
+                    "Progress! Your score climbed $scoreDiff points. Keep up the great habits!",
+                    "On the rise! Your health score is up by $scoreDiff. You're doing amazing."
+                ).random(),
                 emoji = "📈",
                 category = TipCategory.ACHIEVEMENT
             )
             scoreDiff < 0 -> CoachTip(
-                message = "Your score dropped slightly. Check your macros and water intake to get back on track.",
+                message = listOf(
+                    "Your score dropped slightly. Check your macros and water intake to get back on track.",
+                    "A small dip in your score. Focus on your protein goal today to see it rise!",
+                    "Let's turn this around! A balanced meal today will boost your health score."
+                ).random(),
                 emoji = "📉",
                 category = TipCategory.MOTIVATION
             )
             currentScore >= 9 -> CoachTip(
-                message = "Excellent health score! You're optimizing your nutrition perfectly.",
+                message = listOf(
+                    "Excellent health score! You're optimizing your nutrition perfectly.",
+                    "Elite level! Your health score is top-tier. Keep inspiring yourself!",
+                    "Master of nutrition! Your score reflects your dedication to health."
+                ).random(),
                 emoji = "⭐",
                 category = TipCategory.ACHIEVEMENT
             )
             currentScore >= 7 -> CoachTip(
-                message = "Great score! Small adjustments to protein or water could get you to a 10.",
+                message = listOf(
+                    "Great score! Small adjustments to protein or water could get you to a 10.",
+                    "Strong performance! You're very close to a perfect health score.",
+                    "Solid habits! Keep pushing for those daily macro targets to hit a 10."
+                ).random(),
                 emoji = "🚀",
                 category = TipCategory.NUTRITION
             )
             else -> CoachTip(
-                message = "Consistency is key. log every meal to see your score improve.",
+                message = listOf(
+                    "Consistency is key. Log every meal to see your score improve.",
+                    "Every log counts! Your health score grows with your consistency.",
+                    "Success is built daily. Keep logging to track your journey accurately."
+                ).random(),
                 emoji = "📝",
                 category = TipCategory.MOTIVATION
             )

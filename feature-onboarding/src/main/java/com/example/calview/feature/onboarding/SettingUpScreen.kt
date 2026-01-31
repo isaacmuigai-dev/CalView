@@ -18,7 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import kotlinx.coroutines.delay
 
 /**
@@ -85,9 +86,10 @@ fun SettingUpScreen(
         // Percentage display
         Text(
             text = "${(progress * 100).toInt()}%",
-            fontFamily = Inter,
-            fontWeight = FontWeight.Bold,
+            fontFamily = SpaceGroteskFontFamily,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 64.sp,
+            letterSpacing = (-0.02).sp,
             color = MaterialTheme.colorScheme.onBackground
         )
         
@@ -96,7 +98,7 @@ fun SettingUpScreen(
         // Title
         Text(
             text = "We're setting everything\nup for you",
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
             color = MaterialTheme.colorScheme.onBackground,
@@ -136,7 +138,7 @@ fun SettingUpScreen(
         // Status message
         Text(
             text = statusMessages.getOrElse(currentStep.coerceIn(0, statusMessages.size - 1)) { statusMessages.last() },
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -155,7 +157,7 @@ fun SettingUpScreen(
             ) {
                 Text(
                     text = "Daily recommendation for",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -172,7 +174,7 @@ fun SettingUpScreen(
                     ) {
                         Text(
                             text = "• $step",
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface,

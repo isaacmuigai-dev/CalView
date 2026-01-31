@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.onboarding.components.OnboardingScreenLayout
 
 /**
@@ -89,7 +89,7 @@ fun GeneratePlanScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "All done!",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onBackground
@@ -101,7 +101,7 @@ fun GeneratePlanScreen(
             // Title
             Text(
                 text = "Time to generate your\ncustom plan!",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
                 color = MaterialTheme.colorScheme.onBackground,

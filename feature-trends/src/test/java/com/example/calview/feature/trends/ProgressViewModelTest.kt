@@ -347,4 +347,78 @@ class ProgressViewModelTest {
         val state = viewModel.uiState.first { !it.isLoading }
         assertTrue("Refresh should complete", !state.isLoading)
     }
+
+    // ==================== WEEK SELECTION TESTS ====================
+
+    @Test
+    fun `setWeekOffset updates selectedWeekOffset in state`() = runTest {
+        // Arrange
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
+        
+        // Act
+        viewModel.setWeekOffset(2)
+        val state = viewModel.uiState.first { it.selectedWeekOffset == 2 }
+
+        // Assert
+        assertEquals(2, state.selectedWeekOffset)
+    }
+
+    @Test
+    fun `weekly calories ignores meals from other weeks based on offset`() = runTest {
+        // Arrange:
+        // Today is in week 0.
+        // Create meals for "Today" (Week 0) and "Last Week" (Week 1).
+        val today = System.currentTimeMillis()
+        val oneWeekMs = 7 * 24 * 60 * 60 * 1000L
+        
+        val week0Meal = MealEntity(name = "Week 0", calories = 500, protein = 20, carbs = 50, fats = 15, 
+            timestamp = today, analysisStatus = AnalysisStatus.COMPLETED)
+            
+        val week1Meal = MealEntity(name = "Week 1", calories = 800, protein = 30, carbs = 60, fats = 25, 
+            timestamp = today - oneWeekMs, analysisStatus = AnalysisStatus.COMPLETED)
+            
+        every { mealRepository.getAllMeals() } returns flowOf(listOf(week0Meal, week1Meal))
+
+        viewModel = ProgressViewModel(
+            userPreferencesRepository, 
+            mealRepository, 
+            healthConnectManager, 
+            selectedDateHolder, 
+            weightDao, 
+            predictionEngine
+        )
+
+        // Act 1: Default offset 0 (This week)
+        val state0 = viewModel.uiState.first { !it.isLoading }
+        val week0Calories = state0.weeklyCalories.sumOf { it.calories }
+        
+        // Assert 1: Should only include week 0 meal (500)
+        assertEquals(500, week0Calories)
+
+        // Act 2: Offset 1 (Last week)
+        viewModel.setWeekOffset(1)
+        
+        // Wait for state update (selectedWeekOffset = 1)
+        // Note: loadProgressData is called, which updates weeklyCalories
+        val state1 = viewModel.uiState.first { it.selectedWeekOffset == 1 }
+        
+        // We need to wait for the data to reload. Since getAllMeals returns a flow, 
+        // and loadProgressData processes it, the state update might be async.
+        // However, in this test setup with flows, it should emit.
+        // Let's grab the state again to be sure the calculation ran with the new offset.
+        // Realistically, the first emission with offset=1 might happen before the calculation finishes 
+        // if using real dispatchers, but with UnconfinedTestDispatcher/TestScope logic it usually runs.
+        // Let's check the current state's calories.
+        val week1Calories = state1.weeklyCalories.sumOf { it.calories }
+
+        // Assert 2: Should only include week 1 meal (800)
+        assertEquals(800, week1Calories)
+    }
 }

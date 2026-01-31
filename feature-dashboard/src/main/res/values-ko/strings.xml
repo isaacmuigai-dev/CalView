@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 트렌딩</string>
     <string name="tab_newest">✨ 최신</string>
     <string name="tab_my_posts">👤 내 게시물</string>
-    <string name="search_placeholder">기능 요청 검색...</string>
+    <string name="search_placeholder">기능 요청 검색…</string>
     <string name="clear_desc">지우기</string>
     <string name="create_request_desc">요청 생성</string>
     <string name="feedback_hub_title">피드백 허브</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">기능 제목</string>
     <string name="feature_title_placeholder">어떤 기능을 원하시나요?</string>
     <string name="description_label">설명</string>
-    <string name="description_placeholder">아이디어를 자세히 설명해주세요...</string>
+    <string name="description_placeholder">아이디어를 자세히 설명해주세요…</string>
     <string name="add_tags_label">태그 추가</string>
     <string name="post_request_action">요청 게시</string>
     <string name="comments_title">댓글 (%1$d)</string>
-    <string name="add_comment_placeholder">댓글 추가...</string>
+    <string name="add_comment_placeholder">댓글 추가…</string>
     <string name="send_desc">전송</string>
     <string name="no_comments_yet">아직 댓글이 없습니다</string>
     <string name="be_first_comment">가장 먼저 의견을 공유하세요!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">단식 완료</string>
     <string name="stop_fast_desc">단식 중지</string>
     <string name="start_fast_desc">단식 시작</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">저장</string>
+    <string name="selected_desc">선택됨</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">소셜 챌린지</string>
+    <string name="navigate_back_desc">뒤로 이동</string>
+    <string name="back_desc">뒤로</string>
+    <string name="create_new_challenge_desc">새 챌린지 만들기</string>
+    <string name="create_challenge_action">챌린지 만들기</string>
+    <string name="error_occurred">오류가 발생했습니다</string>
+    <string name="social_challenges_desc">친구들과 주간 경쟁에 도전하세요! 가장 많은 식사를 기록하거나, 가장 많은 물을 마시거나, 가장 긴 연속 기록을 유지하는 사람을 추적합니다.</string>
+    <string name="your_active_challenges">활성 챌린지</string>
+    <string name="join_challenge_action">챌린지 참가</string>
+    <string name="enter_invite_code_desc">친구의 초대 코드 입력</string>
+    <string name="leaderboard">리더보드</string>
+    <string name="invite_code_label">초대 코드: %1$s</string>
+    <string name="copy_action">복사</string>
+    <string name="code_copied_to_clipboard">코드가 클립보드에 복사되었습니다</string>
+    <string name="you">당신</string>
+    <string name="no_active_challenges">활성 챌린지 없음</string>
+    <string name="create_or_join_challenge_desc">챌린지를 만들거나 초대 코드를 사용하여 참가하세요!</string>
+    <string name="challenge_name_label">챌린지 이름</string>
+    <string name="challenge_type_label">챌린지 유형</string>
+    <string name="duration_days_label">기간: %1$d일</string>
+    <string name="weekly_challenge_default">주간 챌린지</string>
+    <string name="create_action">만들기</string>
+    <string name="cancel_action">취소</string>
+    <string name="challenge_created_title">챌린지가 생성되었습니다!</string>
+    <string name="share_invite_code_desc">이 초대 코드를 친구들과 공유:</string>
+    <string name="copy_to_clipboard_desc">클립보드에 복사</string>
+    <string name="copied_to_clipboard_message">클립보드에 복사되었습니다!</string>
+    <string name="join_challenge_title">챌린지 참가</string>
+    <string name="invite_code_input_label">초대 코드</string>
+    <string name="join_action">참가</string>
+    <string name="end_challenge_desc">챌린지 종료</string>
+    <string name="share_invite_desc">초대 공유</string>
+    <string name="share_challenge_chooser">챌린지 공유</string>
+    <string name="join_challenge_share_message">CalView에서 내 챌린지 \"%1$s\"에 참가하세요! 초대 코드 사용: %2$s</string>
+    <string name="rank_you_points">당신은 %1$d위에 %2$d점입니다</string>
+    <string name="leader_none">리더: 없음</string>
+    <string name="leader_label">리더: %1$s</string>
+    <string name="challenge_type_streak">🔥 연속 챌린지</string>
+    <string name="challenge_type_water">💧 물 챔피언</string>
+    <string name="challenge_type_calories">🎯 칼로리 목표</string>
+    <string name="challenge_type_protein">💪 단백질 파워</string>
+    <string name="challenge_type_steps">👟 걸음 수 카운터</string>
+    <string name="challenge_type_logging">📝 가장 일관된 기록자</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">챌린지 &amp; 배지</string>
+    <string name="active_weekly_challenges">활성 주간 챌린지</string>
+    <string name="no_active_challenges_now">현재 활성 챌린지가 없습니다.</string>
+    <string name="your_trophy_case">트로피 케이스</string>
+    <string name="challenge_trophy_desc">챌린지 트로피</string>
+    <string name="no_badges_unlocked">아직 배지가 잠금 해제되지 않았습니다. 계속하세요!</string>
+    <string name="ok_action">확인</string>
 </resources>

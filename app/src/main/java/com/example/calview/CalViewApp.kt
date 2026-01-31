@@ -8,6 +8,7 @@ import com.example.calview.worker.BadgeNotificationWorker
 import com.example.calview.worker.CoachNotificationWorker
 import com.example.calview.worker.DailyEngagementWorker
 import com.example.calview.worker.DailySyncWorker
+import com.example.calview.worker.FastingNotificationWorker
 import com.example.calview.worker.InactivityWorker
 import com.example.calview.worker.SocialChallengeNotificationWorker
 import com.example.calview.worker.StreakReminderWorker
@@ -48,6 +49,7 @@ class CalViewApp : Application(), Configuration.Provider {
         // Schedule premium feature workers
         scheduleCoachNotifications()
         scheduleWaterReminders()
+        scheduleFastingNotifications()
         
         // Schedule engagement notifications (available for all users)
         scheduleEngagementNotifications()
@@ -164,6 +166,26 @@ class CalViewApp : Application(), Configuration.Provider {
         )
         
         Log.d("CalViewApp", "💧 Scheduled water reminder worker")
+    }
+    
+    /**
+     * Schedule fasting notification worker to run hourly.
+     * Premium check happens within the worker itself.
+     */
+    private fun scheduleFastingNotifications() {
+        val fastingRequest = PeriodicWorkRequestBuilder<FastingNotificationWorker>(
+            1, TimeUnit.HOURS
+        )
+            .setInitialDelay(15, TimeUnit.MINUTES)
+            .build()
+        
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            FastingNotificationWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            fastingRequest
+        )
+        
+        Log.d("CalViewApp", "⏱️ Scheduled fasting notification worker")
     }
     
     /**

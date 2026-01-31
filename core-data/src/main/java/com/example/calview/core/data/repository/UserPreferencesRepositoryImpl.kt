@@ -104,6 +104,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val COACH_LAST_MESSAGE_TIME = longPreferencesKey("coach_last_message_time")
         val COACH_MESSAGE_COUNT_TODAY = intPreferencesKey("coach_message_count_today")
         val COACH_LAST_MESSAGE_DATE = stringPreferencesKey("coach_last_message_date")
+        val LAST_NOTIFIED_GOAL_WEIGHT = floatPreferencesKey("last_notified_goal_weight")
+        val LAST_NOTIFIED_DAILY_GOAL_DATE = stringPreferencesKey("last_notified_daily_goal_date")
+        val NOTIFIED_DAILY_GOAL_FLAGS = stringPreferencesKey("notified_daily_goal_flags")
     }
     
     // Coroutine scope for background sync operations
@@ -370,7 +373,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     }
 
     override val waterServingSize: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.WATER_SERVING_SIZE] ?: 8
+        preferences[PreferencesKeys.WATER_SERVING_SIZE] ?: 250
     }
     
     // Smart Coach tracking
@@ -384,6 +387,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     
     override val coachLastMessageDate: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.COACH_LAST_MESSAGE_DATE] ?: ""
+    }
+
+    override val lastNotifiedGoalWeight: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LAST_NOTIFIED_GOAL_WEIGHT] ?: 0f
+    }
+
+    override val lastNotifiedDailyGoalDate: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LAST_NOTIFIED_DAILY_GOAL_DATE] ?: ""
+    }
+
+    override val notifiedDailyGoalFlags: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS] ?: ""
     }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
@@ -406,6 +421,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.AGE] = age
             preferences[PreferencesKeys.WEIGHT] = weight
             preferences[PreferencesKeys.HEIGHT] = height
+            
+            // Initialize start weight if not set
+            if (preferences[PreferencesKeys.START_WEIGHT] == null || preferences[PreferencesKeys.START_WEIGHT] == 0f) {
+                preferences[PreferencesKeys.START_WEIGHT] = weight
+            }
         }
         syncToFirestore()
     }
@@ -499,7 +519,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GOAL_WEIGHT] = weight
             // If starting weight isn't set, set it now to current weight
-            if (preferences[PreferencesKeys.START_WEIGHT] == null) {
+            if (preferences[PreferencesKeys.START_WEIGHT] == null || preferences[PreferencesKeys.START_WEIGHT] == 0f) {
                  preferences[PreferencesKeys.START_WEIGHT] = preferences[PreferencesKeys.WEIGHT] ?: weight
             }
         }
@@ -551,6 +571,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setWeight(weight: Float) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.WEIGHT] = weight
+            
+            // Initialize start weight if not set
+            if (preferences[PreferencesKeys.START_WEIGHT] == null || preferences[PreferencesKeys.START_WEIGHT] == 0f) {
+                preferences[PreferencesKeys.START_WEIGHT] = weight
+            }
         }
         
         // Record weight in history table
@@ -667,6 +692,41 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.COACH_LAST_MESSAGE_TIME] = timestamp
             preferences[PreferencesKeys.COACH_MESSAGE_COUNT_TODAY] = count
             preferences[PreferencesKeys.COACH_LAST_MESSAGE_DATE] = date
+        }
+    }
+
+    override suspend fun setLastNotifiedGoalWeight(weight: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_NOTIFIED_GOAL_WEIGHT] = weight
+        }
+    }
+
+    override suspend fun setDailyGoalNotified(date: String, flag: String) {
+        context.dataStore.edit { preferences ->
+            val lastDate = preferences[PreferencesKeys.LAST_NOTIFIED_DAILY_GOAL_DATE] ?: ""
+            val currentFlags = if (lastDate == date) {
+                preferences[PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS] ?: ""
+            } else {
+                "" // Reset flags for a new day
+            }
+            
+            val updatedFlags = if (currentFlags.isEmpty()) {
+                flag
+            } else if (currentFlags.split(",").contains(flag)) {
+                currentFlags
+            } else {
+                "$currentFlags,$flag"
+            }
+            
+            preferences[PreferencesKeys.LAST_NOTIFIED_DAILY_GOAL_DATE] = date
+            preferences[PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS] = updatedFlags
+        }
+    }
+
+    override suspend fun clearDailyGoalNotifications() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.LAST_NOTIFIED_DAILY_GOAL_DATE)
+            preferences.remove(PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS)
         }
     }
     

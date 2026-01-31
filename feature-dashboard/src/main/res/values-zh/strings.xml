@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 热门</string>
     <string name="tab_newest">✨ 最新</string>
     <string name="tab_my_posts">👤 我的帖子</string>
-    <string name="search_placeholder">搜索功能请求...</string>
+    <string name="search_placeholder">搜索功能请求…</string>
     <string name="clear_desc">清除</string>
     <string name="create_request_desc">创建请求</string>
     <string name="feedback_hub_title">反馈中心</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">功能标题</string>
     <string name="feature_title_placeholder">您想要什么功能？</string>
     <string name="description_label">描述</string>
-    <string name="description_placeholder">详细描述您的想法...</string>
+    <string name="description_placeholder">详细描述您的想法…</string>
     <string name="add_tags_label">添加标签</string>
     <string name="post_request_action">发布请求</string>
     <string name="comments_title">评论 (%1$d)</string>
-    <string name="add_comment_placeholder">添加评论...</string>
+    <string name="add_comment_placeholder">添加评论…</string>
     <string name="send_desc">发送</string>
     <string name="no_comments_yet">暂无评论</string>
     <string name="be_first_comment">成为第一个分享想法的人！</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">完成断食</string>
     <string name="stop_fast_desc">停止断食</string>
     <string name="start_fast_desc">开始断食</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">保存</string>
+    <string name="selected_desc">已选择</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">社交挑战</string>
+    <string name="navigate_back_desc">返回</string>
+    <string name="back_desc">返回</string>
+    <string name="create_new_challenge_desc">创建新挑战</string>
+    <string name="create_challenge_action">创建挑战</string>
+    <string name="error_occurred">发生错误</string>
+    <string name="social_challenges_desc">与朋友进行每周竞赛！追踪谁记录最多餐食、喝最多水或保持最长连胜。</string>
+    <string name="your_active_challenges">您的活跃挑战</string>
+    <string name="join_challenge_action">加入挑战</string>
+    <string name="enter_invite_code_desc">输入朋友的邀请码</string>
+    <string name="leaderboard">排行榜</string>
+    <string name="invite_code_label">邀请码：%1$s</string>
+    <string name="copy_action">复制</string>
+    <string name="code_copied_to_clipboard">代码已复制到剪贴板</string>
+    <string name="you">您</string>
+    <string name="no_active_challenges">无活跃挑战</string>
+    <string name="create_or_join_challenge_desc">创建挑战或使用邀请码加入一个！</string>
+    <string name="challenge_name_label">挑战名称</string>
+    <string name="challenge_type_label">挑战类型</string>
+    <string name="duration_days_label">持续时间：%1$d天</string>
+    <string name="weekly_challenge_default">每周挑战</string>
+    <string name="create_action">创建</string>
+    <string name="cancel_action">取消</string>
+    <string name="challenge_created_title">挑战已创建！</string>
+    <string name="share_invite_code_desc">与朋友分享此邀请码：</string>
+    <string name="copy_to_clipboard_desc">复制到剪贴板</string>
+    <string name="copied_to_clipboard_message">已复制到剪贴板！</string>
+    <string name="join_challenge_title">加入挑战</string>
+    <string name="invite_code_input_label">邀请码</string>
+    <string name="join_action">加入</string>
+    <string name="end_challenge_desc">结束挑战</string>
+    <string name="share_invite_desc">分享邀请</string>
+    <string name="share_challenge_chooser">分享挑战</string>
+    <string name="join_challenge_share_message">在CalView上加入我的挑战\"%1$s\"！使用邀请码：%2$s</string>
+    <string name="rank_you_points">您排名第%1$d位，得分%2$d分</string>
+    <string name="leader_none">领先者：无</string>
+    <string name="leader_label">领先者：%1$s</string>
+    <string name="challenge_type_streak">🔥 连胜挑战</string>
+    <string name="challenge_type_water">💧 水冠军</string>
+    <string name="challenge_type_calories">🎯 卡路里目标</string>
+    <string name="challenge_type_protein">💪 蛋白质力量</string>
+    <string name="challenge_type_steps">👟 步数计数器</string>
+    <string name="challenge_type_logging">📝 最一致的记录者</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">挑战与徽章</string>
+    <string name="active_weekly_challenges">活跃的每周挑战</string>
+    <string name="no_active_challenges_now">目前没有活跃的挑战。</string>
+    <string name="your_trophy_case">您的奖杯柜</string>
+    <string name="challenge_trophy_desc">挑战奖杯</string>
+    <string name="no_badges_unlocked">尚未解锁任何徽章。继续努力！</string>
+    <string name="ok_action">确定</string>
 </resources>

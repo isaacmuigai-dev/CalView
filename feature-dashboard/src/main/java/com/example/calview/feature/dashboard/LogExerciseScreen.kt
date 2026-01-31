@@ -100,6 +100,9 @@ import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import com.example.calview.core.ui.util.rememberHapticsManager
 import com.example.calview.feature.dashboard.components.VisualIntensitySlider
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -392,7 +395,7 @@ private fun ExerciseListItem(
                 onClickLabel = "Select ${exercise.name} to configure and log"
             )
             .semantics {
-                contentDescription = "${exercise.name}, ${typeName} exercise, MET value ${String.format("%.1f", exercise.metValue)}. Tap to select and configure this exercise"
+                contentDescription = "${exercise.name}, ${typeName} exercise, MET value ${String.format(Locale.US, "%.1f", exercise.metValue)}. Tap to select and configure this exercise"
             },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -423,7 +426,7 @@ private fun ExerciseListItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "MET: ${String.format("%.1f", exercise.metValue)}",
+                    text = "MET: ${String.format(Locale.US, "%.1f", exercise.metValue)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -528,7 +531,9 @@ private fun ExerciseConfigCard(
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "$duration min",
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.semantics {
                         liveRegion = LiveRegionMode.Polite
@@ -833,7 +838,9 @@ private fun AiSmartTab(
                         
                         Text(
                             text = "${parsed.estimated_calories} cal",
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -864,11 +871,13 @@ private fun AiSmartTab(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Total Calories Burned")
+                    Text("Total Calories Burned", fontFamily = InterFontFamily, fontWeight = FontWeight.Medium)
                     Text(
                         text = "$totalCalories cal",
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 20.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -978,20 +987,26 @@ private fun TodaysExercisesTab(
                 
                 Text(
                     text = "$totalCalories",
+                    fontFamily = SpaceGroteskFontFamily,
                     style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 
                 Text(
                     text = "calories burned today",
+                    fontFamily = InterFontFamily,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 Text(
                     text = "${exercises.size} exercise${if (exercises.size != 1) "s" else ""} logged",
+                    fontFamily = InterFontFamily,
                     style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -1100,9 +1115,11 @@ private fun TodaysExercisesTab(
                                     )
                                     Text(
                                         text = "${exercise.caloriesBurned} cal",
+                                        fontFamily = SpaceGroteskFontFamily,
                                         style = MaterialTheme.typography.bodySmall,
+                                        letterSpacing = (-0.02).sp,
                                         color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }

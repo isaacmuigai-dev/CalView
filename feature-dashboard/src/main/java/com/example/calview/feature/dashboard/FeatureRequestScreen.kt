@@ -84,11 +84,7 @@ enum class FilterTab {
     MY_POSTS
 }
 
-// Semantic accent colors (kept for specific meanings)
-private val AccentGreen = Color(0xFF00C853)   // Success/completed
-private val AccentOrange = Color(0xFFFF6D00)  // Warning/in-progress
-
-// Theme-aware accent colors - use MaterialTheme.colorScheme.primary/secondary in composables
+// Note: StatusBadge uses theme colors directly for better dark/light mode support
 
 /**
  * Feature Request Screen - X-inspired social feed for feature suggestions
@@ -277,7 +273,7 @@ fun FeatureRequestScreen(
                     .padding(16.dp),
                 action = {
                     TextButton(onClick = { viewModel.clearError() }) {
-                        Text(stringResource(R.string.dismiss_action), color = Color.White)
+                        Text(stringResource(R.string.dismiss_action), color = MaterialTheme.colorScheme.inverseOnSurface)
                     }
                 }
             ) {
@@ -510,7 +506,7 @@ private fun FeatureRequestCard(
                             fontFamily = Inter,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -649,10 +645,10 @@ private fun VoteButton(
 @Composable
 private fun TagChip(tag: String) {
     val tagColors = mapOf(
-        "bug" to AccentOrange,
+        "bug" to MaterialTheme.colorScheme.error,
         "feature" to MaterialTheme.colorScheme.primary,
         "ui" to MaterialTheme.colorScheme.secondary,
-        "health" to AccentGreen
+        "health" to MaterialTheme.colorScheme.tertiary
     )
     val color = tagColors[tag.lowercase()] ?: MaterialTheme.colorScheme.primary
     
@@ -675,8 +671,8 @@ private fun TagChip(tag: String) {
 private fun StatusBadge(status: RequestStatus) {
     val (text, color) = when (status) {
         RequestStatus.OPEN -> stringResource(R.string.status_open) to MaterialTheme.colorScheme.onSurfaceVariant
-        RequestStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress) to AccentOrange
-        RequestStatus.COMPLETED -> stringResource(R.string.status_completed) to AccentGreen
+        RequestStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress) to MaterialTheme.colorScheme.tertiary
+        RequestStatus.COMPLETED -> stringResource(R.string.status_completed) to MaterialTheme.colorScheme.primary
         RequestStatus.DECLINED -> stringResource(R.string.status_declined) to MaterialTheme.colorScheme.onSurfaceVariant
     }
     
@@ -769,7 +765,7 @@ private fun CreateRequestSheet(
                         fontFamily = Inter,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -979,7 +975,7 @@ private fun RequestDetailSheet(
                                 fontFamily = Inter,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                         Spacer(modifier = Modifier.width(6.dp))
@@ -1173,7 +1169,7 @@ private fun CommentItem(
                 fontFamily = Inter,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSecondary
             )
         }
         
@@ -1214,7 +1210,7 @@ private fun CommentItem(
                 Icon(
                     if (comment.hasLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = "Like",
-                    tint = if (comment.hasLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (comment.hasLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(16.dp)
                         .scale(likeScale)
@@ -1225,7 +1221,7 @@ private fun CommentItem(
                         "${comment.likes}",
                         fontFamily = Inter,
                         fontSize = 12.sp,
-                        color = if (comment.hasLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (comment.hasLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

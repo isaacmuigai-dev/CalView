@@ -44,6 +44,9 @@ class WeightHistoryRepositoryImpl @Inject constructor(
             val userGoal = prefs.userGoal.first()
             
             if (goalWeight > 0) {
+                val lastNotified = prefs.lastNotifiedGoalWeight.first()
+                if (lastNotified == goalWeight) return@launch // Already notified for this goal
+
                 val reached = if (userGoal.contains("Lose", true)) {
                     currentWeight <= goalWeight
                 } else if (userGoal.contains("Gain", true)) {
@@ -53,6 +56,7 @@ class WeightHistoryRepositoryImpl @Inject constructor(
                 }
                 
                 if (reached) {
+                    prefs.setLastNotifiedGoalWeight(goalWeight)
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_WEIGHT_GOAL,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -66,8 +70,7 @@ class WeightHistoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteWeight(entry: WeightHistoryEntity) {
-        weightHistoryDao.deleteAll() // DAO doesn't have delete single yet, but repository can be expanded
-        // For now using what's available or extending DAO if needed
+        weightHistoryDao.deleteWeight(entry)
     }
 
     override suspend fun deleteAll() {
@@ -94,8 +97,13 @@ class WeightHistoryRepositoryImpl @Inject constructor(
         return try {
             val cloudEntries = firestoreRepository.getWeightHistory(userId)
             if (cloudEntries.isNotEmpty()) {
+                val localHistory = weightHistoryDao.getAllWeightHistory().first()
+                val localFirestoreIds = localHistory.map { it.firestoreId }.toSet()
+                
                 cloudEntries.forEach { entry ->
-                    weightHistoryDao.insertWeight(entry)
+                    if (!localFirestoreIds.contains(entry.firestoreId)) {
+                        weightHistoryDao.insertWeight(entry)
+                    }
                 }
                 true
             } else {

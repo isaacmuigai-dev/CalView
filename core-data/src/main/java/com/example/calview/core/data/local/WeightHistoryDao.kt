@@ -48,6 +48,9 @@ interface WeightHistoryDao {
     @Query("DELETE FROM weight_history")
     suspend fun deleteAll()
     
+    @androidx.room.Delete
+    suspend fun deleteWeight(entry: WeightHistoryEntity)
+
     /**
      * Get count of weight entries
      */

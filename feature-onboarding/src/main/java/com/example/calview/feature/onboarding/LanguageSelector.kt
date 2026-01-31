@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 /**
  * Language data class containing language info.
@@ -136,7 +136,7 @@ fun LanguagePickerBottomSheet(
             ) {
                 Text(
                     text = "Choose Language",
-                    fontFamily = Inter,
+                fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -209,7 +209,7 @@ fun LanguageOptionButton(
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = language.name,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
                 color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface

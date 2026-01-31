@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 
@@ -43,7 +45,7 @@ fun PersonalDetailsScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.personal_details),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
@@ -90,16 +92,17 @@ fun PersonalDetailsScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.goal_weight_title),
-                            fontFamily = Inter,
-                            fontWeight = FontWeight.Normal,
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.Medium,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "${uiState.goalWeight.toInt()} kg",
-                            fontFamily = Inter,
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -115,7 +118,7 @@ fun PersonalDetailsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.change_goal_action),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp
                         )
@@ -221,7 +224,7 @@ private fun PersonalDetailItem(
     ) {
         Text(
             text = label,
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurface
@@ -233,9 +236,10 @@ private fun PersonalDetailItem(
         ) {
             Text(
                 text = value,
-                fontFamily = Inter,
-                fontWeight = FontWeight.Normal,
+                fontFamily = SpaceGroteskFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
+                letterSpacing = (-0.02).sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Icon(

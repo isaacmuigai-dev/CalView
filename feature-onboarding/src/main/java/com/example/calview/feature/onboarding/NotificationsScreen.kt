@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.onboarding.components.OnboardingScreenLayout
 
 /**
@@ -91,7 +91,7 @@ fun NotificationsScreen(
             // Title
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_title),
-                fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -115,7 +115,7 @@ fun NotificationsScreen(
                 ) {
                     Text(
                         text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_permission_text),
-                        fontFamily = Inter,
+                                            fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -145,7 +145,7 @@ fun NotificationsScreen(
                             ) {
                                 Text(
                                     text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.dont_allow),
-                                    fontFamily = Inter,
+                                                        fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -168,7 +168,7 @@ fun NotificationsScreen(
                             ) {
                                 Text(
                                     text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.allow),
-                                    fontFamily = Inter,
+                                    fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
                                     color = if (notificationsEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface

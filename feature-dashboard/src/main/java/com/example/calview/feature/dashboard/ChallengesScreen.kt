@@ -37,6 +37,8 @@ import com.example.calview.core.ui.util.SoundManager
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import androidx.compose.foundation.clickable
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,8 +87,9 @@ fun ChallengesScreen(
                 item {
                     Text(
                         text = "Active Weekly Challenges",
+                        fontFamily = InterFontFamily,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -99,7 +102,7 @@ fun ChallengesScreen(
                 
                 if (uiState.activeChallenges.isEmpty() && !uiState.isLoading) {
                     item {
-                        Text("No active challenges right now.", color = Color.Gray)
+                        Text("No active challenges right now.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -108,8 +111,9 @@ fun ChallengesScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Your Trophy Case",
+                        fontFamily = InterFontFamily,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -150,20 +154,23 @@ fun ChallengeCard(challenge: ChallengeEntity) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = challenge.title,
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = challenge.description,
+                        fontFamily = InterFontFamily,
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Icon(
                     imageVector = Icons.Default.EmojiEvents,
                     contentDescription = "Challenge trophy",
-                    tint = Color(0xFFFFD700), // Gold
+                    tint = MaterialTheme.colorScheme.tertiary, // Trophy color
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -178,13 +185,18 @@ fun ChallengeCard(challenge: ChallengeEntity) {
                 ) {
                     Text(
                         text = "${(progress * 100).toInt()}%",
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "${challenge.currentProgress}/${challenge.targetValue}",
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -214,7 +226,7 @@ fun BadgeGrid(badges: List<BadgeEntity>) {
     // Let's use a fixed height grid logic for simplicity or a specialized layout.
     
     if (badges.isEmpty()) {
-        Text("No badges unlocked yet. Keep going!", color = Color.Gray)
+        Text("No badges unlocked yet. Keep going!", color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
 
@@ -272,6 +284,7 @@ fun BadgeItem(badge: BadgeEntity, modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = badge.name,
+            fontFamily = InterFontFamily,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,

@@ -28,6 +28,7 @@ firebaseBom = "34.7.0"
 workManager = "2.10.0"
 billing = "7.1.1"
 appcompat = "1.7.0"
+desugar_jdk_libs = "2.1.4"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -103,10 +104,11 @@ androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", v
 
 # Image loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version = "2.5.0" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 
-# ML Kit for barcode and text recognition
-mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version = "17.2.0" }
-mlkit-text = { group = "com.google.mlkit", name = "text-recognition", version = "16.0.0" }
+# ML Kit for barcode and text recognition (16KB page size compatible versions)
+mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version = "17.3.0" }
+mlkit-text = { group = "com.google.mlkit", name = "text-recognition", version = "16.0.1" }
 
 # Window Size Class for adaptive layouts
 androidx-compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class" }

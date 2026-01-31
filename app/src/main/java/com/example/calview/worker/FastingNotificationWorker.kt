@@ -65,10 +65,23 @@ class FastingNotificationWorker @AssistedInject constructor(
         
         val notificationType = inputData.getString("type") ?: determineNotificationType(progress)
         
+        // Prevent duplicate milestones for the same fast
+        val prefs = applicationContext.getSharedPreferences("fasting_prefs", Context.MODE_PRIVATE)
+        val lastSentMilestone = prefs.getString("last_milestone_${activeFast.id}", "")
+        
+        val isMilestone = notificationType.startsWith("milestone") || notificationType == TYPE_ALMOST_DONE
+        if (isMilestone && notificationType == lastSentMilestone) {
+            return Result.success() // Already sent this milestone for this session
+        }
+        
         val (message, emoji) = generateMessage(notificationType, progress, remainingHours, remainingMins, activeFast.fastingType)
         
         if (message.isNotEmpty()) {
             showNotification("$emoji $message")
+            // Record if it was a milestone
+            if (isMilestone) {
+                prefs.edit().putString("last_milestone_${activeFast.id}", notificationType).apply()
+            }
         }
         
         return Result.success()
@@ -76,7 +89,6 @@ class FastingNotificationWorker @AssistedInject constructor(
     
     private fun determineNotificationType(progress: Float): String {
         return when {
-            progress >= 1.0f -> TYPE_COMPLETED
             progress >= 0.90f -> TYPE_ALMOST_DONE
             progress >= 0.75f -> TYPE_MILESTONE_75
             progress >= 0.50f -> TYPE_MILESTONE_50

@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 /**
  * Referral code input screen in onboarding.
@@ -86,7 +86,7 @@ fun ReferralCodeScreen(
         // Title
         Text(
             text = "Have a referral code?",
-            fontFamily = Inter,
+                fontFamily = InterFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
             color = MaterialTheme.colorScheme.onBackground
@@ -97,7 +97,7 @@ fun ReferralCodeScreen(
         // Subtitle
         Text(
             text = "Enter the referral code from your friend. They'll earn \$10 when you subscribe!",
-            fontFamily = Inter,
+                fontFamily = InterFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -111,7 +111,7 @@ fun ReferralCodeScreen(
             value = referralCode,
             onValueChange = { referralCode = it.uppercase().take(6) },
             textStyle = TextStyle(
-                fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -136,7 +136,7 @@ fun ReferralCodeScreen(
                     if (referralCode.isEmpty()) {
                         Text(
                             text = "XXXXXX",
-                            fontFamily = Inter,
+                                fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
                             color = MaterialTheme.colorScheme.outlineVariant,
@@ -164,7 +164,7 @@ fun ReferralCodeScreen(
         ) {
             Text(
                 text = "Apply Code",
-                fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
             )
@@ -179,7 +179,7 @@ fun ReferralCodeScreen(
         ) {
             Text(
                 text = "I don't have a code",
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

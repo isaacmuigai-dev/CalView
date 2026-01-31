@@ -1,5 +1,8 @@
 package com.example.calview.feature.trends
 
+import androidx.compose.ui.res.stringResource
+
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -21,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 
 @Composable
 fun MissionControlCard(
@@ -69,23 +74,29 @@ fun MissionControlCard(
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = level.toString(),
+                                fontFamily = SpaceGroteskFontFamily,
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp,
+                                letterSpacing = (-0.02).sp
                             )
                         }
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Level $level",
-                            fontWeight = FontWeight.ExtraBold,
+                            text = stringResource(R.string.level_label_format, level),
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 18.sp,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Mission Control",
+                            text = stringResource(R.string.mission_control_subtitle),
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -93,14 +104,18 @@ fun MissionControlCard(
                 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "$xp / $xpRequired XP",
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.xp_format, xp, xpRequired),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Next level at ${xpRequired} XP",
+                        text = stringResource(R.string.next_level_format, xpRequired),
+                        fontFamily = InterFontFamily,
                         fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -123,8 +138,9 @@ fun MissionControlCard(
 
             // Checklist
             Text(
-                text = "DAILY OBJECTIVES",
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.daily_objectives_title),
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
                 letterSpacing = 1.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -165,13 +181,16 @@ private fun ChecklistItemRow(item: ChecklistItem) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
                     color = if (item.isCompleted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = item.status,
+                    fontFamily = InterFontFamily,
                     fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

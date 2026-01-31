@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.core.data.prediction.WeightPredictionEngine
 import com.example.calview.feature.trends.R
 import androidx.compose.ui.res.stringResource
@@ -74,8 +76,9 @@ fun WeightPredictionCard(
                 ) {
                     Text(
                         text = stringResource(R.string.weight_forecast_title),
+                        fontFamily = InterFontFamily,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
@@ -96,6 +99,7 @@ fun WeightPredictionCard(
                             )
                             Text(
                                 text = stringResource(labelRes),
+                                fontFamily = InterFontFamily,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = color
@@ -114,13 +118,17 @@ fun WeightPredictionCard(
                     Column {
                         Text(
                             text = stringResource(R.string.in_30_days),
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = stringResource(R.string.unit_kg_format, animatedWeight),
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -129,13 +137,17 @@ fun WeightPredictionCard(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = stringResource(R.string.reach_goal_by),
+                                fontFamily = InterFontFamily,
                                 fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = projectedDate,
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -143,13 +155,16 @@ fun WeightPredictionCard(
                          Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = stringResource(R.string.weekly_rate_label),
+                                fontFamily = InterFontFamily,
                                 fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                              // We don't have weekly rate passed explicitly here, but we can infer or pass it. 
                              // For now let's show "Keep pushing!"
                              Text(
                                 text = stringResource(R.string.keep_pushing),
+                                fontFamily = InterFontFamily,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary

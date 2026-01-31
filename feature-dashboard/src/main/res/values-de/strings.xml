@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 Angesagt</string>
     <string name="tab_newest">✨ Neueste</string>
     <string name="tab_my_posts">👤 Meine Beiträge</string>
-    <string name="search_placeholder">Funktionsanfragen suchen...</string>
+    <string name="search_placeholder">Funktionsanfragen suchen…</string>
     <string name="clear_desc">Löschen</string>
     <string name="create_request_desc">Anfrage erstellen</string>
     <string name="feedback_hub_title">Feedback-Hub</string>
@@ -159,7 +159,7 @@
     <string name="add_tags_label">Tags hinzufügen</string>
     <string name="post_request_action">Anfrage posten</string>
     <string name="comments_title">Kommentare (%1$d)</string>
-    <string name="add_comment_placeholder">Kommentar hinzufügen...</string>
+    <string name="add_comment_placeholder">Kommentar hinzufügen…</string>
     <string name="send_desc">Senden</string>
     <string name="no_comments_yet">Noch keine Kommentare</string>
     <string name="be_first_comment">Sei der Erste, der seine Gedanken teilt!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">Fasten abschließen</string>
     <string name="stop_fast_desc">Fasten stoppen</string>
     <string name="start_fast_desc">Fasten starten</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">Speichern</string>
+    <string name="selected_desc">Ausgewählt</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">Soziale Herausforderungen</string>
+    <string name="navigate_back_desc">Zurück navigieren</string>
+    <string name="back_desc">Zurück</string>
+    <string name="create_new_challenge_desc">Neue Herausforderung erstellen</string>
+    <string name="create_challenge_action">Herausforderung erstellen</string>
+    <string name="error_occurred">Ein Fehler ist aufgetreten</string>
+    <string name="social_challenges_desc">Fordere deine Freunde zu wöchentlichen Wettbewerben heraus! Verfolge, wer die meisten Mahlzeiten protokolliert, am meisten Wasser trinkt oder die längste Serie aufrechterhält.</string>
+    <string name="your_active_challenges">Deine aktiven Herausforderungen</string>
+    <string name="join_challenge_action">Herausforderung beitreten</string>
+    <string name="enter_invite_code_desc">Einladungscode von einem Freund eingeben</string>
+    <string name="leaderboard">Bestenliste</string>
+    <string name="invite_code_label">Einladungscode: %1$s</string>
+    <string name="copy_action">Kopieren</string>
+    <string name="code_copied_to_clipboard">Code in Zwischenablage kopiert</string>
+    <string name="you">Du</string>
+    <string name="no_active_challenges">Keine aktiven Herausforderungen</string>
+    <string name="create_or_join_challenge_desc">Erstelle eine Herausforderung oder trete einer mit einem Einladungscode bei!</string>
+    <string name="challenge_name_label">Herausforderungsname</string>
+    <string name="challenge_type_label">Herausforderungstyp</string>
+    <string name="duration_days_label">Dauer: %1$d Tage</string>
+    <string name="weekly_challenge_default">Wöchentliche Herausforderung</string>
+    <string name="create_action">Erstellen</string>
+    <string name="cancel_action">Abbrechen</string>
+    <string name="challenge_created_title">Herausforderung erstellt!</string>
+    <string name="share_invite_code_desc">Teile diesen Einladungscode mit Freunden:</string>
+    <string name="copy_to_clipboard_desc">In Zwischenablage kopieren</string>
+    <string name="copied_to_clipboard_message">In Zwischenablage kopiert!</string>
+    <string name="join_challenge_title">Herausforderung beitreten</string>
+    <string name="invite_code_input_label">Einladungscode</string>
+    <string name="join_action">Beitreten</string>
+    <string name="end_challenge_desc">Herausforderung beenden</string>
+    <string name="share_invite_desc">Einladung teilen</string>
+    <string name="share_challenge_chooser">Herausforderung teilen</string>
+    <string name="join_challenge_share_message">Tritt meiner Herausforderung \"%1$s\" auf CalView bei! Verwende den Einladungscode: %2$s</string>
+    <string name="rank_you_points">Du bist auf Platz %1$d mit %2$d Punkten</string>
+    <string name="leader_none">Führer: Keiner</string>
+    <string name="leader_label">Führer: %1$s</string>
+    <string name="challenge_type_streak">🔥 Serien-Herausforderung</string>
+    <string name="challenge_type_water">💧 Wasser-Champion</string>
+    <string name="challenge_type_calories">🎯 Kalorienziele</string>
+    <string name="challenge_type_protein">💪 Protein-Power</string>
+    <string name="challenge_type_steps">👟 Schrittzähler</string>
+    <string name="challenge_type_logging">📝 Konsistentester Protokollierer</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">Herausforderungen &amp; Abzeichen</string>
+    <string name="active_weekly_challenges">Aktive wöchentliche Herausforderungen</string>
+    <string name="no_active_challenges_now">Derzeit keine aktiven Herausforderungen.</string>
+    <string name="your_trophy_case">Deine Trophäensammlung</string>
+    <string name="challenge_trophy_desc">Herausforderungstrophäe</string>
+    <string name="no_badges_unlocked">Noch keine Abzeichen freigeschaltet. Weiter so!</string>
+    <string name="ok_action">OK</string>
 </resources>

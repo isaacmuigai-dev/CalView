@@ -7,8 +7,10 @@
     <!-- Daily Streak Card -->
     <string name="streak_current">Current</string>
     <string name="streak_best">Best</string>
-    <string name="day_singular">day</string>
-    <string name="days_plural">days</string>
+    <plurals name="days_count">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
     <string name="milestones_unlocked">Milestones Unlocked</string>
     
     <!-- Milestones -->
@@ -53,6 +55,12 @@
     <string name="legend_over">Over</string>
     <string name="legend_goal">Goal</string>
 
+    <!-- Week Selection -->
+    <string name="week_this">This Week</string>
+    <string name="week_last">Last Week</string>
+    <string name="week_2_ago">2 Weeks Ago</string>
+    <string name="week_3_ago">3 Weeks Ago</string>
+
     <!-- Macro Donut Card -->
     <string name="todays_macros_title">Today\'s Macros</string>
     <string name="total_label">Total</string>
@@ -72,6 +80,8 @@
     <string name="cal_unit">cal</string>
     
     <!-- Weekly Activity -->
+    <string name="activity_title">Activity</string>
+    <string name="today_label">Today</string>
     <string name="weekly_steps_label">7d Steps</string>
     <string name="weekly_burn_label">7d Burn</string>
     <string name="record_label">Record</string>
@@ -106,4 +116,63 @@
     <string name="weekly_rate_label">Weekly Rate</string>
     <string name="keep_pushing">Keep pushing!</string>
     <string name="unit_kg_format">%1$.1f kg</string>
+    
+    <!-- Weight History Graph -->
+    <string name="weight_history_title">Weight History</string>
+    <string name="insufficient_data">Not enough data to display graph</string>
+
+    <!-- Goal Journey Card -->
+    <string name="goal_journey_title">Your Goal Journey</string>
+    <string name="weekly_pace_format">⚡ Weekly Pace</string>
+    <string name="to_action_format">📊 To %s</string>
+    <string name="estimated_label">⏱️ Estimated</string>
+    <string name="weeks_format">%d weeks</string>
+    <string name="estimated_goal_date_label">🎯 Estimated Goal Date: </string>
+    <string name="action_lose">Lose</string>
+    <string name="action_gain">Gain</string>
+    <string name="action_maintain">Maintain</string>
+
+    <!-- Units -->
+    <string name="unit_kg_value_format">%d kg</string>
+    <string name="unit_kg_decimal_format">%.1f kg</string>
+    <string name="unit_cm_format">%d cm</string>
+    <string name="unit_g_format">%d g</string>
+    <string name="unit_g_decimal_format">%.1f g</string>
+    <string name="unit_mg_format">%d mg</string>
+
+    <!-- Mission Control -->
+    <string name="level_label_format">Level %d</string>
+    <string name="mission_control_subtitle">Mission Control</string>
+    <string name="xp_format">%1$d / %2$d XP</string>
+    <string name="next_level_format">Next level at %d XP</string>
+    <string name="daily_objectives_title">DAILY OBJECTIVES</string>
+
+    <!-- Walkthrough -->
+    <string name="walkthrough_streak_title">Consistency is Key</string>
+    <string name="walkthrough_streak_desc">Track your daily consistency with the streak counter. Keep the momentum going!</string>
+    <string name="walkthrough_goal_title">Your Weight Journey</string>
+    <string name="walkthrough_goal_desc">Monitor your weight progress and see your estimated goal reach date.</string>
+    <string name="walkthrough_nutrition_title">Weekly Trends</string>
+    <string name="walkthrough_nutrition_desc">Visualize your calorie intake patterns over the past week to stay on track.</string>
+    <string name="walkthrough_macro_title">Macro Balance</string>
+    <string name="walkthrough_macro_desc">Check your protein, carbs, and fats distribution to ensure a balanced diet.</string>
+    <string name="walkthrough_bmi_title">Health Indicator</string>
+    <string name="walkthrough_bmi_desc">Keep an eye on your BMI and health category based on your weight and height.</string>
+
+    <!-- Graph Ranges -->
+    <string name="range_3m">3M</string>
+    <string name="range_6m">6M</string>
+    <string name="range_1y">1Y</string>
+    <string name="range_all">All</string>
+
+    <!-- Activity Labels -->
+    <string name="exercise_sublabel_format">+%d exercise</string>
+
+    <!-- Content Descriptions for Graphs -->
+    <string name="desc_weight_history_graph">Graph showing weight changes over time.</string>
+    <string name="desc_weekly_calories_graph">Chart showing daily calorie intake for the last week.</string>
+    
+    <!-- Formatting -->
+    <string name="plus_value_format">+%d</string>
+    <string name="date_format_day_month">M/d</string>
 </resources>

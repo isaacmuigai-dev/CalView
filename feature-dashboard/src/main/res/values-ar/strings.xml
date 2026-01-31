@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 شائع</string>
     <string name="tab_newest">✨ الأحدث</string>
     <string name="tab_my_posts">👤 منشوراتي</string>
-    <string name="search_placeholder">بحث في طلبات الميزات...</string>
+    <string name="search_placeholder">بحث في طلبات الميزات…</string>
     <string name="clear_desc">مسح</string>
     <string name="create_request_desc">إنشاء طلب</string>
     <string name="feedback_hub_title">مركز الملاحظات</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">عنوان الميزة</string>
     <string name="feature_title_placeholder">ما الميزة التي تريدها؟</string>
     <string name="description_label">الوصف</string>
-    <string name="description_placeholder">صف فكرتك بالتفصيل...</string>
+    <string name="description_placeholder">صف فكرتك بالتفصيل…</string>
     <string name="add_tags_label">إضافة وسوم</string>
     <string name="post_request_action">نشر الطلب</string>
     <string name="comments_title">التعليقات (%1$d)</string>
-    <string name="add_comment_placeholder">أضف تعليقاً...</string>
+    <string name="add_comment_placeholder">أضف تعليقاً…</string>
     <string name="send_desc">إرسال</string>
     <string name="no_comments_yet">لا تعليقات بعد</string>
     <string name="be_first_comment">كن أول من يشارك أفكاره!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">إكمال الصيام</string>
     <string name="stop_fast_desc">إيقاف الصيام</string>
     <string name="start_fast_desc">بدء الصيام</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">حفظ</string>
+    <string name="selected_desc">محدد</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">التحديات الاجتماعية</string>
+    <string name="navigate_back_desc">العودة للخلف</string>
+    <string name="back_desc">رجوع</string>
+    <string name="create_new_challenge_desc">إنشاء تحدٍ جديد</string>
+    <string name="create_challenge_action">إنشاء تحدٍ</string>
+    <string name="error_occurred">حدث خطأ</string>
+    <string name="social_challenges_desc">تحد أصدقاءك في مسابقات أسبوعية! تتبع من يسجل معظم الوجبات، أو يشرب معظم الماء، أو يحافظ على أطول سلسلة.</string>
+    <string name="your_active_challenges">تحدياتك النشطة</string>
+    <string name="join_challenge_action">الانضمام إلى تحدٍ</string>
+    <string name="enter_invite_code_desc">أدخل رمز الدعوة من صديق</string>
+    <string name="leaderboard">لوحة المتصدرين</string>
+    <string name="invite_code_label">رمز الدعوة: %1$s</string>
+    <string name="copy_action">نسخ</string>
+    <string name="code_copied_to_clipboard">تم نسخ الرمز إلى الحافظة</string>
+    <string name="you">أنت</string>
+    <string name="no_active_challenges">لا توجد تحديات نشطة</string>
+    <string name="create_or_join_challenge_desc">أنشئ تحدياً أو انضم إلى واحد باستخدام رمز الدعوة!</string>
+    <string name="challenge_name_label">اسم التحدي</string>
+    <string name="challenge_type_label">نوع التحدي</string>
+    <string name="duration_days_label">المدة: %1$d يوم</string>
+    <string name="weekly_challenge_default">تحدي أسبوعي</string>
+    <string name="create_action">إنشاء</string>
+    <string name="cancel_action">إلغاء</string>
+    <string name="challenge_created_title">تم إنشاء التحدي!</string>
+    <string name="share_invite_code_desc">شارك رمز الدعوة هذا مع الأصدقاء:</string>
+    <string name="copy_to_clipboard_desc">نسخ إلى الحافظة</string>
+    <string name="copied_to_clipboard_message">تم النسخ إلى الحافظة!</string>
+    <string name="join_challenge_title">الانضمام إلى تحدٍ</string>
+    <string name="invite_code_input_label">رمز الدعوة</string>
+    <string name="join_action">انضم</string>
+    <string name="end_challenge_desc">إنهاء التحدي</string>
+    <string name="share_invite_desc">مشاركة الدعوة</string>
+    <string name="share_challenge_chooser">مشاركة التحدي</string>
+    <string name="join_challenge_share_message">انضم إلى تحدّي \"%1$s\" على CalView! استخدم رمز الدعوة: %2$s</string>
+    <string name="rank_you_points">أنت في المرتبة %1$d مع %2$d نقطة</string>
+    <string name="leader_none">المتصدر: لا يوجد</string>
+    <string name="leader_label">المتصدر: %1$s</string>
+    <string name="challenge_type_streak">🔥 تحدي السلسلة</string>
+    <string name="challenge_type_water">💧 بطل الماء</string>
+    <string name="challenge_type_calories">🎯 أهداف السعرات</string>
+    <string name="challenge_type_protein">💪 قوة البروتين</string>
+    <string name="challenge_type_steps">👟 عداد الخطوات</string>
+    <string name="challenge_type_logging">📝 أكثر مسجل ثباتاً</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">التحديات والشارات</string>
+    <string name="active_weekly_challenges">التحديات الأسبوعية النشطة</string>
+    <string name="no_active_challenges_now">لا توجد تحديات نشطة الآن.</string>
+    <string name="your_trophy_case">خزانة الجوائز الخاصة بك</string>
+    <string name="challenge_trophy_desc">كأس التحدي</string>
+    <string name="no_badges_unlocked">لم يتم فتح أي شارات بعد. استمر!</string>
+    <string name="ok_action">موافق</string>
 </resources>

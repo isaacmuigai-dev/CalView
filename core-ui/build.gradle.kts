@@ -47,6 +47,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     
+    // Google Fonts for premium typography (Inter + Space Grotesk)
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.6")
+    
     // Window Size Class for adaptive layouts
     api(libs.androidx.compose.material3.window.size)
     

@@ -28,22 +28,11 @@ fun OnboardingNavHost(
     Log.d("OnboardingNav", "OnboardingNavHost entered: isSignedIn=$isSignedIn, isRedirecting=$isRedirecting")
     val navController = rememberNavController()
     
-    // Automatically navigate to profile_setup if user signs in while on welcome screen
-    LaunchedEffect(isSignedIn, isRedirecting) {
-        Log.d("OnboardingNav", "Auth state changed: isSignedIn=$isSignedIn, isRedirecting=$isRedirecting")
-        // CRITICAL: Only navigate if signed in AND NOT redirecting.
-        // This prevents the "profile setup" screen from showing while MainActivity is still checking for returning users.
-        if (isSignedIn && !isRedirecting) {
-            val currentRoute = navController.currentDestination?.route
-            Log.d("OnboardingNav", "Current internal route: $currentRoute")
-            if (currentRoute == "welcome" || currentRoute == "onboarding" || currentRoute == "splash" || currentRoute == null) {
-                Log.d("OnboardingNav", "Navigating to profile_setup")
-                navController.navigate("profile_setup") {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-        }
-    }
+    // NOTE: Removed auto-navigation to profile_setup on sign-in
+    // Navigation is now controlled entirely by MainActivity:
+    // - For returning users: MainActivity navigates directly to "main"
+    // - For new users: MainActivity keeps them in onboarding, user clicks "Get Started" to go to profile_setup
+    // This prevents the race condition where profile_setup shows briefly before redirecting to main
 
     val viewModel: OnboardingViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()

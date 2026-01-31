@@ -21,7 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 
 /**
  * Consolidated Profile Setup Screen
@@ -112,7 +113,7 @@ fun ProfileSetupScreen(
             // Title
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.profile_setup_title),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground
@@ -120,7 +121,7 @@ fun ProfileSetupScreen(
             
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.profile_setup_subtitle),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
@@ -233,7 +234,7 @@ fun ProfileSetupScreen(
             
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.activity_level_question),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 14.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -279,7 +280,7 @@ fun ProfileSetupScreen(
         ) {
             Text(
                 text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.continue_button),
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
             )
@@ -297,7 +298,7 @@ private fun SectionTitle(title: String, emoji: String) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onBackground
@@ -334,7 +335,7 @@ private fun GenderChip(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 14.sp,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurface
@@ -358,7 +359,7 @@ private fun DropdownSelector(
         if (label.isNotEmpty()) {
             Text(
                 text = label,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 4.dp)
@@ -420,7 +421,7 @@ private fun UnitToggleChip(
     ) {
         Text(
             text = label,
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
@@ -441,7 +442,7 @@ private fun NumberInputField(
         if (label.isNotEmpty()) {
             Text(
                 text = label,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontSize = 12.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 4.dp)
@@ -494,14 +495,14 @@ private fun ActivityOption(
             Column {
                 Text(
                     text = label,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = Color.Gray
                 )

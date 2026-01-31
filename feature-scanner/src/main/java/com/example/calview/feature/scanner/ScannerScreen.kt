@@ -39,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -1626,6 +1628,9 @@ fun AnalysisResultBottomSheet(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "${response.total.calories} kcal | ${response.total.protein}P ${response.total.carbs}C ${response.total.fats}F",
+                fontFamily = SpaceGroteskFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp,
                 fontSize = 14.sp,
                 color = Color.Gray
             )
@@ -1843,12 +1848,16 @@ private fun NutritionBadge(
         Text(text = emoji, fontSize = 20.sp)
         Text(
             text = value,
+            fontFamily = SpaceGroteskFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
             color = color
         )
         Text(
             text = label,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             color = MutedText
         )

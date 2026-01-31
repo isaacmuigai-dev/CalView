@@ -167,7 +167,7 @@ class DashboardViewModel @Inject constructor(
             val yesterdayDateString = dateFormat.format(yesterday.time)
             
             // Get yesterday's meals
-            val yesterdayMeals = mealRepository.getMealsForDate(yesterdayDateString).first()
+            val yesterdayMeals = mealRepository.getMealsForDate(yesterdayDateString).firstOrNull() ?: emptyList()
             val completedMeals = yesterdayMeals.filter { it.analysisStatus == AnalysisStatus.COMPLETED }
             val consumed = completedMeals.sumOf { it.calories }
             
@@ -716,9 +716,10 @@ class DashboardViewModel @Inject constructor(
             if (fatsRatio in 0.70f..1.30f) score += 1f
         }
         
-        // Hydration (max 2 points) - 8 glasses target
+        // Hydration (max 2 points) - 8 servings target
         val waterTarget = 8
-        val glasses = waterConsumed / 8
+        val servingSize = 250 // Standardize to 250ml for score calculation if not specified
+        val glasses = if (waterConsumed > 0) waterConsumed / 250 else 0
         score += when {
             glasses >= waterTarget -> 2f
             glasses >= waterTarget / 2 -> 1f

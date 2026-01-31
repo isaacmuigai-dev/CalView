@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.CalAIButton
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.onboarding.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
@@ -52,6 +52,8 @@ fun WelcomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+            .statusBarsPadding() // Handle edge-to-edge for status bar
+            .navigationBarsPadding() // Handle edge-to-edge for navigation bar
     ) {
         Box(
             modifier = Modifier
@@ -64,7 +66,7 @@ fun WelcomeScreen(
                 onLanguageSelected = onLanguageSelected,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 48.dp)
+                    .padding(top = 16.dp)
             )
 
             Column(
@@ -81,7 +83,7 @@ fun WelcomeScreen(
                     // Title
                     Text(
                         text = stringResource(R.string.welcome_title),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 32.sp, // Slightly smaller to fit if needed
                         lineHeight = 40.sp,
@@ -94,7 +96,7 @@ fun WelcomeScreen(
                     // Subtitle
                     Text(
                         text = stringResource(R.string.welcome_subtitle),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -116,14 +118,14 @@ fun WelcomeScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.already_have_account),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         val signInDesc = stringResource(R.string.sign_in_semantics)
                         Text(
                             text = stringResource(R.string.sign_in),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground,

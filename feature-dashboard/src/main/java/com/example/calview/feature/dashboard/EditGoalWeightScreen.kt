@@ -21,9 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import kotlinx.coroutines.flow.collectLatest
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
+import java.util.Locale
 
 /**
  * Edit Goal Weight screen with horizontal ruler scale picker.
@@ -55,7 +58,7 @@ fun EditGoalWeightScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.edit_weight_goal_title),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
@@ -87,7 +90,7 @@ fun EditGoalWeightScreen(
             // Goal label
             Text(
                 text = goalLabel,
-                fontFamily = Inter,
+                fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -97,10 +100,11 @@ fun EditGoalWeightScreen(
             
             // Weight display
             Text(
-                text = String.format("%.1f kg", selectedWeight),
-                fontFamily = Inter,
-                fontWeight = FontWeight.Bold,
+                text = String.format(Locale.US, "%.1f kg", selectedWeight),
+                fontFamily = SpaceGroteskFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 48.sp,
+                letterSpacing = (-0.02).sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
             
@@ -132,7 +136,7 @@ fun EditGoalWeightScreen(
             ) {
                 Text(
                     text = stringResource(R.string.done_action),
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -265,9 +269,10 @@ private fun RulerScalePickerWidget(
                             if (isMajor) {
                                 Text(
                                     text = itemWeight.toInt().toString(),
-                                    fontFamily = Inter,
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 10.sp,
-                                    fontWeight = FontWeight.Medium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))

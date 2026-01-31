@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 トレンド</string>
     <string name="tab_newest">✨ 新着</string>
     <string name="tab_my_posts">👤 自分の投稿</string>
-    <string name="search_placeholder">リクエストを検索...</string>
+    <string name="search_placeholder">リクエストを検索…</string>
     <string name="clear_desc">クリア</string>
     <string name="create_request_desc">リクエストを作成</string>
     <string name="feedback_hub_title">フィードバック</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">機能のタイトル</string>
     <string name="feature_title_placeholder">どんな機能が欲しいですか？</string>
     <string name="description_label">説明</string>
-    <string name="description_placeholder">アイデアを詳しく説明してください...</string>
+    <string name="description_placeholder">アイデアを詳しく説明してください…</string>
     <string name="add_tags_label">タグを追加</string>
     <string name="post_request_action">リクエストを投稿</string>
     <string name="comments_title">コメント (%1$d)</string>
-    <string name="add_comment_placeholder">コメントを追加...</string>
+    <string name="add_comment_placeholder">コメントを追加…</string>
     <string name="send_desc">送信</string>
     <string name="no_comments_yet">コメントはまだありません</string>
     <string name="be_first_comment">最初のコメントを書こう！</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">断食を完了</string>
     <string name="stop_fast_desc">断食を停止</string>
     <string name="start_fast_desc">断食を開始</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">保存</string>
+    <string name="selected_desc">選択済み</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">ソーシャルチャレンジ</string>
+    <string name="navigate_back_desc">戻る</string>
+    <string name="back_desc">戻る</string>
+    <string name="create_new_challenge_desc">新しいチャレンジを作成</string>
+    <string name="create_challenge_action">チャレンジを作成</string>
+    <string name="error_occurred">エラーが発生しました</string>
+    <string name="social_challenges_desc">友達と週間コンペに挑戦しましょう！最も多くの食事を記録した人、最も多くの水を飲んだ人、最長の連続記録を維持した人を追跡します。</string>
+    <string name="your_active_challenges">アクティブなチャレンジ</string>
+    <string name="join_challenge_action">チャレンジに参加</string>
+    <string name="enter_invite_code_desc">友達からの招待コードを入力</string>
+    <string name="leaderboard">リーダーボード</string>
+    <string name="invite_code_label">招待コード: %1$s</string>
+    <string name="copy_action">コピー</string>
+    <string name="code_copied_to_clipboard">コードをクリップボードにコピーしました</string>
+    <string name="you">あなた</string>
+    <string name="no_active_challenges">アクティブなチャレンジなし</string>
+    <string name="create_or_join_challenge_desc">チャレンジを作成するか、招待コードを使用して参加しましょう！</string>
+    <string name="challenge_name_label">チャレンジ名</string>
+    <string name="challenge_type_label">チャレンジタイプ</string>
+    <string name="duration_days_label">期間: %1$d日</string>
+    <string name="weekly_challenge_default">週間チャレンジ</string>
+    <string name="create_action">作成</string>
+    <string name="cancel_action">キャンセル</string>
+    <string name="challenge_created_title">チャレンジが作成されました！</string>
+    <string name="share_invite_code_desc">この招待コードを友達と共有:</string>
+    <string name="copy_to_clipboard_desc">クリップボードにコピー</string>
+    <string name="copied_to_clipboard_message">クリップボードにコピーしました！</string>
+    <string name="join_challenge_title">チャレンジに参加</string>
+    <string name="invite_code_input_label">招待コード</string>
+    <string name="join_action">参加</string>
+    <string name="end_challenge_desc">チャレンジを終了</string>
+    <string name="share_invite_desc">招待を共有</string>
+    <string name="share_challenge_chooser">チャレンジを共有</string>
+    <string name="join_challenge_share_message">CalViewで私のチャレンジ「%1$s」に参加しましょう！招待コードを使用: %2$s</string>
+    <string name="rank_you_points">あなたは%1$d位で%2$dポイントです</string>
+    <string name="leader_none">リーダー: なし</string>
+    <string name="leader_label">リーダー: %1$s</string>
+    <string name="challenge_type_streak">🔥 連続チャレンジ</string>
+    <string name="challenge_type_water">💧 水チャンピオン</string>
+    <string name="challenge_type_calories">🎯 カロリー目標</string>
+    <string name="challenge_type_protein">💪 プロテインパワー</string>
+    <string name="challenge_type_steps">👟 ステップカウンター</string>
+    <string name="challenge_type_logging">📝 最も一貫した記録者</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">チャレンジ &amp; バッジ</string>
+    <string name="active_weekly_challenges">アクティブな週間チャレンジ</string>
+    <string name="no_active_challenges_now">現在アクティブなチャレンジはありません。</string>
+    <string name="your_trophy_case">トロフィーケース</string>
+    <string name="challenge_trophy_desc">チャレンジトロフィー</string>
+    <string name="no_badges_unlocked">まだバッジが解除されていません。頑張ってください！</string>
+    <string name="ok_action">OK</string>
 </resources>

@@ -24,7 +24,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
 import kotlinx.coroutines.delay
 
 /**
@@ -100,7 +99,7 @@ fun SplashScreen(
                 // App Name
                 Text(
                     text = "CalViewAI",
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                    fontFamily = com.example.calview.core.ui.theme.WaterlilyFontFamily,
                     fontSize = 45.sp,
                     fontWeight = FontWeight.Normal,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)

@@ -6,6 +6,7 @@
     <string name="calories_burned_notification">🔥 %1$d calories burned! Added to your daily goal.</string>
     <string name="connect_google_health">Connect Google Health</string>
     <string name="sync_steps_calories">Sync steps and calories</string>
+    <string name="burned_label">Burned</string>
     <string name="connect">Connect</string>
     <string name="health_score">Health score</string>
     <string name="health_score_desc">Carbs and fat are on track. You\'re low in calories and protein, which can slow weight loss and impact muscle retention.</string>
@@ -144,7 +145,7 @@
     <string name="tab_trending">🔥 Trending</string>
     <string name="tab_newest">✨ Newest</string>
     <string name="tab_my_posts">👤 My Posts</string>
-    <string name="search_placeholder">Search feature requests...</string>
+    <string name="search_placeholder">Search feature requests…</string>
     <string name="clear_desc">Clear</string>
     <string name="create_request_desc">Create Request</string>
     <string name="feedback_hub_title">Feedback Hub</string>
@@ -155,11 +156,11 @@
     <string name="feature_title_label">Feature title</string>
     <string name="feature_title_placeholder">What feature would you like?</string>
     <string name="description_label">Description</string>
-    <string name="description_placeholder">Describe your idea in detail...</string>
+    <string name="description_placeholder">Describe your idea in detail…</string>
     <string name="add_tags_label">Add tags</string>
     <string name="post_request_action">Post Request</string>
     <string name="comments_title">Comments (%1$d)</string>
-    <string name="add_comment_placeholder">Add a comment...</string>
+    <string name="add_comment_placeholder">Add a comment…</string>
     <string name="send_desc">Send</string>
     <string name="no_comments_yet">No comments yet</string>
     <string name="be_first_comment">Be the first to share your thoughts!</string>
@@ -228,4 +229,106 @@
     <string name="complete_fast_desc">Complete fast</string>
     <string name="stop_fast_desc">Stop fasting</string>
     <string name="start_fast_desc">Start fasting</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">Save</string>
+    <string name="selected_desc">Selected</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">Social Challenges</string>
+    <string name="navigate_back_desc">Navigate back</string>
+    <string name="back_desc">Back</string>
+    <string name="create_new_challenge_desc">Create new challenge</string>
+    <string name="create_challenge_action">Create Challenge</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="social_challenges_desc">Challenge your friends to weekly competitions! Track who logs most meals, drinks most water, or maintains the longest streak.</string>
+    <string name="your_active_challenges">Your Active Challenges</string>
+    <string name="join_challenge_action">Join a Challenge</string>
+    <string name="enter_invite_code_desc">Enter invite code from a friend</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="invite_code_label">Invite code: %1$s</string>
+    <string name="copy_action">Copy</string>
+    <string name="code_copied_to_clipboard">Code copied to clipboard</string>
+    <string name="you">You</string>
+    <string name="no_active_challenges">No Active Challenges</string>
+    <string name="create_or_join_challenge_desc">Create a challenge or join one using an invite code!</string>
+    <string name="challenge_name_label">Challenge Name</string>
+    <string name="challenge_type_label">Challenge Type</string>
+    <string name="duration_days_label">Duration: %1$d days</string>
+    <string name="weekly_challenge_default">Weekly Challenge</string>
+    <string name="create_action">Create</string>
+    <string name="cancel_action">Cancel</string>
+    <string name="challenge_created_title">Challenge Created!</string>
+    <string name="share_invite_code_desc">Share this invite code with friends:</string>
+    <string name="copy_to_clipboard_desc">Copy to clipboard</string>
+    <string name="copied_to_clipboard_message">Copied to clipboard!</string>
+    <string name="join_challenge_title">Join Challenge</string>
+    <string name="invite_code_input_label">Invite Code</string>
+    <string name="join_action">Join</string>
+    <string name="end_challenge_desc">End challenge</string>
+    <string name="share_invite_desc">Share invite</string>
+    <string name="share_challenge_chooser">Share Challenge</string>
+    <string name="join_challenge_share_message">Join my challenge \"%1$s\" on CalView! Use invite code: %2$s</string>
+    <string name="rank_you_points">You are ranked %1$d with %2$d points</string>
+    <string name="leader_none">Leader: None</string>
+    <string name="leader_label">Leader: %1$s</string>
+    <string name="challenge_type_streak">🔥 Streak Challenge</string>
+    <string name="challenge_type_water">💧 Water Champion</string>
+    <string name="challenge_type_calories">🎯 Calorie Goals</string>
+    <string name="challenge_type_protein">💪 Protein Power</string>
+    <string name="challenge_type_steps">👟 Step Counter</string>
+    <string name="challenge_type_logging">📝 Most Consistent Logger</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">Challenges &amp; Badges</string>
+    <string name="active_weekly_challenges">Active Weekly Challenges</string>
+    <string name="no_active_challenges_now">No active challenges right now.</string>
+    <string name="your_trophy_case">Your Trophy Case</string>
+    <string name="challenge_trophy_desc">Challenge trophy</string>
+    <string name="no_badges_unlocked">No badges unlocked yet. Keep going!</string>
+    <string name="ok_action">OK</string>
+
+    <!-- Dashboard Walkthrough -->
+    <string name="walkthrough_nutrition_title">Track Your Goals</string>
+    <string name="walkthrough_nutrition_desc">Your AI-calculated nutrition goals are right here. Monitor your calories and macros in real-time.</string>
+    <string name="walkthrough_calendar_title">Historical Data</string>
+    <string name="walkthrough_calendar_desc">Use the calendar to navigate between days and view your historical nutrition logs.</string>
+    <string name="walkthrough_score_title">AI Health Coach</string>
+    <string name="walkthrough_score_desc">Your Health Score updates dynamically. Check the AI Coach tips for personalized nutrition advice.</string>
+    <string name="walkthrough_health_title">Health Connect</string>
+    <string name="walkthrough_health_desc">Sync with Google Fit or Samsung Health via Health Connect to automatically track your steps and activity.</string>
+    <string name="walkthrough_water_title">Hydration Tracker</string>
+    <string name="walkthrough_water_desc">Staying hydrated is key to your health. Quickly log your water intake throughout the day.</string>
+    <string name="walkthrough_meal_title">Scanned Meals</string>
+    <string name="walkthrough_meal_desc">Your recently scanned meals appear here. Tap any meal to see detailed nutrition information.</string>
+
+    <!-- Water Reminder Settings -->
+    <string name="water_reminders_title">Water Reminders</string>
+    <string name="water_reminders_enabled_desc">Water Reminders Settings. Enabled. Reminding every %1$d hours. Daily goal: %2$dml.</string>
+    <string name="water_reminders_disabled_desc">Water Reminders Settings. Disabled. Tap the switch to enable.</string>
+    <string name="water_reminders_premium_desc">Water Reminders. Premium feature. Tap to upgrade.</string>
+    <string name="remind_every_hours">Remind every %d hours</string>
+    <string name="reminder_interval_desc">Reminder interval: %d hours. Drag to adjust from 1 to 6 hours.</string>
+    <string name="active_hours_label">Active hours</string>
+    <string name="daily_goal_label">Daily goal</string>
+    <string name="default_serving_size_label">Default serving size</string>
+    <string name="enable_reminders_hint">Enable to receive periodic hydration reminders throughout the day.</string>
+    <string name="premium_upgrade_hint_water">Get periodic reminders to stay hydrated! Premium members can customize reminder intervals and goals.</string>
+    <string name="unlock_water_reminders">Unlock Water Reminders</string>
+    <string name="ml_suffix">%d ml</string>
+    <string name="increase_desc">Increase</string>
+    <string name="decrease_desc">Decrease</string>
+    <string name="state_enabled">Enabled</string>
+    <string name="state_disabled">Disabled</string>
+
+    <!-- Support Email -->
+    <string name="email_support_subject">Support Request</string>
+    <string name="email_support_body_header">Please describe your issue above this line.</string>
+    <string name="email_user_id">User ID: %s</string>
+    <string name="email_email">Email: %s</string>
+    <string name="email_version">Version: %s</string>
+    <string name="email_provider">Provider Id: %s</string>
+    <string name="email_platform">Platform: Android</string>
+    <string name="email_android_version">Android Version: %s</string>
+    <string name="email_device">Device: %s</string>
 </resources>

@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import coil.compose.AsyncImage
 import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.MealEntity
@@ -435,8 +437,10 @@ private fun MealCard(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${meal.calories} cal",
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -469,7 +473,17 @@ private fun MacroItem(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = "$label $value",
+            text = "$label ",
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            fontFamily = SpaceGroteskFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

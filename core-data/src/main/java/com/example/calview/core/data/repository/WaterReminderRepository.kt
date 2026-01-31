@@ -88,7 +88,7 @@ class WaterReminderRepository @Inject constructor(
             intervalHours = 2,
             startHour = 8,
             endHour = 22,
-            dailyGoalMl = 2000,
+            dailyGoalMl = 2500,
             reminderSoundEnabled = true,
             reminderVibrationEnabled = true
         )

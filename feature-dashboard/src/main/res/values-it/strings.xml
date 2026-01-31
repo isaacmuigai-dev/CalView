@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 Tendenza</string>
     <string name="tab_newest">✨ Più recenti</string>
     <string name="tab_my_posts">👤 I miei post</string>
-    <string name="search_placeholder">Cerca richieste funzionalità...</string>
+    <string name="search_placeholder">Cerca richieste funzionalità…</string>
     <string name="clear_desc">Cancella</string>
     <string name="create_request_desc">Crea Richiesta</string>
     <string name="feedback_hub_title">Hub Feedback</string>
@@ -159,7 +159,7 @@
     <string name="add_tags_label">Aggiungi tag</string>
     <string name="post_request_action">Pubblica Richiesta</string>
     <string name="comments_title">Commenti (%1$d)</string>
-    <string name="add_comment_placeholder">Aggiungi un commento...</string>
+    <string name="add_comment_placeholder">Aggiungi un commento…</string>
     <string name="send_desc">Invia</string>
     <string name="no_comments_yet">Ancora nessun commento</string>
     <string name="be_first_comment">Sii il primo a condividere i tuoi pensieri!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">Completa digiuno</string>
     <string name="stop_fast_desc">Ferma digiuno</string>
     <string name="start_fast_desc">Inizia digiuno</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">Salva</string>
+    <string name="selected_desc">Selezionato</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">Sfide Sociali</string>
+    <string name="navigate_back_desc">Torna indietro</string>
+    <string name="back_desc">Indietro</string>
+    <string name="create_new_challenge_desc">Crea nuova sfida</string>
+    <string name="create_challenge_action">Crea Sfida</string>
+    <string name="error_occurred">Si è verificato un errore</string>
+    <string name="social_challenges_desc">Sfida i tuoi amici in competizioni settimanali! Traccia chi registra più pasti, beve più acqua o mantiene la striscia più lunga.</string>
+    <string name="your_active_challenges">Le Tue Sfide Attive</string>
+    <string name="join_challenge_action">Unisciti a una Sfida</string>
+    <string name="enter_invite_code_desc">Inserisci il codice invito di un amico</string>
+    <string name="leaderboard">Classifica</string>
+    <string name="invite_code_label">Codice invito: %1$s</string>
+    <string name="copy_action">Copia</string>
+    <string name="code_copied_to_clipboard">Codice copiato negli appunti</string>
+    <string name="you">Tu</string>
+    <string name="no_active_challenges">Nessuna Sfida Attiva</string>
+    <string name="create_or_join_challenge_desc">Crea una sfida o unisciti a una usando un codice invito!</string>
+    <string name="challenge_name_label">Nome della Sfida</string>
+    <string name="challenge_type_label">Tipo di Sfida</string>
+    <string name="duration_days_label">Durata: %1$d giorni</string>
+    <string name="weekly_challenge_default">Sfida Settimanale</string>
+    <string name="create_action">Crea</string>
+    <string name="cancel_action">Annulla</string>
+    <string name="challenge_created_title">Sfida Creata!</string>
+    <string name="share_invite_code_desc">Condividi questo codice invito con gli amici:</string>
+    <string name="copy_to_clipboard_desc">Copia negli appunti</string>
+    <string name="copied_to_clipboard_message">Copiato negli appunti!</string>
+    <string name="join_challenge_title">Unisciti a una Sfida</string>
+    <string name="invite_code_input_label">Codice Invito</string>
+    <string name="join_action">Unisciti</string>
+    <string name="end_challenge_desc">Termina sfida</string>
+    <string name="share_invite_desc">Condividi invito</string>
+    <string name="share_challenge_chooser">Condividi Sfida</string>
+    <string name="join_challenge_share_message">Unisciti alla mia sfida \"%1$s\" su CalView! Usa il codice invito: %2$s</string>
+    <string name="rank_you_points">Sei al %1$d° posto con %2$d punti</string>
+    <string name="leader_none">Leader: Nessuno</string>
+    <string name="leader_label">Leader: %1$s</string>
+    <string name="challenge_type_streak">🔥 Sfida Serie</string>
+    <string name="challenge_type_water">💧 Campione dell\'Acqua</string>
+    <string name="challenge_type_calories">🎯 Obiettivi Calorie</string>
+    <string name="challenge_type_protein">💪 Potenza Proteina</string>
+    <string name="challenge_type_steps">👟 Contatore Passi</string>
+    <string name="challenge_type_logging">📝 Registratore Più Costante</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">Sfide &amp; Badge</string>
+    <string name="active_weekly_challenges">Sfide Settimanali Attive</string>
+    <string name="no_active_challenges_now">Nessuna sfida attiva al momento.</string>
+    <string name="your_trophy_case">La Tua Vetrina Trofei</string>
+    <string name="challenge_trophy_desc">Trofeo sfida</string>
+    <string name="no_badges_unlocked">Nessun badge sbloccato ancora. Continua così!</string>
+    <string name="ok_action">OK</string>
 </resources>

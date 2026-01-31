@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 
@@ -87,8 +89,8 @@ fun EditNutritionGoalsScreen(
             // Title
             Text(
                 text = stringResource(R.string.edit_nutrition_goals_title),
-                fontFamily = Inter,
-                fontWeight = FontWeight.Bold,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -173,7 +175,7 @@ fun EditNutritionGoalsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.auto_generate_goals),
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -194,8 +196,8 @@ fun EditNutritionGoalsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.save_changes_button),
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = Color.White
                 )
@@ -262,8 +264,8 @@ private fun NutrientGoalCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = label,
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Normal,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.Medium,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -281,17 +283,19 @@ private fun NutrientGoalCard(
                             singleLine = true,
                             modifier = Modifier.width(100.dp),
                             textStyle = LocalTextStyle.current.copy(
-                                fontFamily = Inter,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontFamily = SpaceGroteskFontFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp,
+                                letterSpacing = (-0.02).sp
                             )
                         )
                     } else {
                         Text(
                             text = "$value$unit",
-                            fontFamily = Inter,
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.clickable { 
                                 isEditing = true

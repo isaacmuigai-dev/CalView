@@ -116,7 +116,7 @@ fun ReferYourFriendScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFF5F5F5)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -125,7 +125,16 @@ fun ReferYourFriendScreen(
                     )
                 }
                 
-                // Surrounding friend avatars
+                // Surrounding friend avatars - using theme-aware colors
+                val avatarColors = listOf(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.tertiaryContainer,
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
+                )
+                
                 listOf(
                     Pair(-100.dp, -40.dp),
                     Pair(-60.dp, 50.dp),
@@ -139,16 +148,7 @@ fun ReferYourFriendScreen(
                             .offset(x = x, y = y)
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(
-                                listOf(
-                                    Color(0xFFE8F5E9),
-                                    Color(0xFFFCE4EC),
-                                    Color(0xFFE3F2FD),
-                                    Color(0xFFFFF3E0),
-                                    Color(0xFFF3E5F5),
-                                    Color(0xFFE0F7FA)
-                                )[index]
-                            ),
+                            .background(avatarColors[index]),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

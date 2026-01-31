@@ -3,6 +3,7 @@ package com.example.calview.feature.dashboard
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,6 +38,8 @@ import coil.request.ImageRequest
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
@@ -175,24 +178,33 @@ fun SettingsContent(
         val androidVersion = Build.VERSION.RELEASE
         val deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
         
+        val emailBodyHeader = context.getString(R.string.email_support_body_header)
+        val userIdLabel = context.getString(R.string.email_user_id, userId)
+        val emailLabel = context.getString(R.string.email_email, userEmail)
+        val versionLabel = context.getString(R.string.email_version, appVersion)
+        val providerLabel = context.getString(R.string.email_provider, userId)
+        val platformLabel = context.getString(R.string.email_platform)
+        val androidVersionLabel = context.getString(R.string.email_android_version, androidVersion)
+        val deviceLabel = context.getString(R.string.email_device, deviceModel)
+        
         val emailBody = """
             |.......
-            |Please describe your issue above this line.
+            |$emailBodyHeader
             |
-            |User ID: $userId
-            |Email: $userEmail
-            |Version: $appVersion
-            |Provider Id: $userId
+            |$userIdLabel
+            |$emailLabel
+            |$versionLabel
+            |$providerLabel
             |
-            |Platform: Android
-            |Android Version: $androidVersion
-            |Device: $deviceModel
+            |$platformLabel
+            |$androidVersionLabel
+            |$deviceLabel
         """.trimMargin()
         
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:")
+            data = "mailto:".toUri()
             putExtra(Intent.EXTRA_EMAIL, arrayOf("isaacmuigai.dev@gmail.com"))
-            putExtra(Intent.EXTRA_SUBJECT, "Support Request")
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_support_subject))
             putExtra(Intent.EXTRA_TEXT, emailBody)
         }
         
@@ -205,10 +217,10 @@ fun SettingsContent(
     val horizontalPadding = AdaptiveLayoutUtils.getHorizontalPadding(windowSizeClass.widthSizeClass)
     val maxContentWidth = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass)
     
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -223,8 +235,9 @@ fun SettingsContent(
         // Title
         Text(
             text = stringResource(R.string.settings_title),
+            fontFamily = InterFontFamily,
             fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
         
@@ -398,9 +411,9 @@ fun ProfileHeader(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(name, fontFamily = InterFontFamily, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                 if (age.isNotEmpty()) {
-                    Text(age, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(age, fontFamily = InterFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -414,7 +427,7 @@ fun InviteFriendsCard(onReferFriendClick: () -> Unit = {}) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Group, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.invite_friends), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.invite_friends), fontFamily = InterFontFamily, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Box(
@@ -507,7 +520,7 @@ fun SettingsItem(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.width(16.dp))
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+        Text(title, fontFamily = InterFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -527,7 +540,7 @@ fun PreferencesSection(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Settings, null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Preferences", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(R.string.preferences), fontFamily = InterFontFamily, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -541,12 +554,17 @@ fun PreferencesSection(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.appearance), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    Text(stringResource(R.string.appearance_desc), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.appearance), fontFamily = InterFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.appearance_desc), fontFamily = InterFontFamily, fontSize = 12.sp, fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val displayMode = when(appearanceMode.lowercase()) {
+                        "light" -> stringResource(R.string.appearance_light)
+                        "dark" -> stringResource(R.string.appearance_dark)
+                        else -> stringResource(R.string.appearance_automatic)
+                    }
                     Text(
-                        text = appearanceMode.replaceFirstChar { it.uppercase() },
+                        text = displayMode,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -566,8 +584,13 @@ fun PreferencesSection(
                         .fillMaxWidth()
                         .padding(start = 16.dp, bottom = 8.dp)
                 ) {
-                    listOf("Light", "Dark", "Automatic").forEach { option ->
-                        val optionValue = option.lowercase()
+                    val options = listOf(
+                        "light" to stringResource(R.string.appearance_light), 
+                        "dark" to stringResource(R.string.appearance_dark), 
+                        "automatic" to stringResource(R.string.appearance_automatic)
+                    )
+                    options.forEach { (key, label) ->
+                        val optionValue = key
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -589,9 +612,9 @@ fun PreferencesSection(
                                 )
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(option, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                            Text(label, fontFamily = InterFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurface)
                         }
-                        if (option != "Automatic") {
+                        if (optionValue != "automatic") {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
@@ -636,8 +659,8 @@ fun PreferenceToggle(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, fontFamily = InterFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, fontFamily = InterFontFamily, fontSize = 12.sp, fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(
             checked = checked,
@@ -665,8 +688,9 @@ fun WidgetsSection(
     ) {
         Text(
             stringResource(R.string.widgets),
+            fontFamily = InterFontFamily,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
@@ -724,15 +748,17 @@ fun WidgetPreview(
                     Column {
                         Text(
                             text = "TODAY",
+                            fontFamily = InterFontFamily,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color(0xB3000000), // #B3000000
                             letterSpacing = 0.1.sp
                         )
                         Text(
                             text = "Jan 19",
+                            fontFamily = InterFontFamily,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color(0xFF000000) // #000000
                         )
                     }
@@ -753,8 +779,10 @@ fun WidgetPreview(
                             Spacer(modifier = Modifier.width(2.dp))
                             Text(
                                 text = streakDays.toString(),
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 color = Color(0xFFFF5722)
                             )
                         }
@@ -770,14 +798,18 @@ fun WidgetPreview(
                             ) {
                                 Text(
                                     text = "BMI",
+                                    fontFamily = InterFontFamily,
                                     fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
                                     color = Color(0x99000000), // #99000000
                                     modifier = Modifier.padding(end = 4.dp)
                                 )
                                 Text(
                                     text = "22.0",
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp,
                                     color = Color(0xFF000000)
                                 )
                             }
@@ -821,13 +853,17 @@ fun WidgetPreview(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = remainingCalories.toString(),
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 color = Color(0xFF1A1A1A) // #1A1A1A
                             )
                             Text(
                                 text = "left",
+                                fontFamily = InterFontFamily,
                                 fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
                                 color = Color(0xFF666666) // #666666
                             )
                             // Indicators (Rollover/Active)
@@ -835,9 +871,9 @@ fun WidgetPreview(
                                 modifier = Modifier.padding(top = 1.dp),
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Text("+0", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFC107))
+                                Text("+0", fontFamily = SpaceGroteskFontFamily, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = Color(0xFFFFC107))
                                 Spacer(modifier = Modifier.width(2.dp))
-                                Text("+9", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
+                                Text("+9", fontFamily = SpaceGroteskFontFamily, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = Color(0xFF10B981))
                             }
                         }
                     }
@@ -887,15 +923,17 @@ fun WidgetPreview(
                     ) {
                         Text(
                             text = "BMI 22.0",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = Color(0xFF374151), // #374151
                             modifier = Modifier.weight(1f)
                         )
                         
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("60 kg", fontSize = 12.sp, color = Color(0xFF6B7280), modifier = Modifier.padding(end = 12.dp))
-                            Text("165 cm", fontSize = 12.sp, color = Color(0xFF6B7280))
+                            Text("60 kg", fontFamily = SpaceGroteskFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = Color(0xFF6B7280), modifier = Modifier.padding(end = 12.dp))
+                            Text("165 cm", fontFamily = SpaceGroteskFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = Color(0xFF6B7280))
                         }
                     }
 
@@ -966,7 +1004,9 @@ fun MacroPreviewItem(label: String, amount: String, color: Color) {
     ) {
         Text(
             text = label,
+            fontFamily = InterFontFamily,
             fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
             color = Color(0xFF666666),
             modifier = Modifier.width(24.dp)
         )
@@ -984,8 +1024,10 @@ fun MacroPreviewItem(label: String, amount: String, color: Color) {
         
         Text(
             text = amount,
+            fontFamily = SpaceGroteskFontFamily,
             fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             color = Color(0xFF1A1A1A)
         )
     }
@@ -1003,8 +1045,8 @@ fun StatChipPreview(label: String, value: String, modifier: Modifier = Modifier)
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(label, fontSize = 7.sp, color = Color(0xFF666666))
-            Text(value, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+            Text(label, fontFamily = InterFontFamily, fontSize = 7.sp, fontWeight = FontWeight.Medium, color = Color(0xFF666666))
+            Text(value, fontFamily = SpaceGroteskFontFamily, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = Color(0xFF1A1A1A))
         }
     }
 }
@@ -1198,17 +1240,21 @@ fun WidgetStreak(streakDays: Int = 0) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 30.dp)
             ) {
-                Text(
-                    streakDays.toString(),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp,
-                    color = Color(0xFFE65100)
-                )
-                Text(
-                    "day streak",
-                    fontSize = 10.sp,
-                    color = Color(0xFFE65100)
-                )
+                    Text(
+                        streakDays.toString(),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 28.sp,
+                        letterSpacing = (-0.02).sp,
+                        color = Color(0xFFE65100)
+                    )
+                    Text(
+                        "day streak",
+                        fontFamily = InterFontFamily,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFE65100)
+                    )
             }
         }
     }

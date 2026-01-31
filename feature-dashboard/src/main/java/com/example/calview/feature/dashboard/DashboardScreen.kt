@@ -107,6 +107,10 @@ import com.example.calview.core.ui.walkthrough.*
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.calview.core.ui.util.rememberHapticsManager
+import com.example.calview.core.ui.theme.CalViewTheme
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
+
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
@@ -376,38 +380,38 @@ fun DashboardContent(
     val walkthroughSteps = listOf(
         WalkthroughStep(
             id = "nutrition",
-            title = "Track Your Goals",
-            description = "Your AI-calculated nutrition goals are right here. Monitor your calories and macros in real-time.",
+            title = stringResource(R.string.walkthrough_nutrition_title),
+            description = stringResource(R.string.walkthrough_nutrition_desc),
             targetRect = nutritionRect
         ),
         WalkthroughStep(
             id = "calendar",
-            title = "Historical Data",
-            description = "Use the calendar to navigate between days and view your historical nutrition logs.",
+            title = stringResource(R.string.walkthrough_calendar_title),
+            description = stringResource(R.string.walkthrough_calendar_desc),
             targetRect = calendarRect
         ),
         WalkthroughStep(
             id = "score",
-            title = "AI Health Coach",
-            description = "Your Health Score updates dynamically. Check the AI Coach tips for personalized nutrition advice.",
+            title = stringResource(R.string.walkthrough_score_title),
+            description = stringResource(R.string.walkthrough_score_desc),
             targetRect = healthScoreRect
         ),
         WalkthroughStep(
             id = "health",
-            title = "Health Connect",
-            description = "Sync with Google Fit or Samsung Health via Health Connect to automatically track your steps and activity.",
+            title = stringResource(R.string.walkthrough_health_title),
+            description = stringResource(R.string.walkthrough_health_desc),
             targetRect = healthConnectRect
         ),
         WalkthroughStep(
             id = "water",
-            title = "Hydration Tracker",
-            description = "Staying hydrated is key to your health. Quickly log your water intake throughout the day.",
+            title = stringResource(R.string.walkthrough_water_title),
+            description = stringResource(R.string.walkthrough_water_desc),
             targetRect = waterRect
         ),
         WalkthroughStep(
             id = "meal",
-            title = "Scanned Meals",
-            description = "Your recently scanned meals appear here. Tap any meal to see detailed nutrition information.",
+            title = stringResource(R.string.walkthrough_meal_title),
+            description = stringResource(R.string.walkthrough_meal_desc),
             targetRect = recentMealsRect
         )
     )
@@ -418,13 +422,29 @@ fun DashboardContent(
             // Give layout a moment to settle and for rects to be captured
             kotlinx.coroutines.delay(150)
             
+            // Skip Health Connect step if already connected
+            if (currentStepIndex == 3 && state.isHealthConnected) {
+                currentStepIndex++
+                return@LaunchedEffect
+            }
+            
             val targetScrollIndex = when (currentStepIndex) {
                 0 -> 1 // Nutrition
                 1 -> 0 // Calendar/Header
                 2 -> 2 // Health Score
-                3 -> 3 // Health Connect (if visible) or Unified Activity
-                4 -> if (!state.isHealthConnected) 5 else 4 // Water Tracker
-                5 -> if (!state.isHealthConnected) 7 else 6 // Recently Uploaded First Meal
+                3 -> 3 // Health Connect button
+                4 -> { // Water Tracker
+                    var index = 4 // Base: UnifiedActivity
+                    if (!state.isHealthConnected) index++ // HC Button visible
+                    if (state.exercises.isNotEmpty()) index++ // Exercise Summary visible
+                    index // Water Tracker
+                }
+                5 -> { // Recently Uploaded Header
+                    var index = 5 // Base: UnifiedActivity + Water
+                    if (!state.isHealthConnected) index++ // HC Button visible
+                    if (state.exercises.isNotEmpty()) index++ // Exercise Summary visible
+                    index // "Recently Uploaded" Text
+                }
                 else -> -1
             }
             
@@ -553,7 +573,7 @@ fun DashboardContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.FavoriteBorder,
-                                    contentDescription = "Health Connect",
+                                    contentDescription = stringResource(R.string.connect_google_health),
                                     tint = Color(0xFFEA4335),
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -603,7 +623,8 @@ fun DashboardContent(
                 steps = state.steps.toInt(),
                 stepsGoal = state.stepsGoal,
                 calories = state.caloriesBurned,
-                isConnected = state.isHealthConnected
+                isConnected = state.isHealthConnected,
+                exerciseCalories = state.manualExerciseCalories
             )
         }
         
@@ -620,7 +641,9 @@ fun DashboardContent(
         // Water Tracker Card - Premium design
         item {
             var showWaterSettings by remember { mutableStateOf(false) }
-            var waterServingSize by remember { mutableStateOf(8) }
+            var waterServingSize by remember(state.waterServingSize) { 
+                mutableIntStateOf(state.waterServingSize) 
+            }
             
             WaterCardPremium(
                 modifier = Modifier.onPositionedRect { waterRect = it },
@@ -889,7 +912,7 @@ fun HeaderSection(streakDays: Int = 0) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 0.dp),
+            .padding(top = 4.dp, bottom = 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -923,7 +946,7 @@ fun HeaderSection(streakDays: Int = 0) {
                     stringResource(R.string.dashboard_title),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Normal,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                    fontFamily = com.example.calview.core.ui.theme.WaterlilyFontFamily,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
             }
@@ -1043,8 +1066,8 @@ fun DateSelector(
             ) { dateText ->
                 Text(
                     text = dateText,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
@@ -1268,57 +1291,81 @@ fun NutritionOverviewCard(
                         },
                         label = "calories_animation"
                     ) { isEaten ->
+                        // Premium typography for hero calorie numbers
+                        val typography = CalViewTheme.typography
+                        
                         Column {
                             if (isEaten) {
+                                // Hero calorie number with Space Grotesk - tight tracking for premium feel
                                 Text(
                                     text = buildAnnotatedString {
                                         withStyle(SpanStyle(
-                                            fontSize = 40.sp,
-                                            fontWeight = FontWeight.Bold
+                                            fontFamily = SpaceGroteskFontFamily,
+                                            fontSize = 42.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = (-0.02).sp // Tight tracking = confident & premium
                                         )) {
                                             append(animatedConsumed.toString())
                                         }
                                         withStyle(SpanStyle(
-                                            fontSize = 20.sp,
+                                            fontFamily = InterFontFamily,
+                                            fontSize = 18.sp,
                                             fontWeight = FontWeight.Normal,
-                                            color = Color.Gray
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )) {
                                             append(" /$goalCalories")
                                         }
                                     }
                                 )
+                                // Label with Inter - lighter and more breathable
                                 Text(
                                     text = buildAnnotatedString {
-                                        withStyle(SpanStyle(color = Color.Gray)) {
+                                        withStyle(SpanStyle(
+                                            fontFamily = InterFontFamily,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )) {
                                             append("Calories ")
                                         }
-                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        withStyle(SpanStyle(
+                                            fontFamily = InterFontFamily,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )) {
                                             append("eaten")
                                         }
                                     },
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
+                                    style = typography.secondaryLabel
                                 )
                             } else {
+                                // Hero "remaining" number with Space Grotesk
                                 Text(
                                     text = animatedRemaining.toString(),
-                                    fontSize = 40.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    style = typography.heroNumber.copy(
+                                        fontSize = 42.sp
+                                    ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
+                                        // Label with Inter - lighter and more breathable
                                         Text(
                                             text = buildAnnotatedString {
-                                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                                                withStyle(SpanStyle(
+                                                    fontFamily = InterFontFamily,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )) {
                                                     append("Calories ")
                                                 }
-                                                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)) {
+                                                withStyle(SpanStyle(
+                                                    fontFamily = InterFontFamily,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )) {
                                                     append("left")
                                                 }
                                             },
-                                            fontSize = 14.sp
+                                            style = typography.secondaryLabel
                                         )
                                         
                                         // Indicators Row (Rollover + Active)
@@ -1780,7 +1827,8 @@ fun UnifiedActivityCard(
     stepsGoal: Int,
     calories: Int,
     isConnected: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    exerciseCalories: Int = 0  // Calories from logged exercises
 ) {
     CalAICard(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -1830,20 +1878,32 @@ fun UnifiedActivityCard(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
+                // Premium typography for data values
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                        withStyle(SpanStyle(
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp
+                        )) {
                             append(steps.toString())
                         }
-                        withStyle(SpanStyle(fontSize = 12.sp, color = Color.Gray)) {
+                        withStyle(SpanStyle(
+                            fontFamily = InterFontFamily,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )) {
                             append(" /$stepsGoal")
                         }
                     }
                 )
                 Text(
                     text = "Steps Today",
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
@@ -1874,7 +1934,7 @@ fun UnifiedActivityCard(
                             style = Stroke(width = 8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
                         )
                         // Progress based on calories (arbitrary goal of 500)
-                        val calProgress = (calories / 500f).coerceIn(0f, 1f)
+                        val calProgress = (calories / 3000f).coerceIn(0f, 1f)
                         if (calProgress > 0) {
                             drawArc(
                                 color = Color(0xFFFF9800),
@@ -1895,16 +1955,44 @@ fun UnifiedActivityCard(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
+                // Premium typography for calories burned
                 Text(
                     text = calories.toString(),
+                    fontFamily = SpaceGroteskFontFamily,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp
                 )
                 Text(
-                    text = "Calories burned",
+                    text = stringResource(R.string.burned_label),
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                
+                // Show exercise breakdown if there are logged exercises
+                if (exerciseCalories > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.FitnessCenter,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "+$exerciseCalories",
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         }
     }
@@ -2155,7 +2243,7 @@ fun CaloriesBurnedCard(
 @Composable
 fun WaterCardPremium(
     consumed: Int,
-    servingSize: Int = 8,
+    servingSize: Int = 250,
     onAdd: () -> Unit,
     onRemove: () -> Unit,
     onSettingsClick: () -> Unit = {},
@@ -2185,10 +2273,8 @@ fun WaterCardPremium(
                 )
             }
             
-            Spacer(modifier = Modifier.width(16.dp))
-            
             // Water info
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
                 Text(
                     text = "Water",
                     fontSize = 16.sp,
@@ -2200,7 +2286,7 @@ fun WaterCardPremium(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "$consumed fl oz",
+                        text = stringResource(R.string.ml_suffix, consumed),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -2283,6 +2369,9 @@ fun MacroCardUnified(
         label = "macroProgress"
     )
     
+    // Premium typography for macro numbers
+    val typography = CalViewTheme.typography
+    
     CalAICard(modifier = modifier, onClick = onClick) {
         Column(
             modifier = Modifier
@@ -2300,47 +2389,68 @@ fun MacroCardUnified(
             ) { isEaten ->
                 Column {
                     if (isEaten) {
+                        // Macro number with Space Grotesk - premium feel
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
+                                    fontFamily = SpaceGroteskFontFamily,
                                     fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.02).sp // Tight tracking
                                 )) {
                                     append(consumedValue.toString())
                                 }
                                 withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
                                     fontSize = 10.sp,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )) {
                                     append(" /${goalValue}g")
                                 }
                             }
                         )
+                        // Label with Inter - lighter feel
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = Color.Gray)) {
+                                withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )) {
                                     append("$label ")
                                 }
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
+                                    fontWeight = FontWeight.SemiBold
+                                )) {
                                     append("eaten")
                                 }
                             },
                             fontSize = 10.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
+                        // Macro number with Space Grotesk
                         Text(
                             text = "${remaining}g",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                        // Label with Inter
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = Color.Gray)) {
+                                withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )) {
                                     append("$label ")
                                 }
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                withStyle(SpanStyle(
+                                    fontFamily = InterFontFamily,
+                                    fontWeight = FontWeight.SemiBold
+                                )) {
                                     append("left")
                                 }
                             },
@@ -2862,7 +2972,7 @@ fun WaterSettingsDialog(
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$selectedSize fl oz (${selectedSize / 8} cup)",
+                            text = stringResource(R.string.ml_suffix, selectedSize) + " (${"%.1f".format(selectedSize / 250f)} cups)",
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -2885,7 +2995,7 @@ fun WaterSettingsDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         // Simple number picker
-                        val sizes = listOf(4, 6, 8, 10, 12, 16)
+                        val sizes = listOf(250, 500, 750, 1000)
                         sizes.forEach { size ->
                             Box(
                                 modifier = Modifier
@@ -2956,7 +3066,7 @@ fun WaterSettingsDialog(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "Everyone's needs are slightly different, but we recommended aiming for at least 64 fl oz (8 cups) of water each day",
+                    text = "Everyone's needs are slightly different, but we recommended aiming for at least 2500 ml of water each day",
                     fontSize = 13.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,

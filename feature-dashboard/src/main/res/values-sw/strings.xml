@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 Zinazovuma</string>
     <string name="tab_newest">✨ Mpya zaidi</string>
     <string name="tab_my_posts">👤 Machapisho Yangu</string>
-    <string name="search_placeholder">Tafuta maombi ya vipengele...</string>
+    <string name="search_placeholder">Tafuta maombi ya vipengele…</string>
     <string name="clear_desc">Futa</string>
     <string name="create_request_desc">Unda Ombi</string>
     <string name="feedback_hub_title">Kituo cha Maoni</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">Kichwa cha Kipengele</string>
     <string name="feature_title_placeholder">Unataka kipengele gani?</string>
     <string name="description_label">Maelezo</string>
-    <string name="description_placeholder">Elezea wazo lako kwa undani...</string>
+    <string name="description_placeholder">Elezea wazo lako kwa undani…</string>
     <string name="add_tags_label">Ongeza Lebo</string>
     <string name="post_request_action">Chapisha Ombi</string>
     <string name="comments_title">Maoni (%1$d)</string>
-    <string name="add_comment_placeholder">Ongeza maoni...</string>
+    <string name="add_comment_placeholder">Ongeza maoni…</string>
     <string name="send_desc">Tuma</string>
     <string name="no_comments_yet">Hakuna maoni bado</string>
     <string name="be_first_comment">Kuwa wa kwanza kushiriki mawazo!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">Kamilisha kufunga</string>
     <string name="stop_fast_desc">Simamisha kufunga</string>
     <string name="start_fast_desc">Anza kufunga</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">Hifadhi</string>
+    <string name="selected_desc">Imechaguliwa</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">Changamoto za Kijamii</string>
+    <string name="navigate_back_desc">Rudi nyuma</string>
+    <string name="back_desc">Rudi</string>
+    <string name="create_new_challenge_desc">Unda changamoto mpya</string>
+    <string name="create_challenge_action">Unda Changamoto</string>
+    <string name="error_occurred">Hitilafu imetokea</string>
+    <string name="social_challenges_desc">Changamsha marafiki wako katika mashindano ya kila wiki! Fuatilia nani anaandika milo zaidi, kunywa maji zaidi, au kudumisha mfululizo mrefu zaidi.</string>
+    <string name="your_active_challenges">Changamoto Zako Zinazoendelea</string>
+    <string name="join_challenge_action">Jiunge na Changamoto</string>
+    <string name="enter_invite_code_desc">Ingiza msimbo wa mwaliko kutoka kwa rafiki</string>
+    <string name="leaderboard">Orodha ya Viongozi</string>
+    <string name="invite_code_label">Msimbo wa mwaliko: %1$s</string>
+    <string name="copy_action">Nakili</string>
+    <string name="code_copied_to_clipboard">Msimbo umenakiliwa kwenye ubao wa kunakili</string>
+    <string name="you">Wewe</string>
+    <string name="no_active_challenges">Hakuna Changamoto Zinazoendelea</string>
+    <string name="create_or_join_challenge_desc">Unda changamoto au jiunge na moja kwa kutumia msimbo wa mwaliko!</string>
+    <string name="challenge_name_label">Jina la Changamoto</string>
+    <string name="challenge_type_label">Aina ya Changamoto</string>
+    <string name="duration_days_label">Muda: %1$d siku</string>
+    <string name="weekly_challenge_default">Changamoto ya Kila Wiki</string>
+    <string name="create_action">Unda</string>
+    <string name="cancel_action">Ghairi</string>
+    <string name="challenge_created_title">Changamoto Imeundwa!</string>
+    <string name="share_invite_code_desc">Shiriki msimbo huu wa mwaliko na marafiki:</string>
+    <string name="copy_to_clipboard_desc">Nakili kwenye ubao wa kunakili</string>
+    <string name="copied_to_clipboard_message">Imenakiliwa kwenye ubao wa kunakili!</string>
+    <string name="join_challenge_title">Jiunge na Changamoto</string>
+    <string name="invite_code_input_label">Msimbo wa Mwaliko</string>
+    <string name="join_action">Jiunge</string>
+    <string name="end_challenge_desc">Maliza changamoto</string>
+    <string name="share_invite_desc">Shiriki mwaliko</string>
+    <string name="share_challenge_chooser">Shiriki Changamoto</string>
+    <string name="join_challenge_share_message">Jiunge na changamoto yangu \"%1$s\" kwenye CalView! Tumia msimbo wa mwaliko: %2$s</string>
+    <string name="rank_you_points">Uko nafasi ya %1$d na alama %2$d</string>
+    <string name="leader_none">Kiongozi: Hakuna</string>
+    <string name="leader_label">Kiongozi: %1$s</string>
+    <string name="challenge_type_streak">🔥 Changamoto ya Mfululizo</string>
+    <string name="challenge_type_water">💧 Bingwa wa Maji</string>
+    <string name="challenge_type_calories">🎯 Malengo ya Kalori</string>
+    <string name="challenge_type_protein">💪 Nguvu ya Protini</string>
+    <string name="challenge_type_steps">👟 Kihesabu Hatua</string>
+    <string name="challenge_type_logging">📝 Mwandishi Thabiti Zaidi</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">Changamoto &amp; Beji</string>
+    <string name="active_weekly_challenges">Changamoto za Kila Wiki Zinazoendelea</string>
+    <string name="no_active_challenges_now">Hakuna changamoto zinazoendelea kwa sasa.</string>
+    <string name="your_trophy_case">Sanduku Lako la Tuzo</string>
+    <string name="challenge_trophy_desc">Tuzo ya changamoto</string>
+    <string name="no_badges_unlocked">Hakuna beji zilizofunguliwa bado. Endelea!</string>
+    <string name="ok_action">Sawa</string>
 </resources>

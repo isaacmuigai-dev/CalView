@@ -99,7 +99,7 @@ fun EditBirthdayScreen(
                 
                 // Day picker
                 BirthdayWheelPicker(
-                    items = days.map { String.format("%02d", it) },
+                    items = days.map { String.format(Locale.US, "%02d", it) },
                     selectedIndex = (selectedDay - 1).coerceIn(0, days.lastIndex),
                     onSelectedIndexChange = { selectedDay = days[it] },
                     modifier = Modifier.weight(0.6f)

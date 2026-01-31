@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 Tendência</string>
     <string name="tab_newest">✨ Mais recentes</string>
     <string name="tab_my_posts">👤 Minhas postagens</string>
-    <string name="search_placeholder">Pesquisar solicitações...</string>
+    <string name="search_placeholder">Pesquisar solicitações…</string>
     <string name="clear_desc">Limpar</string>
     <string name="create_request_desc">Criar Solicitação</string>
     <string name="feedback_hub_title">Central de Feedback</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">Título da funcionalidade</string>
     <string name="feature_title_placeholder">Qual funcionalidade você gostaria?</string>
     <string name="description_label">Descrição</string>
-    <string name="description_placeholder">Descreva sua ideia em detalhes...</string>
+    <string name="description_placeholder">Descreva sua ideia em detalhes…</string>
     <string name="add_tags_label">Adicionar tags</string>
     <string name="post_request_action">Postar Solicitação</string>
     <string name="comments_title">Comentários (%1$d)</string>
-    <string name="add_comment_placeholder">Adicionar comentário...</string>
+    <string name="add_comment_placeholder">Adicionar comentário…</string>
     <string name="send_desc">Enviar</string>
     <string name="no_comments_yet">Nenhum comentário ainda</string>
     <string name="be_first_comment">Seja o primeiro a compartilhar seus pensamentos!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">Completar jejum</string>
     <string name="stop_fast_desc">Parar jejum</string>
     <string name="start_fast_desc">Iniciar jejum</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">Salvar</string>
+    <string name="selected_desc">Selecionado</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">Desafios Sociais</string>
+    <string name="navigate_back_desc">Voltar</string>
+    <string name="back_desc">Voltar</string>
+    <string name="create_new_challenge_desc">Criar novo desafio</string>
+    <string name="create_challenge_action">Criar Desafio</string>
+    <string name="error_occurred">Ocorreu um erro</string>
+    <string name="social_challenges_desc">Desafie seus amigos em competições semanais! Acompanhe quem registra mais refeições, bebe mais água ou mantém a sequência mais longa.</string>
+    <string name="your_active_challenges">Seus Desafios Ativos</string>
+    <string name="join_challenge_action">Participar de um Desafio</string>
+    <string name="enter_invite_code_desc">Digite o código de convite de um amigo</string>
+    <string name="leaderboard">Classificação</string>
+    <string name="invite_code_label">Código de convite: %1$s</string>
+    <string name="copy_action">Copiar</string>
+    <string name="code_copied_to_clipboard">Código copiado para a área de transferência</string>
+    <string name="you">Você</string>
+    <string name="no_active_challenges">Nenhum Desafio Ativo</string>
+    <string name="create_or_join_challenge_desc">Crie um desafio ou participe de um usando um código de convite!</string>
+    <string name="challenge_name_label">Nome do Desafio</string>
+    <string name="challenge_type_label">Tipo de Desafio</string>
+    <string name="duration_days_label">Duração: %1$d dias</string>
+    <string name="weekly_challenge_default">Desafio Semanal</string>
+    <string name="create_action">Criar</string>
+    <string name="cancel_action">Cancelar</string>
+    <string name="challenge_created_title">Desafio Criado!</string>
+    <string name="share_invite_code_desc">Compartilhe este código de convite com amigos:</string>
+    <string name="copy_to_clipboard_desc">Copiar para a área de transferência</string>
+    <string name="copied_to_clipboard_message">Copiado para a área de transferência!</string>
+    <string name="join_challenge_title">Participar de Desafio</string>
+    <string name="invite_code_input_label">Código de Convite</string>
+    <string name="join_action">Participar</string>
+    <string name="end_challenge_desc">Encerrar desafio</string>
+    <string name="share_invite_desc">Compartilhar convite</string>
+    <string name="share_challenge_chooser">Compartilhar Desafio</string>
+    <string name="join_challenge_share_message">Participe do meu desafio \"%1$s\" no CalView! Use o código de convite: %2$s</string>
+    <string name="rank_you_points">Você está em %1$dº lugar com %2$d pontos</string>
+    <string name="leader_none">Líder: Nenhum</string>
+    <string name="leader_label">Líder: %1$s</string>
+    <string name="challenge_type_streak">🔥 Desafio de Sequência</string>
+    <string name="challenge_type_water">💧 Campeão da Água</string>
+    <string name="challenge_type_calories">🎯 Objetivos de Calorias</string>
+    <string name="challenge_type_protein">💪 Poder da Proteína</string>
+    <string name="challenge_type_steps">👟 Contador de Passos</string>
+    <string name="challenge_type_logging">📝 Registrador Mais Consistente</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">Desafios &amp; Conquistas</string>
+    <string name="active_weekly_challenges">Desafios Semanais Ativos</string>
+    <string name="no_active_challenges_now">Nenhum desafio ativo no momento.</string>
+    <string name="your_trophy_case">Sua Vitrine de Troféus</string>
+    <string name="challenge_trophy_desc">Troféu de desafio</string>
+    <string name="no_badges_unlocked">Nenhuma conquista desbloqueada ainda. Continue assim!</string>
+    <string name="ok_action">OK</string>
 </resources>

@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 /**
  * Sign-in bottom sheet with Google Sign-In button only.
@@ -61,7 +61,7 @@ fun SignInBottomSheet(
             ) {
                 Text(
                     text = "Sign in",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -106,7 +106,7 @@ fun SignInBottomSheet(
                 Row {
                     Text(
                         text = "By continuing, you agree to CalViewAI's ",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -114,7 +114,7 @@ fun SignInBottomSheet(
                 Row {
                     Text(
                         text = "Terms and",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
@@ -125,7 +125,7 @@ fun SignInBottomSheet(
                 Row {
                     Text(
                         text = "Conditions",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
@@ -134,13 +134,13 @@ fun SignInBottomSheet(
                     )
                     Text(
                         text = " and ",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Privacy Policy",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
@@ -193,7 +193,7 @@ fun GoogleSignInButton(
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = loadingText,
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -212,7 +212,7 @@ fun GoogleSignInButton(
                 
                 Text(
                     text = "Sign in with Google",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface

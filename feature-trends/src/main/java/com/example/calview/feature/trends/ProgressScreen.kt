@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.DateRange
@@ -40,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,19 +50,27 @@ import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
 import kotlinx.coroutines.delay
 import java.time.LocalDate
-import kotlin.math.cos
-
+import androidx.compose.ui.graphics.PathEffect
 import kotlin.math.cos
 import kotlin.math.sin
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.geometry.Rect
+import java.time.format.DateTimeFormatter
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import kotlin.math.roundToInt
+
 import com.example.calview.core.ui.walkthrough.WalkthroughOverlay
 import com.example.calview.core.ui.walkthrough.WalkthroughStep
 import com.example.calview.core.ui.walkthrough.onPositionedRect
 
 // Modern color palette
-private val GradientCyan = Color(0xFF00D4AA)
+private val GradientCyan = Color(0xFF059669) // Darker Emerald Green
 private val GradientPurple = Color(0xFF7C3AED)
 private val GradientPink = Color(0xFFEC4899)
 private val GradientBlue = Color(0xFF3B82F6)
@@ -70,7 +81,7 @@ private val MutedText = Color(0xFF6B7280)
 
 // BMI Colors
 private val BMIUnderweight = Color(0xFF3B82F6)
-private val BMIHealthy = Color(0xFF10B981)
+private val BMIHealthy = Color(0xFF059669) // Darker Emerald Green
 private val BMIOverweight = Color(0xFFF59E0B)
 private val BMIObese = Color(0xFFEF4444)
 
@@ -84,7 +95,8 @@ fun ProgressScreen(
         uiState = uiState,
         onRefresh = { viewModel.refreshData() },
         onUseStreakFreeze = { viewModel.useStreakFreeze() },
-        onDismissWalkthrough = { viewModel.setHasSeenWalkthrough(true) }
+        onDismissWalkthrough = { viewModel.setHasSeenWalkthrough(true) },
+        onWeekSelected = { viewModel.setWeekOffset(it) }
     )
 }
 
@@ -93,7 +105,8 @@ fun ProgressContent(
     uiState: ProgressUiState,
     onRefresh: () -> Unit = {},
     onUseStreakFreeze: () -> Unit = {},
-    onDismissWalkthrough: () -> Unit = {}
+    onDismissWalkthrough: () -> Unit = {},
+    onWeekSelected: (Int) -> Unit = {}
 ) {
     var animationTriggered by remember { mutableStateOf(false) }
     
@@ -116,32 +129,32 @@ fun ProgressContent(
     val walkthroughSteps = listOf(
         WalkthroughStep(
             id = "streak",
-            title = "Consistency is Key",
-            description = "Track your daily consistency with the streak counter. Keep the momentum going!",
+            title = stringResource(R.string.walkthrough_streak_title),
+            description = stringResource(R.string.walkthrough_streak_desc),
             targetRect = streakRect
         ),
         WalkthroughStep(
             id = "goal",
-            title = "Your Weight Journey",
-            description = "Monitor your weight progress and see your estimated goal reach date.",
+            title = stringResource(R.string.walkthrough_goal_title),
+            description = stringResource(R.string.walkthrough_goal_desc),
             targetRect = goalRect
         ),
         WalkthroughStep(
             id = "nutrition",
-            title = "Weekly Trends",
-            description = "Visualize your calorie intake patterns over the past week to stay on track.",
+            title = stringResource(R.string.walkthrough_nutrition_title),
+            description = stringResource(R.string.walkthrough_nutrition_desc),
             targetRect = chartRect
         ),
         WalkthroughStep(
             id = "macro",
-            title = "Macro Balance",
-            description = "Check your protein, carbs, and fats distribution to ensure a balanced diet.",
+            title = stringResource(R.string.walkthrough_macro_title),
+            description = stringResource(R.string.walkthrough_macro_desc),
             targetRect = macroRect
         ),
         WalkthroughStep(
             id = "bmi",
-            title = "Health Indicator",
-            description = "Keep an eye on your BMI and health category based on your weight and height.",
+            title = stringResource(R.string.walkthrough_bmi_title),
+            description = stringResource(R.string.walkthrough_bmi_desc),
             targetRect = bmiRect
         )
     )
@@ -187,7 +200,6 @@ fun ProgressContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .fillMaxSize()
             .background(com.example.calview.core.ui.theme.CalViewTheme.gradient),
         contentAlignment = Alignment.TopCenter
     ) {
@@ -210,17 +222,23 @@ fun ProgressContent(
             Column {
                 Text(
                     text = stringResource(R.string.progress_title),
+                    fontFamily = InterFontFamily,
                     fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = stringResource(R.string.track_health_journey),
+                    fontFamily = InterFontFamily,
                     fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
+        
+        
+        val isTablet = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
         
         // 0. Mission Control (Combined Summary)
         MissionControlCard(
@@ -230,29 +248,46 @@ fun ProgressContent(
             checklistItems = uiState.checklistItems
         )
         
-        // 1. Daily Motivation - First
-        MotivationalCard(
-            progress = uiState.weightProgress,
-            streak = uiState.dayStreak
-        )
         
-        // 1.5. Weekly Streak Tracking Card
-        DayStreakCard(
-            modifier = Modifier.onPositionedRect { streakRect = it },
-            streak = uiState.dayStreak,
-            completedDays = uiState.completedDays,
-            animationTriggered = animationTriggered
-        )
-        
-        // 1.6. Streak Freeze Card (New)
-        StreakFreezeCard(
-            remainingFreezes = uiState.remainingFreezes,
-            maxFreezes = uiState.maxFreezes,
-            canUseFreeze = uiState.remainingFreezes > 0, 
-            yesterdayMissed = uiState.yesterdayMissed,
-            currentStreak = uiState.dayStreak,
-            onUseFreeze = onUseStreakFreeze
-        )
+        // 1.5. & 1.6. Streak Cards (Adaptive)
+        if (isTablet) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    DayStreakCard(
+                        modifier = Modifier.onPositionedRect { streakRect = it },
+                        streak = uiState.dayStreak,
+                        completedDays = uiState.completedDays,
+                        animationTriggered = animationTriggered
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    StreakFreezeCard(
+                        remainingFreezes = uiState.remainingFreezes,
+                        maxFreezes = uiState.maxFreezes,
+                        canUseFreeze = uiState.remainingFreezes > 0, 
+                        yesterdayMissed = uiState.yesterdayMissed,
+                        currentStreak = uiState.dayStreak,
+                        onUseFreeze = onUseStreakFreeze
+                    )
+                }
+            }
+        } else {
+            DayStreakCard(
+                modifier = Modifier.onPositionedRect { streakRect = it },
+                streak = uiState.dayStreak,
+                completedDays = uiState.completedDays,
+                animationTriggered = animationTriggered
+            )
+            
+            StreakFreezeCard(
+                remainingFreezes = uiState.remainingFreezes,
+                maxFreezes = uiState.maxFreezes,
+                canUseFreeze = uiState.remainingFreezes > 0, 
+                yesterdayMissed = uiState.yesterdayMissed,
+                currentStreak = uiState.dayStreak,
+                onUseFreeze = onUseStreakFreeze
+            )
+        }
         
         // 1.7. Goal Journey Card
         if (uiState.showGoalJourney) {
@@ -269,87 +304,71 @@ fun ProgressContent(
         }
         
         
-        // 2. Weight Goal Card
-        WeightProgressCard(
-            currentWeight = uiState.currentWeight,
-            goalWeight = uiState.goalWeight,
-            progress = uiState.weightProgress,
-            animationTriggered = animationTriggered
-        )
+        // 2. & 2.5. Weight Cards (Adaptive)
+        if (isTablet) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    WeightProgressCard(
+                        currentWeight = uiState.currentWeight,
+                        goalWeight = uiState.goalWeight,
+                        progress = uiState.weightProgress,
+                        animationTriggered = animationTriggered
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    WeightPredictionCard(
+                        predictedWeight = uiState.predictedWeight30Days,
+                        projectedDate = uiState.predictedDate,
+                        trend = uiState.predictionTrend,
+                        animationTriggered = animationTriggered
+                    )
+                }
+            }
+        } else {
+            WeightProgressCard(
+                currentWeight = uiState.currentWeight,
+                goalWeight = uiState.goalWeight,
+                progress = uiState.weightProgress,
+                animationTriggered = animationTriggered
+            )
+            
+            WeightPredictionCard(
+                predictedWeight = uiState.predictedWeight30Days,
+                projectedDate = uiState.predictedDate,
+                trend = uiState.predictionTrend,
+                animationTriggered = animationTriggered
+            )
+        }
         
-        // 2.5. Weight Prediction (Premium)
-        WeightPredictionCard(
-            predictedWeight = uiState.predictedWeight30Days,
-            projectedDate = uiState.predictedDate,
-            trend = uiState.predictionTrend,
-            animationTriggered = animationTriggered
-        )
+        // 2.6. Weight History Graph with time filters
+        if (uiState.weightHistory.isNotEmpty()) {
+            WeightHistoryGraphCard(
+                weightHistory = uiState.weightHistory,
+                goalWeight = uiState.goalWeight,
+                animationTriggered = animationTriggered
+            )
+        }
         
         // 3. Weekly Calories Chart
         WeeklyCaloriesChart(
             modifier = Modifier.onPositionedRect { chartRect = it },
             weeklyData = uiState.weeklyCalories,
             calorieGoal = uiState.calorieGoal,
-            animationTriggered = animationTriggered
+            animationTriggered = animationTriggered,
+            selectedWeekOffset = uiState.selectedWeekOffset,
+            onWeekSelected = onWeekSelected
         )
         
-        // 4. Today's Macros Donut
-        MacroDonutCard(
-            modifier = Modifier.onPositionedRect { macroRect = it },
-            protein = uiState.todayProtein,
-            carbs = uiState.todayCarbs,
-            fats = uiState.todayFats,
-            proteinGoal = uiState.proteinGoal,
-            carbsGoal = uiState.carbsGoal,
-            fatsGoal = uiState.fatsGoal,
-            animationTriggered = animationTriggered
-        )
         
-        // 4.5. Micronutrients (Fiber, Sugar, Sodium)
-        MicronutrientStatsRow(
-            fiber = uiState.todayFiber,
-            sugar = uiState.todaySugar,
-            sodium = uiState.todaySodium,
-            fiberGoal = 38f,
-            sugarGoal = 64f,
-            sodiumGoal = 2300f,
-            animationTriggered = animationTriggered
-        )
-        
-        // 5. Steps + Burned Calories - Combined into one row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            AnimatedStatCard(
-                modifier = Modifier.weight(1f),
-                value = uiState.todaySteps.toFloat(),
-                label = stringResource(R.string.steps_label),
-                unit = "",
-                icon = Icons.Outlined.DirectionsWalk,
-                progress = (uiState.todaySteps / uiState.stepsGoal.toFloat()).coerceIn(0f, 1f),
-                gradientColors = listOf(GradientPurple, GradientPink),
-                animationTriggered = animationTriggered,
-                showAsInt = true
-            )
-            AnimatedStatCard(
-                modifier = Modifier.weight(1f),
-                value = uiState.caloriesBurned.toFloat(),
-                label = stringResource(R.string.burned_label),
-                unit = stringResource(R.string.cal_unit),
-                icon = Icons.Outlined.LocalFireDepartment,
-                progress = (uiState.caloriesBurned / 500f).coerceIn(0f, 1f),
-                gradientColors = listOf(GradientPink, GradientOrange),
-                animationTriggered = animationTriggered,
-                showAsInt = true
-            )
-        }
-        
-        // 5.5 Weekly Activity Card
-        WeeklyActivityCard(
+        // 5. Combined Activity Overview Card
+        ActivityOverviewCard(
+            todaySteps = uiState.todaySteps,
+            stepsGoal = uiState.stepsGoal,
+            caloriesBurned = uiState.caloriesBurned,
+            manualExerciseCalories = uiState.manualExerciseCalories,
             weeklySteps = uiState.weeklySteps,
-            weeklyCalories = uiState.weeklyCaloriesBurned,
-            caloriesRecord = uiState.caloriesBurnedRecord,
+            weeklyCaloriesBurned = (uiState.weeklyCaloriesBurned + uiState.weeklyExerciseCalories).toInt(),
+            caloriesRecord = uiState.caloriesBurnedRecord.toInt(),
             animationTriggered = animationTriggered
         )
 
@@ -438,6 +457,7 @@ fun CompactBMICard(
             ) {
                 Text(
                     text = stringResource(R.string.bmi_title),
+                    fontFamily = InterFontFamily,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -448,8 +468,10 @@ fun CompactBMICard(
                 ) {
                     Text(
                         text = String.format("%.1f", animatedBMI),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Surface(
@@ -459,6 +481,7 @@ fun CompactBMICard(
                         Text(
                             text = bmiCategory,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            fontFamily = InterFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = animatedColor
@@ -484,8 +507,11 @@ fun CompactBMICard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "${height.toInt()} cm",
+                                text = stringResource(R.string.unit_cm_format, height.toInt()),
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -501,7 +527,10 @@ fun CompactBMICard(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = stringResource(R.string.unit_kg_format, weight),
+                                fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.02).sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -552,10 +581,10 @@ fun CompactBMICard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(stringResource(R.string.bmi_underweight), fontSize = 10.sp, color = BMIUnderweight)
-                Text(stringResource(R.string.bmi_healthy), fontSize = 10.sp, color = BMIHealthy)
-                Text(stringResource(R.string.bmi_overweight), fontSize = 10.sp, color = BMIOverweight)
-                Text(stringResource(R.string.bmi_obese), fontSize = 10.sp, color = BMIObese)
+                Text(stringResource(R.string.bmi_underweight), fontFamily = InterFontFamily, fontSize = 10.sp, color = BMIUnderweight)
+                Text(stringResource(R.string.bmi_healthy), fontFamily = InterFontFamily, fontSize = 10.sp, color = BMIHealthy)
+                Text(stringResource(R.string.bmi_overweight), fontFamily = InterFontFamily, fontSize = 10.sp, color = BMIOverweight)
+                Text(stringResource(R.string.bmi_obese), fontFamily = InterFontFamily, fontSize = 10.sp, color = BMIObese)
             }
         }
     }
@@ -573,7 +602,8 @@ fun AnimatedStatCard(
     gradientColors: List<Color>,
     animationTriggered: Boolean,
     isStreak: Boolean = false,
-    showAsInt: Boolean = false
+    showAsInt: Boolean = false,
+    subLabel: String? = null  // Optional sub-label for breakdown (e.g., "+50 from exercise")
 ) {
     val animatedValue by animateFloatAsState(
         targetValue = if (animationTriggered) value else 0f,
@@ -674,8 +704,10 @@ fun AnimatedStatCard(
                         }
                         Text(
                             text = "${(animatedProgress * 100).toInt()}%",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 8.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -688,24 +720,45 @@ fun AnimatedStatCard(
                         Text(
                             text = if (showAsInt) animatedValue.toInt().toString() 
                                    else String.format("%.1f", animatedValue),
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         if (unit.isNotEmpty()) {
                             Text(
                                 text = " $unit",
+                                fontFamily = InterFontFamily,
                                 fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
                     }
-                    Text(
-                        text = label,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            fontFamily = InterFontFamily,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        // Show sub-label if provided (e.g., exercise calories)
+                        if (subLabel != null) {
+                            Text(
+                                text = subLabel,
+                                fontFamily = InterFontFamily,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -740,8 +793,9 @@ fun WeightProgressCard(
             ) {
                 Text(
                     text = stringResource(R.string.weight_goal_title),
+                    fontFamily = InterFontFamily,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
@@ -751,8 +805,10 @@ fun WeightProgressCard(
                     Text(
                         text = stringResource(R.string.percent_complete, (animatedProgress * 100).toInt()),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = GradientCyan
                     )
                 }
@@ -788,26 +844,34 @@ fun WeightProgressCard(
                 Column {
                     Text(
                         text = stringResource(R.string.current_label),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${currentWeight.toInt()} kg",
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = stringResource(R.string.goal_label),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${goalWeight.toInt()} kg",
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = GradientCyan
                     )
                 }
@@ -862,8 +926,9 @@ fun MacroDonutCard(
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = stringResource(R.string.todays_macros_title),
+                fontFamily = InterFontFamily,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             
@@ -925,13 +990,17 @@ fun MacroDonutCard(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "${total.toInt()}g",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.total_label),
+                            fontFamily = InterFontFamily,
                             fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -982,13 +1051,17 @@ private fun MacroLegendRow(
         Column {
             Text(
                 text = label,
+                fontFamily = InterFontFamily,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${value.toInt()}g / ${goal}g",
+                fontFamily = SpaceGroteskFontFamily,
                 fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.02).sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -1001,8 +1074,18 @@ fun WeeklyCaloriesChart(
     modifier: Modifier = Modifier,
     weeklyData: List<DailyCalories>,
     calorieGoal: Int,
-    animationTriggered: Boolean
+    animationTriggered: Boolean,
+    selectedWeekOffset: Int = 0,
+    onWeekSelected: (Int) -> Unit = {}
 ) {
+    // Week selection options
+    val weekOptions = listOf(
+        0 to stringResource(R.string.week_this),
+        1 to stringResource(R.string.week_last),
+        2 to stringResource(R.string.week_2_ago),
+        3 to stringResource(R.string.week_3_ago)
+    )
+
     // Round max to nearest 500 for cleaner grid
     val rawMax = maxOf(weeklyData.maxOfOrNull { it.calories } ?: calorieGoal, calorieGoal)
     val maxCalories = ((rawMax / 500) + 1) * 500
@@ -1022,8 +1105,9 @@ fun WeeklyCaloriesChart(
             ) {
                 Text(
                     text = stringResource(R.string.weekly_calories_title),
+                    fontFamily = InterFontFamily,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
@@ -1033,17 +1117,55 @@ fun WeeklyCaloriesChart(
                     Text(
                         text = stringResource(R.string.goal_value_format, calorieGoal),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = GradientCyan
                     )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Week selection buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                weekOptions.forEach { (offset, label) ->
+                    val isSelected = selectedWeekOffset == offset
+                    Surface(
+                        onClick = { onWeekSelected(offset) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isSelected) GradientCyan else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
             // Chart area with grid
-            Row(modifier = Modifier.fillMaxWidth()) {
+            val chartDesc = stringResource(R.string.desc_weekly_calories_graph)
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = chartDesc }
+            ) {
                 // Y-axis labels
                 Column(
                     modifier = Modifier
@@ -1054,7 +1176,10 @@ fun WeeklyCaloriesChart(
                     for (i in gridLines downTo 0) {
                         Text(
                             text = "${(maxCalories * i / gridLines)}",
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -1156,6 +1281,7 @@ fun WeeklyCaloriesChart(
                 weeklyData.forEach { day ->
                     Text(
                         text = day.day.take(1),
+                        fontFamily = InterFontFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1178,14 +1304,14 @@ fun WeeklyCaloriesChart(
                         .size(10.dp)
                         .background(GradientCyan, CircleShape)
                 )
-                Text(" " + stringResource(R.string.legend_under), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(" " + stringResource(R.string.legend_under), fontFamily = InterFontFamily, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
                         .size(10.dp)
                         .background(GradientPink, CircleShape)
                 )
-                Text(" " + stringResource(R.string.legend_over), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(" " + stringResource(R.string.legend_over), fontFamily = InterFontFamily, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
@@ -1193,7 +1319,7 @@ fun WeeklyCaloriesChart(
                         .height(2.dp)
                         .background(GradientOrange)
                 )
-                Text(" " + stringResource(R.string.legend_goal), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(" " + stringResource(R.string.legend_goal), fontFamily = InterFontFamily, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1265,21 +1391,27 @@ fun DayStreakCard(
                         )
                         Text(
                             text = streak.toString(),
+                            fontFamily = SpaceGroteskFontFamily,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.02).sp,
                             color = Color.White,
                             modifier = Modifier.offset(y = 4.dp)
                         )
                     }
                     Text(
                         text = stringResource(R.string.streak_current),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = if (streak == 1) "$streak ${stringResource(R.string.day_singular)}" else "$streak ${stringResource(R.string.days_plural)}",
+                        text = pluralStringResource(R.plurals.days_count, streak, streak),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -1310,13 +1442,17 @@ fun DayStreakCard(
                     }
                     Text(
                         text = stringResource(R.string.streak_best),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = if (bestStreak == 1) "$bestStreak ${stringResource(R.string.day_singular)}" else "$bestStreak ${stringResource(R.string.days_plural)}",
+                        text = pluralStringResource(R.plurals.days_count, bestStreak, bestStreak),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = GradientPurple
                     )
                 }
@@ -1344,6 +1480,7 @@ fun DayStreakCard(
                     ) {
                         Text(
                             text = day,
+                            fontFamily = InterFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = if (isCompleted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
@@ -1380,6 +1517,7 @@ fun DayStreakCard(
                 
                 Text(
                     text = stringResource(R.string.milestones_unlocked),
+                    fontFamily = InterFontFamily,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1399,6 +1537,7 @@ fun DayStreakCard(
                         ) {
                             Text(
                                 text = badge.split(" ").first(), // Just the emoji
+                                fontFamily = InterFontFamily,
                                 fontSize = 20.sp,
                                 modifier = Modifier.padding(8.dp)
                             )
@@ -1480,6 +1619,7 @@ fun MotivationalCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.daily_motivation),
+                        fontFamily = InterFontFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1495,6 +1635,7 @@ fun MotivationalCard(
                     ) { message ->
                         Text(
                             text = message,
+                            fontFamily = InterFontFamily,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -1531,8 +1672,9 @@ fun MicronutrientStatsRow(
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = stringResource(R.string.micronutrients_title),
+                fontFamily = InterFontFamily,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             
@@ -1609,13 +1751,18 @@ private fun MicronutrientItem(
         
         Text(
             text = if (unit == "mg") "${value.toInt()}" else String.format("%.1f", value),
+            fontFamily = SpaceGroteskFontFamily,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = "$unit / ${goal.toInt()}$unit",
+            fontFamily = SpaceGroteskFontFamily,
             fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
@@ -1640,7 +1787,9 @@ private fun MicronutrientItem(
         
         Text(
             text = label,
+            fontFamily = InterFontFamily,
             fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -1684,7 +1833,8 @@ fun WeeklyActivityCard(
     weeklySteps: Long,
     weeklyCalories: Double,
     caloriesRecord: Double,  // Highest daily calories burned in 7 days
-    animationTriggered: Boolean
+    animationTriggered: Boolean,
+    exerciseCalories: Int = 0  // Weekly exercise calories
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -1708,14 +1858,15 @@ fun WeeklyActivityCard(
                 showAsInt = true
             )
             
-            // Weekly Calories
+            // Weekly Calories (with exercise indicator)
             WeeklyStatItem(
                 icon = Icons.Outlined.LocalFireDepartment,
                 value = weeklyCalories.toFloat(),
                 label = stringResource(R.string.weekly_burn_label),
                 color = GradientOrange,
                 animationTriggered = animationTriggered,
-                showAsInt = true
+                showAsInt = true,
+                subLabel = if (exerciseCalories > 0) stringResource(R.string.exercise_sublabel_format, exerciseCalories) else null
             )
             
             // Best Record (Max calories burned in a day for past 7 days)
@@ -1738,7 +1889,8 @@ private fun WeeklyStatItem(
     label: String,
     color: Color,
     animationTriggered: Boolean,
-    showAsInt: Boolean = false
+    showAsInt: Boolean = false,
+    subLabel: String? = null
 ) {
     val animatedValue by animateFloatAsState(
         targetValue = if (animationTriggered) value else 0f,
@@ -1769,16 +1921,31 @@ private fun WeeklyStatItem(
         
         Text(
             text = if (showAsInt) animatedValue.toInt().toString() else String.format("%.1f", animatedValue),
+            fontFamily = SpaceGroteskFontFamily,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.02).sp,
             color = MaterialTheme.colorScheme.onSurface
         )
         
         Text(
             text = label,
+            fontFamily = InterFontFamily,
             fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        
+        // Show sub-label if provided (e.g., exercise calories)
+        if (subLabel != null) {
+            Text(
+                text = subLabel,
+                fontFamily = InterFontFamily,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -1823,8 +1990,9 @@ fun StreakFreezeCard(
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = stringResource(R.string.streak_freeze_title),
+                        fontFamily = InterFontFamily,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -1836,8 +2004,10 @@ fun StreakFreezeCard(
                     Text(
                         text = stringResource(R.string.available_freezes_format, remainingFreezes, maxFreezes),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontFamily = SpaceGroteskFontFamily,
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -1848,7 +2018,9 @@ fun StreakFreezeCard(
             if (yesterdayMissed && canUseFreeze) {
                Text(
                    text = stringResource(R.string.missed_day_msg, currentStreak),
+                   fontFamily = InterFontFamily,
                    fontSize = 14.sp,
+                   fontWeight = FontWeight.Normal,
                    color = MaterialTheme.colorScheme.onSurface,
                    lineHeight = 20.sp
                )
@@ -1858,15 +2030,481 @@ fun StreakFreezeCard(
                    modifier = Modifier.fillMaxWidth(),
                    shape = RoundedCornerShape(12.dp)
                ) {
-                   Text(stringResource(R.string.use_freeze_action))
+                   Text(stringResource(R.string.use_freeze_action), fontFamily = InterFontFamily, fontWeight = FontWeight.SemiBold)
                }
             } else {
-                Text(
+               Text(
                     text = if (remainingFreezes >0) stringResource(R.string.streak_safe_msg) else "No freezes remaining for this month.",
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
                 )
+            }
+        }
+    }
+}
+
+// ============ COMBINED ACTIVITY OVERVIEW CARD ============
+@Composable
+fun ActivityOverviewCard(
+    todaySteps: Int,
+    stepsGoal: Int,
+    caloriesBurned: Int,
+    manualExerciseCalories: Int,
+    weeklySteps: Long,
+    weeklyCaloriesBurned: Int,
+    caloriesRecord: Int,
+    animationTriggered: Boolean
+) {
+    val stepsProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) (todaySteps.toFloat() / stepsGoal).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "stepsProgress"
+    )
+    val burnProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) (caloriesBurned / kotlin.math.max(caloriesRecord.toFloat(), 3000f)).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "burnProgress"
+    )
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.activity_title),
+                    fontFamily = InterFontFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = GradientCyan.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.today_label),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontFamily = InterFontFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = GradientCyan
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Today's Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Steps
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
+                            drawArc(brush = Brush.sweepGradient(listOf(GradientPurple, GradientPink)), startAngle = -90f, sweepAngle = 360f * stepsProgress, useCenter = false, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
+                        }
+                        Icon(Icons.Outlined.DirectionsWalk, contentDescription = null, modifier = Modifier.size(28.dp), tint = GradientPurple)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = todaySteps.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = stringResource(R.string.steps_label), fontFamily = InterFontFamily, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                
+                // Burned
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
+                            drawArc(brush = Brush.sweepGradient(listOf(GradientPink, GradientOrange)), startAngle = -90f, sweepAngle = 360f * burnProgress, useCenter = false, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
+                        }
+                        Icon(Icons.Outlined.LocalFireDepartment, contentDescription = null, modifier = Modifier.size(28.dp), tint = GradientOrange)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = caloriesBurned.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = stringResource(R.string.burned_label), fontFamily = InterFontFamily, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (manualExerciseCalories > 0) {
+                            Text(text = stringResource(R.string.plus_value_format, manualExerciseCalories), fontFamily = InterFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 7-Day Summary Row
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text(text = stringResource(R.string.weekly_steps_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = weeklySteps.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+                Column {
+                    Text(text = stringResource(R.string.weekly_burn_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "$weeklyCaloriesBurned ${stringResource(R.string.cal_unit)}", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+                Column {
+                    Text(text = stringResource(R.string.record_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = null, modifier = Modifier.size(14.dp), tint = GradientOrange)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "$caloriesRecord", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============ WEIGHT HISTORY GRAPH CARD ============
+@Composable
+fun WeightHistoryGraphCard(
+    weightHistory: List<WeightEntry>,
+    goalWeight: Float,
+    animationTriggered: Boolean
+) {
+    var selectedRange by remember { mutableStateOf(0) } // 0=3m, 1=6m, 2=1y, 3=All
+    val ranges = listOf(
+        stringResource(R.string.range_3m),
+        stringResource(R.string.range_6m),
+        stringResource(R.string.range_1y),
+        stringResource(R.string.range_all)
+    )
+
+    val rangeDays = listOf(90L, 180L, 365L, Long.MAX_VALUE)
+    
+    val filteredHistory = remember(weightHistory, selectedRange) {
+        val cutoffDate = if (selectedRange < 3) {
+            LocalDate.now().minusDays(rangeDays[selectedRange])
+        } else {
+            LocalDate.MIN
+        }
+        weightHistory.filter { it.date >= cutoffDate }.sortedBy { it.date }
+    }
+    
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) 1f else 0f,
+        animationSpec = tween(1500, easing = FastOutSlowInEasing),
+        label = "graphProgress"
+    )
+    
+    var selectedPointIndex by remember { mutableIntStateOf(-1) }
+    var touchX by remember { mutableFloatStateOf(0f) }
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Header with title and filter buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.weight_history_title),
+                    fontFamily = InterFontFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ranges.forEachIndexed { index, label ->
+                        val isSelected = selectedRange == index
+                        Surface(
+                            onClick = { selectedRange = index },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Text(
+                                text = label,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                fontFamily = InterFontFamily,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Weight change summary for the period
+            if (filteredHistory.size >= 2) {
+                val firstWeight = filteredHistory.first().weight
+                val lastWeight = filteredHistory.last().weight
+                val weightChange = lastWeight - firstWeight
+                val trendUp = weightChange > 0
+                val trendIcon = if (trendUp) "↑" else if (weightChange < 0) "↓" else "→"
+                val trendColor = when {
+                    weightChange > 0.5f -> Color(0xFFE57373) // Red for gain
+                    weightChange < -0.5f -> Color(0xFF81C784) // Green for loss
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = trendIcon,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = trendColor
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = String.format("%.1f kg", kotlin.math.abs(weightChange)),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = trendColor
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (trendUp) "gained" else if (weightChange < 0) "lost" else "maintained",
+                        fontFamily = InterFontFamily,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            // Graph
+            if (filteredHistory.size >= 2) {
+                val minWeight = (filteredHistory.minOf { it.weight } - 2f).coerceAtLeast(0f)
+                val maxWeight = filteredHistory.maxOf { it.weight } + 2f
+                val weightRange = (maxWeight - minWeight).coerceAtLeast(1f)
+                
+                val graphDesc = stringResource(R.string.desc_weight_history_graph)
+                
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+                    // Y-Axis Labels
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(32.dp)
+                            .padding(vertical = 4.dp),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        for (i in 0..4) {
+                            val labelWeight = maxWeight - (i * weightRange / 4)
+                            Text(
+                                text = labelWeight.toInt().toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(start = 36.dp)
+                            .semantics { contentDescription = graphDesc }
+                            .pointerInput(filteredHistory) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        touchX = offset.x
+                                        val xStep = size.width / (filteredHistory.size - 1).coerceAtLeast(1)
+                                        selectedPointIndex = (touchX / xStep).roundToInt().coerceIn(0, filteredHistory.size - 1)
+                                    },
+                                    onDrag = { change, _ ->
+                                        touchX = change.position.x
+                                        val xStep = size.width / (filteredHistory.size - 1).coerceAtLeast(1)
+                                        selectedPointIndex = (touchX / xStep).roundToInt().coerceIn(0, filteredHistory.size - 1)
+                                    },
+                                    onDragEnd = { selectedPointIndex = -1 },
+                                    onDragCancel = { selectedPointIndex = -1 }
+                                )
+                            }
+                    ) {
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val width = size.width
+                            val height = size.height
+                            val pointsCount = filteredHistory.size
+                            val xStep = width / (pointsCount - 1).coerceAtLeast(1)
+                            
+                            val primaryColor = Color.White // Theme primary handles selection better
+                            val accentColor = Color(0xFF00D4AA) // Using Cyan for contrast
+                            
+                            // Draw horizontal grid lines
+                            val gridLines = 4
+                            for (i in 0..gridLines) {
+                                val y = height * i / gridLines
+                                drawLine(Color.Gray.copy(alpha = 0.1f), Offset(0f, y), Offset(width, y), strokeWidth = 1.dp.toPx())
+                            }
+                            
+                            // Draw goal line
+                            if (goalWeight in minWeight..maxWeight) {
+                                val goalY = height - ((goalWeight - minWeight) / weightRange * height)
+                                drawLine(GradientOrange, Offset(0f, goalY), Offset(width, goalY), strokeWidth = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)))
+                            }
+                            
+                            // Draw weight line (Smoother curve)
+                            val path = Path()
+                            filteredHistory.forEachIndexed { index, entry ->
+                                val x = index * xStep * animatedProgress
+                                val y = height - ((entry.weight - minWeight) / weightRange * height * animatedProgress)
+                                
+                                if (index == 0) {
+                                    path.moveTo(x, y)
+                                } else {
+                                    val prevX = (index - 1) * xStep * animatedProgress
+                                    val prevEntry = filteredHistory[index - 1]
+                                    val prevY = height - ((prevEntry.weight - minWeight) / weightRange * height * animatedProgress)
+                                    
+                                    val controlX1 = prevX + (x - prevX) / 2
+                                    path.cubicTo(controlX1, prevY, controlX1, y, x, y)
+                                }
+                            }
+                            
+                            // Create filled path for gradient
+                            val filledPath = Path().apply {
+                                addPath(path)
+                                val lastX = (filteredHistory.size - 1) * xStep * animatedProgress
+                                lineTo(lastX, height)
+                                lineTo(0f, height)
+                                close()
+                            }
+                            
+                            // Draw gradient fill
+                            drawPath(
+                                filledPath, 
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF6366F1).copy(alpha = 0.3f * animatedProgress),
+                                        Color(0xFF6366F1).copy(alpha = 0.05f * animatedProgress)
+                                    )
+                                )
+                            )
+                            
+                            drawPath(path, Color(0xFF6366F1), style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+                            
+                            // Draw selection indicator
+                            if (selectedPointIndex != -1) {
+                                val x = selectedPointIndex * xStep
+                                val entry = filteredHistory[selectedPointIndex]
+                                val y = height - ((entry.weight - minWeight) / weightRange * height)
+                                
+                                drawLine(
+                                    color = Color(0xFF6366F1).copy(alpha = 0.3f),
+                                    start = Offset(x, 0f),
+                                    end = Offset(x, height),
+                                    strokeWidth = 1.dp.toPx()
+                                )
+                                
+                                drawCircle(
+                                    color = Color(0xFF6366F1),
+                                    radius = 6.dp.toPx(),
+                                    center = Offset(x, y)
+                                )
+                                drawCircle(
+                                    color = Color.White,
+                                    radius = 3.dp.toPx(),
+                                    center = Offset(x, y)
+                                )
+                            } else {
+                                filteredHistory.forEachIndexed { index, entry ->
+                                    val x = index * xStep * animatedProgress
+                                    val y = height - ((entry.weight - minWeight) / weightRange * height * animatedProgress)
+                                    drawCircle(Color(0xFF6366F1), 4.dp.toPx(), Offset(x, y))
+                                    drawCircle(Color.White, 2.dp.toPx(), Offset(x, y))
+                                }
+                            }
+                        }
+                        
+                        // Tooltip overlay
+                        if (selectedPointIndex != -1) {
+                            val entry = filteredHistory[selectedPointIndex]
+                            val xStep = 1f / (filteredHistory.size - 1).coerceAtLeast(1)
+                            val xPos = selectedPointIndex * xStep
+                            
+                            Surface(
+                                modifier = Modifier
+                                    .align(if (xPos > 0.5f) Alignment.TopStart else Alignment.TopEnd)
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                shadowElevation = 4.dp
+                            ) {
+                                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+                                    Text(
+                                        text = "${entry.weight} kg",
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = SpaceGroteskFontFamily
+                                    )
+                                    Text(
+                                        text = entry.date.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                                        fontSize = 10.sp,
+                                        fontFamily = InterFontFamily
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Date labels
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 36.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val labelCount = if (filteredHistory.size > 5) 5 else filteredHistory.size
+                    val indices = if (filteredHistory.size > 1) {
+                        List(labelCount) { i -> (i * (filteredHistory.size - 1) / (labelCount - 1)) }
+                    } else listOf(0)
+                    
+                    val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
+                    
+                    indices.forEach { index ->
+                        val entry = filteredHistory[index]
+                        Text(
+                            text = entry.date.format(dateFormatter),
+                            fontFamily = InterFontFamily,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.insufficient_data),
+                        fontFamily = InterFontFamily,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

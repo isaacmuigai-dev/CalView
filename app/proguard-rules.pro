@@ -19,9 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-# TensorFlow Lite
--dontwarn org.tensorflow.lite.gpu.**
--dontwarn org.tensorflow.lite.support.**
 
 # Google Sign-In / Credential Manager / Identity
 -keep class com.google.android.gms.auth.api.identity.** { *; }

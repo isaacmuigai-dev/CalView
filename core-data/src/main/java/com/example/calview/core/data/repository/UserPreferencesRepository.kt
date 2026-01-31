@@ -70,6 +70,9 @@ interface UserPreferencesRepository {
     val coachLastMessageTime: Flow<Long>
     val coachMessageCountToday: Flow<Int>
     val coachLastMessageDate: Flow<String>
+    val lastNotifiedGoalWeight: Flow<Float>
+    val lastNotifiedDailyGoalDate: Flow<String> // ISO_LOCAL_DATE of last notification
+    val notifiedDailyGoalFlags: Flow<String>   // Comma-separated flags like "calories,protein,carbs,fats,steps,burned"
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -115,7 +118,7 @@ interface UserPreferencesRepository {
     suspend fun setWeightChangePerWeek(pace: Float)
     
     // Widget Data methods
-    val waterServingSize: Flow<Int> // Default 8 fl oz
+    val waterServingSize: Flow<Int> // Default 250 ml
     suspend fun setWaterServingSize(ml: Int)
     suspend fun setWaterConsumed(amount: Int, dateTimestamp: Long)
     suspend fun setLastKnownSteps(steps: Int)
@@ -138,6 +141,9 @@ interface UserPreferencesRepository {
     suspend fun setLastActivityTimestamp(timestamp: Long)
     
     suspend fun setCoachMessageTracking(timestamp: Long, count: Int, date: String)
+    suspend fun setLastNotifiedGoalWeight(weight: Float)
+    suspend fun setDailyGoalNotified(date: String, flag: String)
+    suspend fun clearDailyGoalNotifications()
     
     /**
      * Restore user data from Firestore cloud storage

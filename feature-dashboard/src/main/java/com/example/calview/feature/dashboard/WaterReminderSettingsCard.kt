@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.components.PremiumBadge
+import androidx.compose.ui.res.stringResource
+
 
 /**
  * Water reminder settings card for premium users.
@@ -27,7 +29,7 @@ fun WaterReminderSettingsCard(
     startHour: Int,
     endHour: Int,
     dailyGoalMl: Int,
-    servingSize: Int, // fl oz
+    servingSize: Int, // ml
     onEnabledChange: (Boolean) -> Unit,
     onIntervalChange: (Int) -> Unit,
     onStartHourChange: (Int) -> Unit,
@@ -45,16 +47,18 @@ fun WaterReminderSettingsCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        val enabledDesc = stringResource(R.string.water_reminders_enabled_desc, intervalHours, dailyGoalMl)
+        val disabledDesc = stringResource(R.string.water_reminders_disabled_desc)
+        val premiumDesc = stringResource(R.string.water_reminders_premium_desc)
+
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .semantics {
                     contentDescription = if (isPremium) {
-                        "Water Reminders Settings. " +
-                        if (enabled) "Enabled. Reminding every $intervalHours hours. Daily goal: ${dailyGoalMl}ml."
-                        else "Disabled. Tap the switch to enable."
+                        if (enabled) enabledDesc else disabledDesc
                     } else {
-                        "Water Reminders. Premium feature. Tap to upgrade."
+                        premiumDesc
                     }
                 }
         ) {
@@ -67,13 +71,13 @@ fun WaterReminderSettingsCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.WaterDrop,
-                        contentDescription = "Water Reminders",
+                        contentDescription = stringResource(R.string.water_reminders_title),
                         tint = Color(0xFF2196F3),
                         modifier = Modifier.size(28.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Water Reminders",
+                        text = stringResource(R.string.water_reminders_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -83,6 +87,8 @@ fun WaterReminderSettingsCard(
                 if (!isPremium) {
                     PremiumBadge()
                 } else {
+                    val stateEnabled = stringResource(R.string.state_enabled)
+                    val stateDisabled = stringResource(R.string.state_disabled)
                     Switch(
                         checked = enabled,
                         onCheckedChange = onEnabledChange,
@@ -92,7 +98,7 @@ fun WaterReminderSettingsCard(
                         ),
                         modifier = Modifier.semantics {
                             role = Role.Switch
-                            stateDescription = if (enabled) "Enabled" else "Disabled"
+                            stateDescription = if (enabled) stateEnabled else stateDisabled
                         }
                     )
                 }
@@ -106,10 +112,11 @@ fun WaterReminderSettingsCard(
                     // Interval slider
                     Column {
                         Text(
-                            text = "Remind every $intervalHours hours",
+                            text = stringResource(R.string.remind_every_hours, intervalHours),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                        val sliderDesc = stringResource(R.string.reminder_interval_desc, intervalHours)
                         Slider(
                             value = intervalHours.toFloat(),
                             onValueChange = { onIntervalChange(it.toInt()) },
@@ -120,7 +127,7 @@ fun WaterReminderSettingsCard(
                                 activeTrackColor = Color(0xFF2196F3)
                             ),
                             modifier = Modifier.semantics {
-                                contentDescription = "Reminder interval: $intervalHours hours. Drag to adjust from 1 to 6 hours."
+                                contentDescription = sliderDesc
                             }
                         )
                     }
@@ -134,7 +141,7 @@ fun WaterReminderSettingsCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Active hours",
+                            text = stringResource(R.string.active_hours_label),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -155,28 +162,26 @@ fun WaterReminderSettingsCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Daily goal",
+                            text = stringResource(R.string.daily_goal_label),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
-                                onClick = { onDailyGoalChange((dailyGoalMl - 240).coerceAtLeast(500)) } 
+                                onClick = { onDailyGoalChange((dailyGoalMl - 250).coerceAtLeast(500)) } 
                             ) {
-                                Icon(Icons.Default.Remove, "Decrease", tint = Color(0xFF2196F3))
+                                Icon(Icons.Default.Remove, stringResource(R.string.decrease_desc), tint = Color(0xFF2196F3))
                             }
-                            // Convert ml to fl oz for display
-                            val dailyGoalFlOz = (dailyGoalMl * 0.033814).toInt()
                             Text(
-                                text = "${dailyGoalFlOz} fl oz",
+                                text = stringResource(R.string.ml_suffix, dailyGoalMl),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             IconButton(
-                                onClick = { onDailyGoalChange((dailyGoalMl + 240).coerceAtMost(5000)) }
+                                onClick = { onDailyGoalChange((dailyGoalMl + 250).coerceAtMost(5000)) }
                             ) {
-                                Icon(Icons.Default.Add, "Increase", tint = Color(0xFF2196F3))
+                                Icon(Icons.Default.Add, stringResource(R.string.increase_desc), tint = Color(0xFF2196F3))
                             }
                         }
                     }
@@ -186,7 +191,7 @@ fun WaterReminderSettingsCard(
                     // Serving Size Selection
                     Column {
                         Text(
-                            text = "Default serving size",
+                            text = stringResource(R.string.default_serving_size_label),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -195,12 +200,12 @@ fun WaterReminderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            listOf(8, 12, 16).forEach { size ->
+                            listOf(250, 500, 750, 1000).forEach { size ->
                                 val selected = servingSize == size
                                 FilterChip(
                                     selected = selected,
                                     onClick = { onServingSizeChange(size) },
-                                    label = { Text("${size} fl oz") },
+                                    label = { Text(stringResource(R.string.ml_suffix, size)) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = Color(0xFF2196F3),
                                         selectedLabelColor = Color.White
@@ -211,7 +216,7 @@ fun WaterReminderSettingsCard(
                     }
                 } else {
                     Text(
-                        text = "Enable to receive periodic hydration reminders throughout the day.",
+                        text = stringResource(R.string.enable_reminders_hint),
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -219,7 +224,7 @@ fun WaterReminderSettingsCard(
             } else {
                 // Non-premium view
                 Text(
-                    text = "Get periodic reminders to stay hydrated! Premium members can customize reminder intervals and goals.",
+                    text = stringResource(R.string.premium_upgrade_hint_water),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -242,7 +247,7 @@ fun WaterReminderSettingsCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Unlock Water Reminders",
+                        stringResource(R.string.unlock_water_reminders),
                         color = Color.Black,
                         fontWeight = FontWeight.Bold
                     )

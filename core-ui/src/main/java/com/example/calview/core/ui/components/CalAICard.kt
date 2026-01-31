@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @Composable
 fun CalAICard(
@@ -59,7 +59,7 @@ fun CalAICard(
                     Column {
                         Text(
                             text = title,
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onSurface
@@ -67,7 +67,7 @@ fun CalAICard(
                         if (subtitle != null) {
                             Text(
                                 text = subtitle,
-                                fontFamily = Inter,
+                                fontFamily = InterFontFamily,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp)

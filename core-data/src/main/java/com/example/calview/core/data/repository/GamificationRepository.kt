@@ -115,8 +115,9 @@ class GamificationRepository @Inject constructor(
                 
                 val daysWithHighProtein = currentWeekMeals
                     .groupBy { 
-                        // Group by day using calendar or simplified division
-                        it.timestamp / (24 * 60 * 60 * 1000)
+                        java.time.Instant.ofEpochMilli(it.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
                     }
                     .count { (_, dayMeals) ->
                         dayMeals.sumOf { it.protein.toDouble() } >= 100.0
@@ -139,7 +140,11 @@ class GamificationRepository @Inject constructor(
                  val currentWeekMeals = meals.filter { it.timestamp >= challenge.startDate && it.timestamp <= challenge.endDate }
                  
                  val earlyBirdDays = currentWeekMeals
-                    .groupBy { it.timestamp / (24 * 60 * 60 * 1000) }
+                    .groupBy { 
+                        java.time.Instant.ofEpochMilli(it.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+                    }
                     .count { (_, dayMeals) ->
                         dayMeals.any { 
                             val calendar = Calendar.getInstance()

@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.walkthrough.FeatureIntroCarousel
 
 @Composable
@@ -30,6 +31,7 @@ fun FeaturesExplainScreen(
 
         Text(
             text = "Welcome to CalView AI",
+            fontFamily = InterFontFamily,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -40,6 +42,7 @@ fun FeaturesExplainScreen(
 
         Text(
             text = "Master your nutrition with the power of artificial intelligence.",
+            fontFamily = InterFontFamily,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -70,6 +73,7 @@ fun FeaturesExplainScreen(
         ) {
             Text(
                 text = "Continue",
+                fontFamily = InterFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

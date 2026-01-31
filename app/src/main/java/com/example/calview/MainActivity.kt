@@ -95,6 +95,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
@@ -185,8 +186,13 @@ class MainActivity : AppCompatActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
             
             // Collect appearance mode and onboarding status from preferences
+            // Use null as initial to distinguish "not loaded yet" from "loaded as false"
             val appearanceMode by userPreferencesRepository.appearanceMode.collectAsState(initial = "automatic")
-            val isOnboardingComplete by userPreferencesRepository.isOnboardingComplete.collectAsState(initial = false)
+            val isOnboardingCompleteNullable by userPreferencesRepository.isOnboardingComplete
+                .map<Boolean, Boolean?> { it }
+                .collectAsState(initial = null)
+            val isOnboardingComplete = isOnboardingCompleteNullable ?: false
+            val isPreferencesLoaded = isOnboardingCompleteNullable != null
             val currentUser by authRepository.authState.collectAsState(initial = authRepository.getCurrentUser())
             
             // Provide WindowSizeClass to the entire app
@@ -195,6 +201,7 @@ class MainActivity : AppCompatActivity() {
                     AppNavigation(
                         isSignedIn = currentUser != null,
                         isOnboardingComplete = isOnboardingComplete,
+                        isPreferencesLoaded = isPreferencesLoaded,
                         userPreferencesRepository = userPreferencesRepository,
                         authRepository = authRepository,
                         mealRepository = mealRepository,
@@ -229,6 +236,7 @@ fun Context.findActivity(): android.app.Activity? {
 fun AppNavigation(
     isSignedIn: Boolean = false,
     isOnboardingComplete: Boolean = true,
+    isPreferencesLoaded: Boolean = true,  // Whether preferences have been loaded from DataStore
     userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
     authRepository: AuthRepository? = null,
     mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
@@ -427,13 +435,37 @@ fun AppNavigation(
         startDestination = startDestination
     ) {
         // Splash screen - always shows first, then redirects based on auth state
+        // CRITICAL: Wait for preferences to load before navigating to avoid
+        // incorrectly sending logged-in users to onboarding
         composable("splash") {
-            com.example.calview.feature.onboarding.SplashScreen(
-                onTimeout = {
+            // Track if we've already navigated to prevent multiple navigations
+            var hasNavigated by remember { mutableStateOf(false) }
+            
+            // Effect to handle navigation once preferences are loaded
+            LaunchedEffect(isPreferencesLoaded, isSignedIn, isOnboardingComplete) {
+                if (isPreferencesLoaded && !hasNavigated) {
+                    // Small delay to ensure splash is visible for minimum time
+                    kotlinx.coroutines.delay(500)
+                    hasNavigated = true
                     val destination = if (isSignedIn && isOnboardingComplete) "main" else "onboarding"
-                    Log.d("Navigation", "Splash timeout: destination=$destination (isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete)")
+                    Log.d("Navigation", "Splash: preferences loaded, navigating to $destination (isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete)")
                     navController.navigate(destination) {
                         popUpTo("splash") { inclusive = true }
+                    }
+                }
+            }
+            
+            com.example.calview.feature.onboarding.SplashScreen(
+                onTimeout = {
+                    // Only use timeout navigation if preferences aren't loaded yet
+                    // This serves as a fallback and maximum wait time
+                    if (!hasNavigated) {
+                        hasNavigated = true
+                        val destination = if (isSignedIn && isOnboardingComplete) "main" else "onboarding"
+                        Log.d("Navigation", "Splash timeout: destination=$destination (isSignedIn=$isSignedIn, isOnboardingComplete=$isOnboardingComplete, prefsLoaded=$isPreferencesLoaded)")
+                        navController.navigate(destination) {
+                            popUpTo("splash") { inclusive = true }
+                        }
                     }
                 }
             )
@@ -1095,7 +1127,12 @@ fun MainTabs(
     
     if (useNavigationRail) {
         // Medium/Expanded: Use Navigation Rail on the side
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding() // Handle edge-to-edge for status bar
+                .navigationBarsPadding() // Handle edge-to-edge for navigation bar
+        ) {
             NavigationRail(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface,

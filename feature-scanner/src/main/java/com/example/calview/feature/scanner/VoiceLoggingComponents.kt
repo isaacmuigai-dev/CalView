@@ -31,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.example.calview.core.data.local.MealEntity
@@ -362,6 +364,7 @@ private fun MealPreviewCard(meal: MealEntity) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     meal.name,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 15.sp
                 )
@@ -369,11 +372,16 @@ private fun MealPreviewCard(meal: MealEntity) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     "${meal.calories} cal",
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     "P:${meal.protein}g C:${meal.carbs}g F:${meal.fats}g",
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.02).sp,
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

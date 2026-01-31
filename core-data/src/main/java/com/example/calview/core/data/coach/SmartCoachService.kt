@@ -4,6 +4,7 @@ import com.example.calview.core.data.local.AnalysisStatus
 import com.example.calview.core.data.local.BadgeEntity
 import com.example.calview.core.data.local.SocialChallengeEntity
 import com.example.calview.core.data.repository.DailyLogRepository
+import com.example.calview.core.data.repository.FastingRepository
 import com.example.calview.core.data.repository.GamificationRepository
 import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.SocialChallengeRepository
@@ -36,7 +37,8 @@ class SmartCoachService @Inject constructor(
     private val weightHistoryRepository: WeightHistoryRepository,
     private val gamificationRepository: GamificationRepository,
     private val socialChallengeRepository: SocialChallengeRepository,
-    private val streakFreezeRepository: StreakFreezeRepository
+    private val streakFreezeRepository: StreakFreezeRepository,
+    private val fastingRepository: FastingRepository
 ) {
     
     companion object {
@@ -107,7 +109,16 @@ class SmartCoachService @Inject constructor(
         // Time context
         val currentHour: Int,
         val mealsLoggedToday: Int,
-        val lastMealTime: Long?
+        val lastMealTime: Long?,
+        
+        // Fasting data
+        val isCurrentlyFasting: Boolean = false,
+        val fastingProgress: Float = 0f,
+        val fastingMinutesElapsed: Int = 0,
+        val fastingMinutesRemaining: Int = 0,
+        val currentFastType: String? = null,
+        val completedFastsThisWeek: Int = 0,
+        val fastingStreak: Int = 0
     )
     
     /**
@@ -156,6 +167,7 @@ class SmartCoachService @Inject constructor(
         tips.addAll(analyzeSocialChallenges(snapshot))
         tips.addAll(analyzeStreakAndConsistency(snapshot))
         tips.addAll(analyzeTimeBasedSuggestions(snapshot))
+        tips.addAll(analyzeFastingProgress(snapshot))
         
         // Select the highest priority tip
         val selectedTip = tips.maxByOrNull { it.priority }
@@ -181,22 +193,23 @@ class SmartCoachService @Inject constructor(
         val effectiveCount = if (lastMessageDate != today) 0 else messageCountToday
         
         // Check daily limit
-        if (effectiveCount >= MAX_MESSAGES_PER_DAY) {
-            return false
-        }
+        // if (effectiveCount >= MAX_MESSAGES_PER_DAY) {
+        //     return false
+        // }
         
         // Check minimum time between messages
-        val hoursSinceLastMessage = (now - lastMessageTime) / (1000 * 60 * 60)
-        if (hoursSinceLastMessage < MIN_HOURS_BETWEEN_MESSAGES && lastMessageDate == today) {
-            return false
-        }
+        // val hoursSinceLastMessage = (now - lastMessageTime) / (1000 * 60 * 60)
+        // if (hoursSinceLastMessage < MIN_HOURS_BETWEEN_MESSAGES && lastMessageDate == today) {
+        //     return false
+        // }
         
         // Check if it's an appropriate time window
-        val isValidTimeWindow = (currentHour in MORNING_START..MORNING_END) ||
-                               (currentHour in AFTERNOON_START..AFTERNOON_END) ||
-                               (currentHour in EVENING_START..EVENING_END)
+        // val isValidTimeWindow = (currentHour in MORNING_START..MORNING_END) ||
+        //                        (currentHour in AFTERNOON_START..AFTERNOON_END) ||
+        //                        (currentHour in EVENING_START..EVENING_END)
         
-        return isValidTimeWindow || effectiveCount == 0 // Always allow first message of the day
+        // return isValidTimeWindow || effectiveCount == 0 // Always allow first message of the day
+        return true // Always allow new messages for "different message on each app open" requirement
     }
     
     private suspend fun updateMessageTracking() {
@@ -305,6 +318,37 @@ class SmartCoachService @Inject constructor(
         
         val lastMealTime = todayMeals.maxByOrNull { it.timestamp }?.timestamp
         
+        // Get fasting data
+        val activeFast = fastingRepository.getActiveFast()
+        val isCurrentlyFasting = activeFast != null
+        val fastingProgress: Float
+        val fastingMinutesElapsed: Int
+        val fastingMinutesRemaining: Int
+        val currentFastType: String?
+        
+        if (activeFast != null) {
+            val now = System.currentTimeMillis()
+            val elapsedMillis = now - activeFast.startTime
+            fastingMinutesElapsed = (elapsedMillis / 60000).toInt()
+            fastingMinutesRemaining = (activeFast.targetDurationMinutes - fastingMinutesElapsed).coerceAtLeast(0)
+            fastingProgress = (fastingMinutesElapsed.toFloat() / activeFast.targetDurationMinutes).coerceIn(0f, 1f)
+            currentFastType = activeFast.fastingType
+        } else {
+            fastingMinutesElapsed = 0
+            fastingMinutesRemaining = 0
+            fastingProgress = 0f
+            currentFastType = null
+        }
+        
+        // Get fasting stats
+        val completedFastsThisWeek = fastingRepository.getCompletedSessions(20).first()
+            .filter { session ->
+                session.isCompleted && session.endTime != null &&
+                java.time.Instant.ofEpochMilli(session.endTime)
+                    .atZone(ZoneId.systemDefault()).toLocalDate().isAfter(weekAgo)
+            }.size
+        val fastingStreak = fastingRepository.currentStreak.first()
+        
         return UserDataSnapshot(
             caloriesConsumed = caloriesConsumed,
             caloriesGoal = caloriesGoal,
@@ -336,7 +380,14 @@ class SmartCoachService @Inject constructor(
             weightChangeThisWeek = weightChangeThisWeek,
             currentHour = LocalTime.now().hour,
             mealsLoggedToday = todayMeals.size,
-            lastMealTime = lastMealTime
+            lastMealTime = lastMealTime,
+            isCurrentlyFasting = isCurrentlyFasting,
+            fastingProgress = fastingProgress,
+            fastingMinutesElapsed = fastingMinutesElapsed,
+            fastingMinutesRemaining = fastingMinutesRemaining,
+            currentFastType = currentFastType,
+            completedFastsThisWeek = completedFastsThisWeek,
+            fastingStreak = fastingStreak
         )
     }
     
@@ -710,6 +761,144 @@ class SmartCoachService @Inject constructor(
                 emoji = "💧",
                 category = CoachMessageGenerator.TipCategory.HYDRATION,
                 priority = 62
+            ))
+        }
+        
+        return tips
+    }
+    
+    private fun analyzeFastingProgress(snapshot: UserDataSnapshot): List<SmartCoachTip> {
+        val tips = mutableListOf<SmartCoachTip>()
+        
+        // Active fast progress milestones
+        if (snapshot.isCurrentlyFasting && snapshot.currentFastType != null) {
+            val progressPercent = (snapshot.fastingProgress * 100).toInt()
+            val hoursElapsed = snapshot.fastingMinutesElapsed / 60
+            val hoursRemaining = snapshot.fastingMinutesRemaining / 60
+            
+            when {
+                progressPercent >= 90 && progressPercent < 100 -> {
+                    tips.add(SmartCoachTip(
+                        message = listOf(
+                            "Almost there! Just $hoursRemaining hour${if (hoursRemaining != 1) "s" else ""} left on your ${snapshot.currentFastType} fast. " +
+                                    "Your body is now in peak fat-burning mode, using stored energy efficiently. " +
+                                    "The finish line is in sight - stay hydrated and push through!",
+                            "You're in the home stretch of your ${snapshot.currentFastType} fast! Only ${snapshot.fastingMinutesRemaining} minutes to go. " +
+                                    "Your autophagy processes are at their peak now, cleaning out old cells. " +
+                                    "You've got this - the hardest part is behind you!",
+                            "Final push! Your ${snapshot.currentFastType} fast is ${progressPercent}% complete. " +
+                                    "Your metabolic flexibility is improving with every fast you complete. " +
+                                    "Stay strong - you're building incredible discipline!"
+                        ).random(),
+                        emoji = "🏁",
+                        category = CoachMessageGenerator.TipCategory.ACHIEVEMENT,
+                        priority = 92
+                    ))
+                }
+                progressPercent >= 75 -> {
+                    tips.add(SmartCoachTip(
+                        message = listOf(
+                            "Three-quarters done with your ${snapshot.currentFastType} fast! You've been fasting for $hoursElapsed hours. " +
+                                    "At this stage, your body has switched to burning fat for fuel. " +
+                                    "Growth hormone levels are elevated, supporting muscle preservation. Keep going!",
+                            "Amazing progress - ${progressPercent}% through your fast! Your body is now efficiently " +
+                                    "tapping into fat stores for energy. Mental clarity often peaks at this stage. " +
+                                    "Only $hoursRemaining hours until you complete this fast!"
+                        ).random(),
+                        emoji = "💪",
+                        category = CoachMessageGenerator.TipCategory.ACHIEVEMENT,
+                        priority = 85
+                    ))
+                }
+                progressPercent >= 50 -> {
+                    tips.add(SmartCoachTip(
+                        message = listOf(
+                            "Halfway through your ${snapshot.currentFastType} fast! $hoursElapsed hours down, $hoursRemaining to go. " +
+                                    "Your insulin levels have dropped significantly, allowing fat burning to accelerate. " +
+                                    "Stay busy, drink water, and remember why you started!",
+                            "You've reached the midpoint of your fast - ${progressPercent}% complete! " +
+                                    "Your body is transitioning into deeper ketosis now. " +
+                                    "The second half often feels easier as hunger hormones stabilize. You're doing great!"
+                        ).random(),
+                        emoji = "⏱️",
+                        category = CoachMessageGenerator.TipCategory.MOTIVATION,
+                        priority = 78
+                    ))
+                }
+                progressPercent >= 25 -> {
+                    tips.add(SmartCoachTip(
+                        message = listOf(
+                            "Your ${snapshot.currentFastType} fast is off to a solid start - $hoursElapsed hours in! " +
+                                    "Your body is beginning to deplete glycogen stores and prepare for fat burning. " +
+                                    "Stay hydrated with water, black coffee, or unsweetened tea. You've got this!",
+                            "Quarter of the way through your fast! Your body is adapting to use stored energy. " +
+                                    "If you feel hungry, remember: it usually passes in waves. " +
+                                    "$hoursRemaining hours remaining - each minute makes you stronger!"
+                        ).random(),
+                        emoji = "🚀",
+                        category = CoachMessageGenerator.TipCategory.MOTIVATION,
+                        priority = 70
+                    ))
+                }
+            }
+        }
+        
+        // Fasting streak achievements
+        if (snapshot.fastingStreak > 0) {
+            val streakMilestones = listOf(3, 5, 7, 14, 21, 30)
+            for (milestone in streakMilestones) {
+                if (snapshot.fastingStreak == milestone) {
+                    tips.add(SmartCoachTip(
+                        message = listOf(
+                            "Incredible - a $milestone-day fasting streak! Your metabolic flexibility is improving " +
+                                    "as your body becomes more efficient at switching between fuel sources. " +
+                                    "Consistent fasting has been shown to support longevity and cellular health. " +
+                                    "Keep up this amazing discipline!",
+                            "You've maintained a $milestone-day fasting streak! This consistency is training " +
+                                    "your body to be more metabolically flexible. Research shows regular fasting " +
+                                    "can improve insulin sensitivity and support healthy aging. Impressive work!"
+                        ).random(),
+                        emoji = "🔥",
+                        category = CoachMessageGenerator.TipCategory.ACHIEVEMENT,
+                        priority = 89
+                    ))
+                    break
+                }
+            }
+        }
+        
+        // Completed fasts this week celebration
+        if (snapshot.completedFastsThisWeek >= 3 && !snapshot.isCurrentlyFasting) {
+            tips.add(SmartCoachTip(
+                message = listOf(
+                    "You've completed ${snapshot.completedFastsThisWeek} fasts this week! Your body is becoming " +
+                            "a fat-burning machine with this consistent practice. Each fast trains your metabolism " +
+                            "to efficiently switch between fuel sources. Keep up the excellent work!",
+                    "Impressive - ${snapshot.completedFastsThisWeek} successful fasts this week! " +
+                            "Regular fasting is one of the most powerful tools for metabolic health. " +
+                            "You're building habits that support long-term wellness and energy!"
+                ).random(),
+                emoji = "🏆",
+                category = CoachMessageGenerator.TipCategory.ACHIEVEMENT,
+                priority = 82
+            ))
+        }
+        
+        // Encouragement to start a fast (if none active and good time of day)
+        if (!snapshot.isCurrentlyFasting && snapshot.fastingStreak == 0 && 
+            snapshot.currentHour in 18..21 && snapshot.completedFastsThisWeek < 2) {
+            tips.add(SmartCoachTip(
+                message = listOf(
+                    "Evening is a great time to start an overnight fast! Beginning your fast after dinner " +
+                            "means you'll sleep through the most challenging hours. Even a simple 12-14 hour fast " +
+                            "gives your digestive system a rest and can improve sleep quality. Ready to try?",
+                    "Consider starting a fast tonight! Overnight fasting is the easiest way to experience " +
+                            "the benefits of time-restricted eating. Your body can focus on repair and recovery " +
+                            "instead of digestion while you sleep. Start simple with a 12-hour window!"
+                ).random(),
+                emoji = "🌙",
+                category = CoachMessageGenerator.TipCategory.MOTIVATION,
+                priority = 55
             ))
         }
         

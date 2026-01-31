@@ -67,24 +67,6 @@ fun OpenSourceLicensesScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
-            // TensorFlow Lite
-            LicenseCard(
-                name = "TensorFlow Lite",
-                description = "On-device machine learning framework for mobile and embedded devices.",
-                license = "Apache License 2.0",
-                url = "https://www.tensorflow.org/lite",
-                onLinkClick = { uriHandler.openUri("https://www.tensorflow.org/lite") }
-            )
-            
-            // Google AIY Vision Food Model
-            LicenseCard(
-                name = "Google AIY Vision Food Classifier",
-                description = "TFLite model for classifying 2024 types of food. Based on MobileNet V1 architecture.",
-                license = "Apache License 2.0",
-                url = "https://www.kaggle.com/models/google/aiy",
-                onLinkClick = { uriHandler.openUri("https://www.kaggle.com/models/google/aiy") }
-            )
-            
             // ML Kit
             LicenseCard(
                 name = "Google ML Kit",

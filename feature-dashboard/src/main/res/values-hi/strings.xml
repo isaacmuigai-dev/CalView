@@ -144,7 +144,7 @@
     <string name="tab_trending">🔥 ट्रेंडिंग</string>
     <string name="tab_newest">✨ नवीनतम</string>
     <string name="tab_my_posts">👤 मेरे पोस्ट</string>
-    <string name="search_placeholder">सुविधा अनुरोध खोजें...</string>
+    <string name="search_placeholder">सुविधा अनुरोध खोजें…</string>
     <string name="clear_desc">साफ़ करें</string>
     <string name="create_request_desc">अनुरोध बनाएं</string>
     <string name="feedback_hub_title">फीडबैक हब</string>
@@ -155,11 +155,11 @@
     <string name="feature_title_label">सुविधा शीर्षक</string>
     <string name="feature_title_placeholder">आप कौन सी सुविधा चाहेंगे?</string>
     <string name="description_label">विवरण</string>
-    <string name="description_placeholder">अपने विचार का विस्तार से वर्णन करें...</string>
+    <string name="description_placeholder">अपने विचार का विस्तार से वर्णन करें…</string>
     <string name="add_tags_label">टैग जोड़ें</string>
     <string name="post_request_action">अनुरोध पोस्ट करें</string>
     <string name="comments_title">टिप्पणियाँ (%1$d)</string>
-    <string name="add_comment_placeholder">टिप्पणी जोड़ें...</string>
+    <string name="add_comment_placeholder">टिप्पणी जोड़ें…</string>
     <string name="send_desc">भेजें</string>
     <string name="no_comments_yet">अभी तक कोई टिप्पणी नहीं</string>
     <string name="be_first_comment">अपने विचार साझा करने वाले पहले व्यक्ति बनें!</string>
@@ -226,4 +226,62 @@
     <string name="complete_fast_desc">उपवास पूरा करें</string>
     <string name="stop_fast_desc">उपवास रोकें</string>
     <string name="start_fast_desc">उपवास शुरू करें</string>
+
+    <!-- Language Selector -->
+    <string name="save_language_action">सहेजें</string>
+    <string name="selected_desc">चयनित</string>
+
+    <!-- Social Challenges -->
+    <string name="social_challenges_title">सामाजिक चुनौतियाँ</string>
+    <string name="navigate_back_desc">पीछे नेविगेट करें</string>
+    <string name="back_desc">वापस</string>
+    <string name="create_new_challenge_desc">नई चुनौती बनाएं</string>
+    <string name="create_challenge_action">चुनौती बनाएं</string>
+    <string name="error_occurred">एक त्रुटि हुई</string>
+    <string name="social_challenges_desc">अपने दोस्तों को साप्ताहिक प्रतियोगिताओं में चुनौती दें! ट्रैक करें कि कौन सबसे अधिक भोजन लॉग करता है, सबसे अधिक पानी पीता है, या सबसे लंबी स्ट्रीक बनाए रखता है।</string>
+    <string name="your_active_challenges">आपकी सक्रिय चुनौतियाँ</string>
+    <string name="join_challenge_action">चुनौती में शामिल हों</string>
+    <string name="enter_invite_code_desc">एक दोस्त से आमंत्रण कोड दर्ज करें</string>
+    <string name="leaderboard">लीडरबोर्ड</string>
+    <string name="invite_code_label">आमंत्रण कोड: %1$s</string>
+    <string name="copy_action">कॉपी करें</string>
+    <string name="code_copied_to_clipboard">कोड क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="you">आप</string>
+    <string name="no_active_challenges">कोई सक्रिय चुनौती नहीं</string>
+    <string name="create_or_join_challenge_desc">एक चुनौती बनाएं या आमंत्रण कोड का उपयोग करके एक में शामिल हों!</string>
+    <string name="challenge_name_label">चुनौती का नाम</string>
+    <string name="challenge_type_label">चुनौती का प्रकार</string>
+    <string name="duration_days_label">अवधि: %1$d दिन</string>
+    <string name="weekly_challenge_default">साप्ताहिक चुनौती</string>
+    <string name="create_action">बनाएं</string>
+    <string name="cancel_action">रद्द करें</string>
+    <string name="challenge_created_title">चुनौती बनाई गई!</string>
+    <string name="share_invite_code_desc">इस आमंत्रण कोड को दोस्तों के साथ साझा करें:</string>
+    <string name="copy_to_clipboard_desc">क्लिपबोर्ड पर कॉपी करें</string>
+    <string name="copied_to_clipboard_message">क्लिपबोर्ड पर कॉपी किया गया!</string>
+    <string name="join_challenge_title">चुनौती में शामिल हों</string>
+    <string name="invite_code_input_label">आमंत्रण कोड</string>
+    <string name="join_action">शामिल हों</string>
+    <string name="end_challenge_desc">चुनौती समाप्त करें</string>
+    <string name="share_invite_desc">आमंत्रण साझा करें</string>
+    <string name="share_challenge_chooser">चुनौती साझा करें</string>
+    <string name="join_challenge_share_message">CalView पर मेरी चुनौती \"%1$s\" में शामिल हों! आमंत्रण कोड का उपयोग करें: %2$s</string>
+    <string name="rank_you_points">आप %1$d रैंक पर हैं %2$d अंकों के साथ</string>
+    <string name="leader_none">लीडर: कोई नहीं</string>
+    <string name="leader_label">लीडर: %1$s</string>
+    <string name="challenge_type_streak">🔥 स्ट्रीक चुनौती</string>
+    <string name="challenge_type_water">💧 पानी चैंपियन</string>
+    <string name="challenge_type_calories">🎯 कैलोरी लक्ष्य</string>
+    <string name="challenge_type_protein">💪 प्रोटीन पावर</string>
+    <string name="challenge_type_steps">👟 स्टेप काउंटर</string>
+    <string name="challenge_type_logging">📝 सबसे सुसंगत लॉगर</string>
+
+    <!-- Challenges & Badges -->
+    <string name="challenges_badges_title">चुनौतियाँ और बैज</string>
+    <string name="active_weekly_challenges">सक्रिय साप्ताहिक चुनौतियाँ</string>
+    <string name="no_active_challenges_now">अभी कोई सक्रिय चुनौती नहीं है।</string>
+    <string name="your_trophy_case">आपका ट्रॉफी केस</string>
+    <string name="challenge_trophy_desc">चुनौती ट्रॉफी</string>
+    <string name="no_badges_unlocked">अभी तक कोई बैज अनलॉक नहीं किया गया है। जारी रखें!</string>
+    <string name="ok_action">ठीक</string>
 </resources>

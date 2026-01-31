@@ -7,6 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -35,8 +37,8 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = VibrantHealthGreen,         // HEALTH: Vibrant Green (#00FF85)
-    onPrimary = Color.Black,              // Black text on bright green for accessibility
+    primary = Color.White,                // White accents for buttons etc.
+    onPrimary = Color.Black,
     secondary = EnergyOrange,             // ALERT: Muted Orange (#FF9800)
     onSecondary = Color.Black,            // Black text on orange
     tertiary = CalmingBlue,               // INFO: Calming Blue
@@ -51,8 +53,8 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = DarkDivider,
     inverseSurface = DarkOffWhite,
     inverseOnSurface = DarkGrayBackground,
-    primaryContainer = Color(0xFF004D25), // Dark green container
-    onPrimaryContainer = VibrantHealthGreen,
+    primaryContainer = Color(0xFF333333), // Dark grey container for white primary
+    onPrimaryContainer = Color.White,
     error = DarkError,
     onError = Color.Black
 )
@@ -102,22 +104,27 @@ fun CalViewTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            val insetsController = WindowCompat.getInsetsController(window, view)
             
             // For Android 15+ (SDK 35), edge-to-edge is enforced by default
-            // We only need to set the status bar appearance (light/dark icons)
-            // For older versions, we also set the status bar color for compatibility
+            // We only need to set the system bar appearance (light/dark icons)
+            // For older versions, we also set transparent colors for compatibility
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 @Suppress("DEPRECATION")
                 window.statusBarColor = Color.Transparent.toArgb()
+                @Suppress("DEPRECATION")
+                window.navigationBarColor = Color.Transparent.toArgb()
             }
             
-            // Set status bar icon colors (light icons for dark theme, dark icons for light theme)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
+            // Set system bar icon colors (light icons for dark theme, dark icons for light theme)
+            insetsController.isAppearanceLightStatusBars = !useDarkTheme
+            insetsController.isAppearanceLightNavigationBars = !useDarkTheme
         }
     }
 
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalThemeGradient provides ThemeGradient(gradientBrush)
+    CompositionLocalProvider(
+        LocalThemeGradient provides ThemeGradient(gradientBrush),
+        LocalCalViewTypography provides LocalCalViewTypography.current
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -129,9 +136,27 @@ fun CalViewTheme(
 }
 
 object CalViewTheme {
+    /**
+     * The theme gradient brush for backgrounds
+     */
     val gradient: androidx.compose.ui.graphics.Brush
         @Composable
         get() = LocalThemeGradient.current.brush
+    
+    /**
+     * Premium typography system with Inter + Space Grotesk
+     * 
+     * Usage examples:
+     * - CalViewTheme.typography.heroNumber for large calorie displays
+     * - CalViewTheme.typography.macroNumber for protein/carbs/fat values
+     * - CalViewTheme.typography.sectionTitle for section headers
+     * - CalViewTheme.typography.aiInsight for AI feedback text
+     * - CalViewTheme.typography.dataValue for chart values
+     */
+    val typography: CalViewTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalCalViewTypography.current
 }
 
 

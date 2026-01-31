@@ -10,6 +10,7 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.repository.StreakFreezeRepository
 import com.example.calview.core.data.repository.WeightHistoryRepository
+import com.example.calview.core.data.repository.ExerciseRepository
 import com.example.calview.core.data.health.HealthConnectManager
 import com.example.calview.core.data.state.SelectedDateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -82,15 +83,18 @@ data class ProgressUiState(
     val todaySugar: Float = 0f,
     val todaySodium: Float = 0f,
     val todaySteps: Int = 0,
-    val caloriesBurned: Int = 0,
+    val caloriesBurned: Int = 0,  // Total = Health Connect + Manual Exercise
+    val manualExerciseCalories: Int = 0,  // Today's manual exercise calories
     
     // Weekly data
     val weeklySteps: Long = 0,
-    val weeklyCaloriesBurned: Double = 0.0,
+    val weeklyCaloriesBurned: Double = 0.0,  // Health Connect only
+    val weeklyExerciseCalories: Int = 0,  // 7-day manual exercise calories
     val caloriesBurnedRecord: Double = 0.0,
     val stepsRecord: Long = 0,  // Best daily steps in past 7 days
     val weeklyCalories: List<DailyCalories> = emptyList(),
     val weeklyAverageCalories: Int = 0,
+    val selectedWeekOffset: Int = 0,  // 0 = this week, 1 = last week, 2 = 2 weeks ago, 3 = 3 weeks ago
     
     // Streak
     val dayStreak: Int = 0,
@@ -150,17 +154,9 @@ class ProgressViewModel @Inject constructor(
     private val weightHistoryRepository: WeightHistoryRepository,
     private val predictionEngine: com.example.calview.core.data.prediction.WeightPredictionEngine,
     private val streakFreezeRepository: StreakFreezeRepository,
-    private val notificationHandler: NotificationHandler
+    private val notificationHandler: NotificationHandler,
+    private val exerciseRepository: ExerciseRepository
 ) : ViewModel() {
-    
-    // Track notified milestones for today to avoid spam
-    private var notifiedCalories = false
-    private var notifiedProtein = false
-    private var notifiedCarbs = false
-    private var notifiedFats = false
-    private var notifiedStepsRecord = false
-    private var notifiedPersonalBest = false
-    private var lastMilestoneDate = LocalDate.now()
     
     private val _uiState = MutableStateFlow(ProgressUiState())
     val uiState: StateFlow<ProgressUiState> = _uiState.asStateFlow()
@@ -174,23 +170,19 @@ class ProgressViewModel @Inject constructor(
     private fun observeGoalMilestones() {
         viewModelScope.launch {
             uiState.collect { state ->
-                // Reset flags if day changed
-                if (LocalDate.now() != lastMilestoneDate) {
-                    notifiedCalories = false
-                    notifiedProtein = false
-                    notifiedCarbs = false
-                    notifiedFats = false
-                    notifiedStepsRecord = false
-                    notifiedPersonalBest = false
-                    lastMilestoneDate = LocalDate.now()
-                }
-
                 // Only notify if it's today
                 if (!state.isToday) return@collect
 
+                val todayStr = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.now())
+                val notifiedFlags = userPreferencesRepository.notifiedDailyGoalFlags.first().split(",")
+                val lastNotifiedDate = userPreferencesRepository.lastNotifiedDailyGoalDate.first()
+
+                // If date changed, flags are effectively empty (handled in repo, but for local logic simplicity)
+                val activeFlags = if (lastNotifiedDate == todayStr) notifiedFlags.toSet() else emptySet()
+
                 // Calorie Goal
-                if (!notifiedCalories && state.todayCalories >= state.calorieGoal && state.calorieGoal > 0) {
-                    notifiedCalories = true
+                if (!activeFlags.contains("calories") && state.todayCalories >= state.calorieGoal && state.calorieGoal > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "calories")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_DAILY_GOAL,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -201,8 +193,8 @@ class ProgressViewModel @Inject constructor(
                 }
 
                 // Protein Goal
-                if (!notifiedProtein && state.todayProtein >= state.proteinGoal && state.proteinGoal > 0) {
-                    notifiedProtein = true
+                if (!activeFlags.contains("protein") && state.todayProtein >= state.proteinGoal && state.proteinGoal > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "protein")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_DAILY_GOAL,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -212,9 +204,9 @@ class ProgressViewModel @Inject constructor(
                     )
                 }
 
-                // Carbs/Fats Goals (Combined for brevity)
-                if (!notifiedCarbs && state.todayCarbs >= state.carbsGoal && state.carbsGoal > 0) {
-                    notifiedCarbs = true
+                // Carbs/Fats Goals
+                if (!activeFlags.contains("carbs") && state.todayCarbs >= state.carbsGoal && state.carbsGoal > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "carbs")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_DAILY_GOAL,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -224,8 +216,8 @@ class ProgressViewModel @Inject constructor(
                     )
                 }
                 
-                if (!notifiedFats && state.todayFats >= state.fatsGoal && state.fatsGoal > 0) {
-                    notifiedFats = true
+                if (!activeFlags.contains("fats") && state.todayFats >= state.fatsGoal && state.fatsGoal > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "fats")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_DAILY_GOAL,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -236,8 +228,8 @@ class ProgressViewModel @Inject constructor(
                 }
 
                 // Max Steps Record
-                if (!notifiedStepsRecord && state.todaySteps > state.stepsRecord && state.stepsRecord > 0) {
-                    notifiedStepsRecord = true
+                if (!activeFlags.contains("steps_record") && state.todaySteps > state.stepsRecord && state.stepsRecord > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "steps_record")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_PERSONAL_BEST,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -248,13 +240,32 @@ class ProgressViewModel @Inject constructor(
                 }
                 
                 // Personal Best (Calories Burned Record)
-                if (!notifiedPersonalBest && state.caloriesBurned > state.caloriesBurnedRecord && state.caloriesBurnedRecord > 0) {
-                    notifiedPersonalBest = true
+                if (!activeFlags.contains("burned_record") && state.caloriesBurned > state.caloriesBurnedRecord && state.caloriesBurnedRecord > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "burned_record")
                     notificationHandler.showNotification(
                         id = NotificationHandler.ID_PERSONAL_BEST,
                         channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
                         title = "💎 New Calories Record!",
                         message = "Incredible! You just set a new record for calories burned: ${state.caloriesBurned} kcal!",
+                        navigateTo = "progress"
+                    )
+                }
+
+                // Weight Goal Hit
+                val isGoalHit = when (state.userGoal.lowercase()) {
+                    "lose weight", "lose" -> state.currentWeight <= state.goalWeight
+                    "gain weight", "gain" -> state.currentWeight >= state.goalWeight
+                    "maintain weight", "maintain" -> kotlin.math.abs(state.currentWeight - state.goalWeight) < 0.5f
+                    else -> false
+                }
+
+                if (!activeFlags.contains("weight_goal") && isGoalHit && state.goalWeight > 0) {
+                    userPreferencesRepository.setDailyGoalNotified(todayStr, "weight_goal")
+                    notificationHandler.showNotification(
+                        id = NotificationHandler.ID_DAILY_GOAL,
+                        channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
+                        title = "🎉 Weight Goal Reached!",
+                        message = "Congratulations! You've reached your target weight of ${state.goalWeight} kg.",
                         navigateTo = "progress"
                     )
                 }
@@ -316,9 +327,13 @@ class ProgressViewModel @Inject constructor(
                 val weightProgress = if (start == goal) {
                     1f
                 } else if (goal < start) {
-                    ((start - current) / (start - goal)).coerceIn(0f, 1f)
+                    // Losing weight: (start - current) / (start - goal)
+                    // If current goes below goal, it's 100%
+                    if (current <= goal) 1f else ((start - current) / (start - goal)).coerceIn(0f, 1f)
                 } else {
-                    ((current - start) / (goal - start)).coerceIn(0f, 1f)
+                    // Gaining weight: (current - start) / (goal - start)
+                    // If current goes above goal, it's 100%
+                    if (current >= goal) 1f else ((current - start) / (goal - start)).coerceIn(0f, 1f)
                 }
 
                 // Goal Journey Calculations
@@ -409,11 +424,11 @@ class ProgressViewModel @Inject constructor(
                 val today = java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
                 val isToday = waterDate >= today
                 
-                val glasses = if (isToday) water / 8 else 0
+                val glasses = if (isToday) water / 250 else 0
                 items.add(
                     ChecklistItem(
                         title = "Hydration",
-                        status = "$glasses/8 glasses",
+                        status = "$glasses/8 servings",
                         isCompleted = glasses >= 8,
                         icon = Icons.Default.WaterDrop
                     )
@@ -425,12 +440,22 @@ class ProgressViewModel @Inject constructor(
             }
         }
 
-        // Collect Health Connect data
+        // Collect Health Connect data and combine with manual exercise calories
         viewModelScope.launch {
-            healthConnectManager.healthData.collect { healthData ->
-                // Sync to widget whenever we get fresh data
+            combine(
+                healthConnectManager.healthData,
+                selectedDateHolder.selectedDate.flatMapLatest { date ->
+                    val dateString = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date)
+                    exerciseRepository.getTotalCaloriesBurnedForDate(dateString)
+                }
+            ) { healthData, manualExerciseCals ->
+                Pair(healthData, manualExerciseCals)
+            }.collect { (healthData, manualExerciseCals) ->
+                val totalBurned = healthData.caloriesBurned.toInt() + manualExerciseCals
+                
+                // Sync to widget with combined totals
                 userPreferencesRepository.setActivityStats(
-                    caloriesBurned = healthData.caloriesBurned.toInt(),
+                    caloriesBurned = totalBurned,
                     weeklyBurn = healthData.weeklyCaloriesBurned.toInt(),
                     recordBurn = healthData.maxCaloriesBurnedRecord.toInt()
                 )
@@ -438,13 +463,33 @@ class ProgressViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(
                         todaySteps = healthData.steps.toInt(),
-                        caloriesBurned = healthData.caloriesBurned.toInt(),
+                        caloriesBurned = totalBurned,  // Combined total
+                        manualExerciseCalories = manualExerciseCals,
                         weeklySteps = healthData.weeklySteps,
                         weeklyCaloriesBurned = healthData.weeklyCaloriesBurned,
                         caloriesBurnedRecord = healthData.maxCaloriesBurnedRecord,
                         stepsRecord = healthData.maxStepsRecord
                     )
                 }
+            }
+        }
+        
+        // Collect 7-day manual exercise calories
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val sevenDaysAgo = today.minusDays(6)
+            val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            
+            // Collect exercise calories for each of the past 7 days
+            val dailyFlows = (0..6).map { daysAgo ->
+                val date = today.minusDays(daysAgo.toLong())
+                exerciseRepository.getTotalCaloriesBurnedForDate(dateFormatter.format(date))
+            }
+            
+            combine(dailyFlows) { dailyCalories ->
+                dailyCalories.sum()
+            }.collect { weeklyExerciseCals ->
+                _uiState.update { it.copy(weeklyExerciseCalories = weeklyExerciseCals) }
             }
         }
         
@@ -503,9 +548,12 @@ class ProgressViewModel @Inject constructor(
                     mealDates.contains(checkDate)
                 }
                 
-                // Generate weekly calorie data
+                // Generate weekly calorie data based on selectedWeekOffset
+                val weekOffset = _uiState.value.selectedWeekOffset
+                val targetWeekStart = weekStart.minusWeeks(weekOffset.toLong())
+                
                 val weeklyCalories = (0..6).map { dayOffset ->
-                    val checkDate = weekStart.plusDays(dayOffset.toLong())
+                    val checkDate = targetWeekStart.plusDays(dayOffset.toLong())
                     val dayName = checkDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayMeals = meals.filter { meal ->
                          java.time.Instant.ofEpochMilli(meal.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate() == checkDate
@@ -632,5 +680,11 @@ class ProgressViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setHasSeenProgressWalkthrough(seen)
         }
+    }
+
+    fun setWeekOffset(offset: Int) {
+        _uiState.update { it.copy(selectedWeekOffset = offset.coerceIn(0, 3)) }
+        // Trigger data reload to recalculate weekly calories for the new offset
+        loadProgressData()
     }
 }

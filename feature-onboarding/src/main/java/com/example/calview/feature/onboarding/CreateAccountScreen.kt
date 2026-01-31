@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 /**
  * Create an account screen - mandatory Google sign-in.
@@ -88,7 +88,7 @@ fun CreateAccountScreen(
         // Title
         Text(
             text = "Create an account",
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
             color = MaterialTheme.colorScheme.onBackground
@@ -139,7 +139,7 @@ fun CreateAccountScreen(
                     
                     Text(
                         text = "Sign in with Google",
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -158,7 +158,7 @@ fun CreateAccountScreen(
             Row {
                 Text(
                     text = "By continuing, you agree to CalViewAI's ",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -166,7 +166,7 @@ fun CreateAccountScreen(
             Row {
                 Text(
                     text = "Terms and",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
@@ -177,7 +177,7 @@ fun CreateAccountScreen(
             Row {
                 Text(
                     text = "Conditions",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
@@ -186,13 +186,13 @@ fun CreateAccountScreen(
                 )
                 Text(
                     text = " and ",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Privacy Policy",
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,

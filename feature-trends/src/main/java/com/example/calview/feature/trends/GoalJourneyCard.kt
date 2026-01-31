@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import androidx.compose.ui.res.stringResource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -28,9 +30,9 @@ fun GoalJourneyCard(
     modifier: Modifier = Modifier
 ) {
     val actionWord = when (goal) {
-        "Lose Weight" -> "Lose"
-        "Gain Weight" -> "Gain"
-        else -> "Maintain"
+        "Lose Weight" -> stringResource(R.string.action_lose)
+        "Gain Weight" -> stringResource(R.string.action_gain)
+        else -> stringResource(R.string.action_maintain)
     }
 
     val targetDateStr = estimatedGoalDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
@@ -45,9 +47,9 @@ fun GoalJourneyCard(
             modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "Your Goal Journey",
-                fontFamily = Inter,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.goal_journey_title),
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -63,16 +65,18 @@ fun GoalJourneyCard(
                 // Current Weight
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Current",
-                        fontFamily = Inter,
+                        text = stringResource(R.string.current_label),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${currentWeight.toInt()} kg",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.unit_kg_value_format, currentWeight.toInt()),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 22.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -86,8 +90,9 @@ fun GoalJourneyCard(
                 ) {
                     Text(
                         text = "→",
+                        fontFamily = InterFontFamily,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -95,16 +100,18 @@ fun GoalJourneyCard(
                 // Goal Weight
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Goal",
-                        fontFamily = Inter,
+                        text = stringResource(R.string.goal_label),
+                        fontFamily = InterFontFamily,
                         fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${targetWeight.toInt()} kg",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.unit_kg_value_format, targetWeight.toInt()),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 22.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -119,22 +126,22 @@ fun GoalJourneyCard(
             ) {
                 // Weekly Pace
                 JourneyStatItem(
-                    label = "⚡ Weekly Pace",
-                    value = "${"%.1f".format(weeklyPace)} kg",
+                    label = stringResource(R.string.weekly_pace_format),
+                    value = stringResource(R.string.unit_kg_decimal_format, weeklyPace),
                     modifier = Modifier.weight(1f)
                 )
 
                 // To ${actionWord}
                 JourneyStatItem(
-                    label = "📊 To $actionWord",
-                    value = "$weightDiff kg",
+                    label = stringResource(R.string.to_action_format, actionWord),
+                    value = stringResource(R.string.unit_kg_value_format, weightDiff),
                     modifier = Modifier.weight(1f)
                 )
 
                 // Time Estimate
                 JourneyStatItem(
-                    label = "⏱️ Estimated",
-                    value = "$weeksToGoal weeks",
+                    label = stringResource(R.string.estimated_label),
+                    value = stringResource(R.string.weeks_format, weeksToGoal),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -155,16 +162,18 @@ fun GoalJourneyCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "🎯 Estimated Goal Date: ",
-                        fontFamily = Inter,
+                        text = stringResource(R.string.estimated_goal_date_label),
+                        fontFamily = InterFontFamily,
                         fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = targetDateStr,
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,
+                        letterSpacing = (-0.02).sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -185,16 +194,18 @@ private fun JourneyStatItem(
     ) {
         Text(
             text = label,
-            fontFamily = Inter,
+            fontFamily = InterFontFamily,
             fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
-            fontFamily = Inter,
-            fontWeight = FontWeight.Bold,
+            fontFamily = SpaceGroteskFontFamily,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
+            letterSpacing = (-0.02).sp,
             color = MaterialTheme.colorScheme.onSurface
         )
     }

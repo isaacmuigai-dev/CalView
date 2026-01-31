@@ -17,6 +17,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import com.example.calview.feature.dashboard.R
@@ -45,7 +47,7 @@ fun EditHeightWeightScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.set_height_weight_title),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
@@ -83,8 +85,8 @@ fun EditHeightWeightScreen(
             ) {
                 Text(
                     text = stringResource(R.string.height_header),
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
@@ -93,8 +95,8 @@ fun EditHeightWeightScreen(
                 
                 Text(
                     text = stringResource(R.string.weight_header),
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(0.5f),
@@ -142,7 +144,7 @@ fun EditHeightWeightScreen(
             ) {
                 Text(
                     text = stringResource(R.string.save_changes_button),
-                    fontFamily = Inter,
+                    fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -231,9 +233,10 @@ private fun WheelPickerWidget(
                 ) {
                     Text(
                         text = items[index],
-                        fontFamily = Inter,
-                        fontWeight = if (index == selectedIndex) FontWeight.Bold else FontWeight.Normal,
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontWeight = if (index == selectedIndex) FontWeight.SemiBold else FontWeight.Normal,
                         fontSize = if (index == selectedIndex) 18.sp else 16.sp,
+                        letterSpacing = if (index == selectedIndex) (-0.02).sp else 0.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = alpha),
                         textAlign = TextAlign.Center
                     )

@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.InterFontFamily
 
 @Composable
 fun StandardWheelPicker(
@@ -66,7 +66,7 @@ fun StandardWheelPicker(
                     Text(
                         text = item,
                         fontSize = 20.sp,
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         color = Color.Black
                     )

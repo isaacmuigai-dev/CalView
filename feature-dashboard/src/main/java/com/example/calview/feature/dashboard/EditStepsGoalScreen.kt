@@ -20,6 +20,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.Inter
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 
@@ -72,8 +74,8 @@ fun EditStepsGoalScreen(
             // Title
             Text(
                 text = stringResource(R.string.edit_step_goal_title),
-                fontFamily = Inter,
-                fontWeight = FontWeight.Bold,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 28.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -120,14 +122,15 @@ fun EditStepsGoalScreen(
                     Column {
                         Text(
                             text = parsedSteps.toString(),
-                            fontFamily = Inter,
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
+                            letterSpacing = (-0.02).sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.previous_goal_steps, previousGoal),
-                            fontFamily = Inter,
+                            fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -150,7 +153,7 @@ fun EditStepsGoalScreen(
                 label = {
                     Text(
                         text = stringResource(R.string.daily_step_goal_label),
-                        fontFamily = Inter
+                        fontFamily = InterFontFamily
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -191,7 +194,7 @@ fun EditStepsGoalScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.revert_action),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
                     )
@@ -218,7 +221,7 @@ fun EditStepsGoalScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.done_action),
-                        fontFamily = Inter,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
                     )

@@ -7,13 +7,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.util.Locale
 
 /**
  * ViewModel for Personal Details screen - manages all user profile data
  */
 @HiltViewModel
 class PersonalDetailsViewModel @Inject constructor(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val weightHistoryRepository: com.example.calview.core.data.repository.WeightHistoryRepository
 ) : ViewModel() {
 
     // Combine all personal details into a single state
@@ -86,6 +88,13 @@ class PersonalDetailsViewModel @Inject constructor(
     fun updateWeight(weight: Float) {
         viewModelScope.launch {
             userPreferencesRepository.setWeight(weight)
+            // Also save to history
+            weightHistoryRepository.insertWeight(
+                com.example.calview.core.data.local.WeightHistoryEntity(
+                    weight = weight,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
         }
     }
 
@@ -121,7 +130,7 @@ data class PersonalDetailsState(
 ) {
     // Formatted date string for display
     val formattedBirthDate: String
-        get() = String.format("%02d/%02d/%d", 
+        get() = String.format(Locale.US, "%02d/%02d/%d", 
             getMonthNumber(birthMonth), birthDay, birthYear)
     
     // Formatted height for display (cm)

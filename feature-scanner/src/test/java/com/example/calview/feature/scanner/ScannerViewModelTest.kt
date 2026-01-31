@@ -36,6 +36,7 @@ class ScannerViewModelTest {
     private lateinit var viewModel: ScannerViewModel
     private val foodAnalysisService: FoodAnalysisService = mockk()
     private val mealRepository: MealRepository = mockk(relaxed = true)
+    private val gamificationRepository: com.example.calview.core.data.repository.GamificationRepository = mockk(relaxed = true)
     private val userPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val context: Context = mockk()
     private val testDispatcher = StandardTestDispatcher()
@@ -49,7 +50,7 @@ class ScannerViewModelTest {
         every { context.filesDir } returns mockFilesDir
         every { mockFilesDir.absolutePath } returns "/mock/path"
         
-        viewModel = ScannerViewModel(foodAnalysisService, mealRepository, userPreferencesRepository, context)
+        viewModel = ScannerViewModel(foodAnalysisService, mealRepository, gamificationRepository, userPreferencesRepository, context)
     }
 
     @After
@@ -135,5 +136,30 @@ class ScannerViewModelTest {
         
         // Assert
         assertEquals(ScannerUiState.Logged, viewModel.uiState.value)
+    }
+    @Test
+    fun `analyzeSpokenText invokes foodAnalysisService`() = runTest {
+        // Arrange
+        val text = "I ate a banana"
+        val mockResponse = FoodAnalysisResponse(
+            detected_items = listOf(
+                FoodItem(name = "banana", estimated_weight_g = 118, calories = 105, macros = Macros(1, 27, 0))
+            ),
+            total = NutritionalData(calories = 105, protein = 1, carbs = 27, fats = 0),
+            confidence_score = 0.99,
+            health_insight = "Good source of potassium"
+        )
+        coEvery { foodAnalysisService.analyzeFoodText(text) } returns Result.success(mockResponse)
+        coEvery { foodAnalysisService.generateFoodImage(any()) } returns "http://mock.url/image.jpg"
+        coEvery { mealRepository.logMeal(any()) } returns 2L
+        
+        // Act
+        viewModel.analyzeSpokenText(text)
+        advanceUntilIdle()
+        
+        // Assert
+        coVerify { foodAnalysisService.analyzeFoodText(text) }
+        coVerify { mealRepository.logMeal(any()) }
+        assertEquals(2L, (viewModel.uiState.value as? ScannerUiState.Redirecting)?.mealId)
     }
 }
