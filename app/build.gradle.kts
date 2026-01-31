@@ -17,8 +17,8 @@ android {
         applicationId = "com.calviewai.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 19
-        versionName = "2.0.2"
+        versionCode = 22
+        versionName = "2.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
@@ -49,6 +49,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -164,4 +165,6 @@ dependencies {
 
     // MultiDex
     implementation("androidx.multidex:multidex:2.0.1")
+    
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
