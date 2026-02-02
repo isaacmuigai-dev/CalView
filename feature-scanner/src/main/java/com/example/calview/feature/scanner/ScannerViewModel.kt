@@ -177,6 +177,8 @@ class ScannerViewModel @Inject constructor(
                                 analysisProgress = 100f,
                                 analysisStatusMessage = "Complete!",
                                 healthInsight = response.health_insight,
+                                healthSwap = response.health_swap,
+                                nutrientSynergy = response.nutrient_synergy,
                                 confidenceScore = (response.confidence_score * 100).toFloat(),
                                 detectedItemsJson = detectedItemsJsonStr
                             )
@@ -297,7 +299,9 @@ class ScannerViewModel @Inject constructor(
                             delay(300)
 
                             // Generate AI Image for the food
+                            android.util.Log.d("ScannerVM", "Generating AI image for: $combinedName")
                             val generatedImageUrl = foodAnalysisService.generateFoodImage(combinedName)
+                            android.util.Log.d("ScannerVM", "Generated image URL: $generatedImageUrl")
 
                             val updatedMeal = MealEntity(
                                 id = activeMealId,
@@ -316,6 +320,8 @@ class ScannerViewModel @Inject constructor(
                                 analysisProgress = 100f,
                                 analysisStatusMessage = "Complete!",
                                 healthInsight = response.health_insight,
+                                healthSwap = response.health_swap,
+                                nutrientSynergy = response.nutrient_synergy,
                                 confidenceScore = 100f,
                                 detectedItemsJson = detectedItemsJsonStr
                             )
@@ -502,6 +508,21 @@ class ScannerViewModel @Inject constructor(
      * Get all meals as a Flow for the My Meals screen.
      */
     fun getAllMealsFlow() = mealRepository.getAllMeals()
+    
+    /**
+     * Get a specific meal by ID as a Flow.
+     */
+    fun getMealById(mealId: Long) = mealRepository.getMealByIdFlow(mealId)
+    
+    /**
+     * Update an existing meal.
+     */
+    fun updateMeal(meal: MealEntity) {
+        viewModelScope.launch {
+            mealRepository.updateMeal(meal)
+            updateWidget()
+        }
+    }
     
     /**
      * Delete a meal by ID.

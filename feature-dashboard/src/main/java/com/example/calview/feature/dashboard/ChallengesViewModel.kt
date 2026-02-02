@@ -10,13 +10,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
+
+data class ChallengeUiModel(
+    val challenge: ChallengeEntity,
+    val participantsCount: String
+)
 
 data class ChallengesUiState(
-    val activeChallenges: List<ChallengeEntity> = emptyList(),
-    val unlockedBadges: List<BadgeEntity> = emptyList(),
+    val activeChallenges: List<ChallengeUiModel> = emptyList(),
+    val allBadges: List<BadgeEntity> = emptyList(),
     val isLoading: Boolean = true
 )
 
@@ -40,14 +47,25 @@ class ChallengesViewModel @Inject constructor(
             gamificationRepository.checkChallengeProgress()
             
             launch {
-                gamificationRepository.activeChallenges.collectLatest { challenges ->
-                    _uiState.update { it.copy(activeChallenges = challenges, isLoading = false) }
+                gamificationRepository.activeChallenges.map { challenges ->
+                    challenges.map { challenge ->
+                        // Simulate social proof: deterministically random based on ID
+                        val seed = challenge.id.hashCode().toLong()
+                        val random = Random(seed)
+                        val count = random.nextInt(1200, 8500)
+                        val formattedCount = if (count > 1000) "${String.format("%.1f", count/1000.0)}k" else count.toString()
+                        
+                        ChallengeUiModel(challenge, formattedCount)
+                    }
+                }.collectLatest { uiModels ->
+                    _uiState.update { it.copy(activeChallenges = uiModels, isLoading = false) }
                 }
             }
             
             launch {
-                gamificationRepository.unlockedBadges.collectLatest { badges ->
-                    _uiState.update { it.copy(unlockedBadges = badges) }
+                // Use allBadges (locked + unlocked) instead of just unlocked
+                gamificationRepository.allBadges.collectLatest { badges ->
+                    _uiState.update { it.copy(allBadges = badges) }
                 }
             }
         }

@@ -211,6 +211,17 @@ class DashboardViewModel @Inject constructor(
     val healthData = healthConnectManager.healthData
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HealthData())
 
+    // 7-day manual exercise calories
+    private val weeklyExerciseCalories = flow {
+        val today = java.time.LocalDate.now()
+        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val dailyFlows = (0..6).map { daysAgo ->
+            val date = today.minusDays(daysAgo.toLong())
+             exerciseRepository.getTotalCaloriesBurnedForDate(dateFormatter.format(date))
+        }
+        emitAll(combine(dailyFlows) { it.sum() })
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // Use typed combine (5 flows max with explicit type parameters)
     private val coreState = combine(
         meals, dailyGoal, selectedDate, waterConsumed, healthData
@@ -230,7 +241,8 @@ class DashboardViewModel @Inject constructor(
         rolloverAmount,
         userPreferencesRepository.waterServingSize,
         manualExerciseCalories,
-        exercises
+        exercises,
+        weeklyExerciseCalories
     ) { flows ->
         val core = flows[0] as CoreState
         val recent = flows[1] as List<MealEntity>
@@ -241,6 +253,7 @@ class DashboardViewModel @Inject constructor(
         val exerciseCals = flows[6] as Int
         @Suppress("UNCHECKED_CAST")
         val exercisesList = flows[7] as List<com.example.calview.core.data.local.ExerciseEntity>
+        val weeklyManualCals = flows[8] as Int
         
         // Only count completed meals for calorie totals
         val completedMeals = core.meals.filter { 
@@ -273,7 +286,11 @@ class DashboardViewModel @Inject constructor(
             sodium = sodium,
             waterServingSize = servingSize,
             manualExerciseCalories = exerciseCals,
-            exercises = exercisesList
+            exercises = exercisesList,
+            weeklySteps = core.health.weeklySteps,
+            weeklyCaloriesBurned = core.health.weeklyCaloriesBurned.toInt(),
+            weeklyExerciseCalories = weeklyManualCals,
+            caloriesBurnedRecord = core.health.maxCaloriesBurnedRecord.toInt()
         )
     }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
          Pair(intermediate, waterSettings)
@@ -344,7 +361,13 @@ class DashboardViewModel @Inject constructor(
             waterServingSize = intermediate.waterServingSize,
             // Exercise tracking
             exercises = intermediate.exercises,
-            manualExerciseCalories = intermediate.manualExerciseCalories
+            manualExerciseCalories = intermediate.manualExerciseCalories,
+            
+            // Weekly activity data
+            weeklySteps = intermediate.weeklySteps,
+            weeklyCaloriesBurned = intermediate.weeklyCaloriesBurned,
+            weeklyExerciseCalories = intermediate.weeklyExerciseCalories,
+            caloriesBurnedRecord = intermediate.caloriesBurnedRecord
         )
     }.combine(userPreferencesRepository.hasSeenDashboardWalkthrough) { state, hasSeen ->
         state.copy(hasSeenWalkthrough = hasSeen)
@@ -869,7 +892,11 @@ private data class IntermediateState(
     val sodium: Int,
     val waterServingSize: Int,
     val manualExerciseCalories: Int = 0,
-    val exercises: List<com.example.calview.core.data.local.ExerciseEntity> = emptyList()
+    val exercises: List<com.example.calview.core.data.local.ExerciseEntity> = emptyList(),
+    val weeklySteps: Long = 0,
+    val weeklyCaloriesBurned: Int = 0,
+    val weeklyExerciseCalories: Int = 0,
+    val caloriesBurnedRecord: Int = 0
 )
 
 private data class MacroState(
@@ -932,7 +959,13 @@ data class DashboardState(
     val allMealDates: List<Long> = emptyList(),
     // Exercise tracking
     val exercises: List<com.example.calview.core.data.local.ExerciseEntity> = emptyList(),
-    val manualExerciseCalories: Int = 0
+    val manualExerciseCalories: Int = 0,
+    
+    // Weekly activity data
+    val weeklySteps: Long = 0,
+    val weeklyCaloriesBurned: Int = 0, // Health Connect only
+    val weeklyExerciseCalories: Int = 0, // Manual only
+    val caloriesBurnedRecord: Int = 0
 )
 
 

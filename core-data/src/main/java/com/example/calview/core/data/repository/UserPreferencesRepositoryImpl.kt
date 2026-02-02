@@ -427,6 +427,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                 preferences[PreferencesKeys.START_WEIGHT] = weight
             }
         }
+
+        // Record weight in history table
+        weightHistoryRepository.insertWeight(
+            WeightHistoryEntity(
+                weight = weight,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+
         syncToFirestore()
     }
 

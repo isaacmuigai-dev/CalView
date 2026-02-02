@@ -34,9 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.Redo
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -82,6 +80,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.Canvas
 import com.example.calview.core.data.local.MealEntity
 import com.example.calview.core.ui.components.CalAICard
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
@@ -91,25 +93,32 @@ import com.example.calview.feature.dashboard.components.MacroStatsRow
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.calview.feature.dashboard.R
+
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import com.example.calview.core.ui.walkthrough.*
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.foundation.layout.IntrinsicSize
 import com.example.calview.core.ui.util.rememberHapticsManager
 import com.example.calview.core.ui.theme.CalViewTheme
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.core.ui.theme.InterFontFamily
+
+// Modern color palette for Activity Card
+private val GradientCyan = Color(0xFF059669) // Darker Emerald Green
+private val GradientPurple = Color(0xFF7C3AED)
+private val GradientPink = Color(0xFFEC4899)
+private val GradientOrange = Color(0xFFF59E0B)
 
 @Composable
 fun DashboardScreen(
@@ -372,6 +381,8 @@ fun DashboardContent(
     var calendarRect by remember { mutableStateOf<Rect?>(null) }
     var healthConnectRect by remember { mutableStateOf<Rect?>(null) }
     var recentMealsRect by remember { mutableStateOf<Rect?>(null) }
+    var aiCoachRect by remember { mutableStateOf<Rect?>(null) }
+    var weeklyActivityRect by remember { mutableStateOf<Rect?>(null) }
     
     var currentStepIndex by remember(state.hasSeenWalkthrough) { 
         mutableIntStateOf(if (!state.hasSeenWalkthrough) 0 else -1) 
@@ -394,13 +405,13 @@ fun DashboardContent(
             id = "score",
             title = stringResource(R.string.walkthrough_score_title),
             description = stringResource(R.string.walkthrough_score_desc),
-            targetRect = healthScoreRect
+            targetRect = aiCoachRect
         ),
         WalkthroughStep(
-            id = "health",
-            title = stringResource(R.string.walkthrough_health_title),
-            description = stringResource(R.string.walkthrough_health_desc),
-            targetRect = healthConnectRect
+            id = "activity",
+            title = stringResource(R.string.activity_title), // "Activity"
+            description = stringResource(R.string.walkthrough_activity_desc), // New string needed
+            targetRect = weeklyActivityRect
         ),
         WalkthroughStep(
             id = "water",
@@ -416,35 +427,44 @@ fun DashboardContent(
         )
     )
 
+    // Pager State (Hoisted for access in LaunchedEffect)
+    val pagerState = rememberPagerState(pageCount = { 4 })
+
     // Auto-scroll logic for walkthrough steps to ensure target items are visible
     LaunchedEffect(currentStepIndex) {
         if (currentStepIndex != -1) {
             // Give layout a moment to settle and for rects to be captured
             kotlinx.coroutines.delay(150)
             
-            // Skip Health Connect step if already connected
-            if (currentStepIndex == 3 && state.isHealthConnected) {
-                currentStepIndex++
+            // Skip Heath Connect step if already connected
+            if (walkthroughSteps.getOrNull(currentStepIndex)?.id == "health" && state.isHealthConnected) {
+                if (currentStepIndex < walkthroughSteps.lastIndex) {
+                    currentStepIndex++
+                }
                 return@LaunchedEffect
             }
             
-            val targetScrollIndex = when (currentStepIndex) {
-                0 -> 1 // Nutrition
-                1 -> 0 // Calendar/Header
-                2 -> 2 // Health Score
-                3 -> 3 // Health Connect button
-                4 -> { // Water Tracker
-                    var index = 4 // Base: UnifiedActivity
-                    if (!state.isHealthConnected) index++ // HC Button visible
-                    if (state.exercises.isNotEmpty()) index++ // Exercise Summary visible
-                    index // Water Tracker
+            // Scroll Pager to relevant page
+            try {
+                when (walkthroughSteps.getOrNull(currentStepIndex)?.id) {
+                    "nutrition" -> pagerState.animateScrollToPage(0)
+                    "score" -> { /* No pager scroll, it's below */ }
+                    "health", "activity" -> pagerState.animateScrollToPage(2)
+                    "water" -> pagerState.animateScrollToPage(1)
                 }
-                5 -> { // Recently Uploaded Header
-                    var index = 5 // Base: UnifiedActivity + Water
-                    if (!state.isHealthConnected) index++ // HC Button visible
-                    if (state.exercises.isNotEmpty()) index++ // Exercise Summary visible
-                    index // "Recently Uploaded" Text
-                }
+            } catch (e: Exception) {
+                // Ignore pager scroll errors
+            }
+
+            // Scroll LazyColumn to item
+            val targetScrollIndex = when (walkthroughSteps.getOrNull(currentStepIndex)?.id) {
+                "nutrition" -> 1 // Pager
+                "calendar" -> 0 // Header
+                "score" -> 2 // AI Coach (Item index 2)
+                "health" -> 1 // Pager (Health Connect/Activity on Page 2)
+                "water" -> 1 // Pager (Water on Page 1)
+                "activity" -> 1 // Pager (Activity on Page 2)
+                "meal" -> 4 // Recently Uploaded Header (Item index 4 based on view_file structure)
                 else -> -1
             }
             
@@ -505,185 +525,316 @@ fun DashboardContent(
         }
 
         item {
-
-        NutritionOverviewCard(
-            modifier = Modifier.onPositionedRect { nutritionRect = it },
-            remainingCalories = state.remainingCalories,
-            consumedCalories = state.consumedCalories,
-            goalCalories = state.goalCalories,
-            protein = state.proteinGoal,
-            carbs = state.carbsGoal,
-            fats = state.fatsGoal,
-            proteinConsumed = state.proteinG,
-            carbsConsumed = state.carbsG,
-            fatsConsumed = state.fatsG,
-            fiber = state.fiberGoal,
-            sugar = state.sugarGoal,
-            sodium = state.sodiumGoal,
-            fiberConsumed = state.fiberG,
-            sugarConsumed = state.sugarG,
-            sodiumConsumed = state.sodiumG,
-            rolloverCaloriesEnabled = state.rolloverCaloriesEnabled,
-            rolloverCaloriesAmount = state.rolloverCaloriesAmount,
-            burnedCalories = state.burnedCaloriesAdded,
-            addCaloriesBackEnabled = state.addCaloriesBackEnabled
-        )
-        }
+            // Pager State for horizontal scrollable cards
             
-
-        
-        // Health Score Card - Premium design with AI Coach tip
-        item {
-            HealthScoreCardPremium(
-                modifier = Modifier.onPositionedRect { healthScoreRect = it },
-                score = state.healthScore,
-                recommendation = state.healthRecommendation,
-                coachTip = state.coachTip
-            )
-        }
-        
-        // Health Connect Button - Standalone (outside any CalAICard)
-        if (!state.isHealthConnected) {
-            item {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onPositionedRect { healthConnectRect = it },
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 2.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Box(
+            // Shared state for eaten/left toggle across all nutrition cards
+            var showEaten by remember { mutableStateOf(true) }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onPositionedRect { nutritionRect = it },
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth(),
+                    pageSpacing = 0.dp,
+                    contentPadding = PaddingValues(0.dp)
+                ) { page ->
+                    when (page) {
+                        // Page 1: Calories + Macros (Protein, Carbs, Fats)
+                        0 -> {
+                            Column(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .height(300.dp), // Reduced from 360.dp for a more compact design
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.FavoriteBorder,
-                                    contentDescription = stringResource(R.string.connect_google_health),
-                                    tint = Color(0xFFEA4335),
-                                    modifier = Modifier.size(24.dp)
+                                // Calories Card
+                                CaloriesCardRedesigned(
+                                    remainingCalories = state.remainingCalories,
+                                    isVisible = pagerState.currentPage == 0,
+                                    consumedCalories = state.consumedCalories,
+                                    goalCalories = state.goalCalories,
+                                    rolloverCaloriesEnabled = state.rolloverCaloriesEnabled,
+                                    rolloverCaloriesAmount = state.rolloverCaloriesAmount,
+                                    burnedCalories = state.burnedCaloriesAdded,
+                                    addCaloriesBackEnabled = state.addCaloriesBackEnabled,
+                                    showEaten = showEaten,
+                                    onToggle = { showEaten = !showEaten }
+                                )
+                                
+                                // Macros Row (Protein, Carbs, Fats)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    MacroCardRedesigned(
+                                        label = "Protein",
+                                        isVisible = pagerState.currentPage == 0,
+                                        consumed = state.proteinG,
+                                        goal = state.proteinGoal,
+                                        unit = "g",
+                                        icon = Icons.Filled.Favorite,
+                                        iconTint = Color(0xFFE57373),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    MacroCardRedesigned(
+                                        label = "Carbs",
+                                        isVisible = pagerState.currentPage == 0,
+                                        consumed = state.carbsG,
+                                        goal = state.carbsGoal,
+                                        unit = "g",
+                                        icon = Icons.Filled.LocalFlorist,
+                                        iconTint = Color(0xFFE5A87B),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    MacroCardRedesigned(
+                                        label = "Fats",
+                                        isVisible = pagerState.currentPage == 0,
+                                        consumed = state.fatsG,
+                                        goal = state.fatsGoal,
+                                        unit = "g",
+                                        icon = Icons.Filled.WaterDrop,
+                                        iconTint = Color(0xFF64B5F6),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Page 2: Micros (Fiber, Sugar, Sodium) + Water
+                        1 -> {
+                            var showWaterSettings by remember { mutableStateOf(false) }
+                            var waterServingSize by remember(state.waterServingSize) { 
+                                mutableIntStateOf(state.waterServingSize) 
+                            }
+                            
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp), // Reduced from 360.dp
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                // Micros Row (Fiber, Sugar, Sodium) - uniform height
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(IntrinsicSize.Max),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    MacroCardRedesigned(
+                                        label = "Fiber",
+                                        isVisible = pagerState.currentPage == 1,
+                                        consumed = state.fiberG,
+                                        goal = state.fiberGoal,
+                                        unit = "g",
+                                        icon = Icons.Filled.Spa,
+                                        iconTint = Color(0xFF9575CD),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                    )
+                                    MacroCardRedesigned(
+                                        label = "Sugar",
+                                        isVisible = pagerState.currentPage == 1,
+                                        consumed = state.sugarG,
+                                        goal = state.sugarGoal,
+                                        unit = "g",
+                                        icon = Icons.Filled.Cookie,
+                                        iconTint = Color(0xFFF06292),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                    )
+                                    MacroCardRedesigned(
+                                        label = "Sodium",
+                                        isVisible = pagerState.currentPage == 1,
+                                        consumed = state.sodiumG,
+                                        goal = state.sodiumGoal,
+                                        unit = "mg",
+                                        icon = Icons.Filled.Grain,
+                                        iconTint = Color(0xFFFFB74D),
+                                        showEaten = showEaten,
+                                        onToggle = { showEaten = !showEaten },
+                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                    )
+                                }
+                                
+                                // Water Card (full width)
+                                WaterCardRedesigned(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .onPositionedRect { waterRect = it },
+                                    isVisible = pagerState.currentPage == 1,
+                                    consumed = state.waterConsumed,
+                                    servingSize = waterServingSize,
+                                    onAdd = { onAddWater(waterServingSize) },
+                                    onRemove = { onRemoveWater(waterServingSize) },
+                                    onSettingsClick = { showWaterSettings = true }
                                 )
                             }
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.connect_google_health),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = stringResource(R.string.sync_steps_calories),
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            
+                            // Water Settings Dialog
+                            WaterSettingsDialog(
+                                showDialog = showWaterSettings,
+                                currentServingSize = waterServingSize,
+                                onDismiss = { showWaterSettings = false },
+                                onServingSizeChange = { waterServingSize = it },
+                                isPremium = true,
+                                waterReminderEnabled = state.waterReminderEnabled,
+                                waterReminderInterval = state.waterReminderIntervalHours,
+                                waterReminderStartHour = state.waterReminderStartHour,
+                                waterReminderEndHour = state.waterReminderEndHour,
+                                waterReminderDailyGoal = state.waterReminderDailyGoalMl,
+                                onWaterReminderEnabledChange = onWaterReminderEnabledChange,
+                                onWaterReminderIntervalChange = onWaterReminderIntervalChange,
+                                onWaterReminderDailyGoalChange = onWaterReminderDailyGoalChange,
+                                onUpgradeClick = onUpgradeClick
+                            )
+                        }
+                        
+                        // Page 3: Steps + Calories Burned + Weekly Activity Summary
+                        2 -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp) // Reduced from 360.dp
+                                    .onPositionedRect { healthConnectRect = it },
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                // Steps + Calories Burned Row
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Steps Card (larger - 55% width)
+                                    StepsTodayCardRedesigned(
+                                        steps = state.steps.toInt(),
+                                        isVisible = pagerState.currentPage == 2,
+                                        goal = state.stepsGoal,
+                                        isConnected = state.isHealthConnected,
+                                        onConnectClick = onConnectHealth,
+                                        modifier = Modifier.weight(1.2f)
+                                    )
+                                    
+                                    // Calories Burned Card (smaller - 45% width)
+                                    CaloriesBurnedCardRedesigned(
+                                        calories = state.caloriesBurned,
+                                        isVisible = pagerState.currentPage == 2,
+                                        stepsCalories = state.steps.toInt() / 20, // Approx calories from steps
+                                        exerciseCalories = state.manualExerciseCalories, // From logged exercises
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                
+                                // Weekly Activity Summary Card (full width)
+                                WeeklyActivitySummaryCard(
+                                    weeklySteps = state.weeklySteps,
+                                    weeklyCaloriesBurned = state.weeklyCaloriesBurned + state.weeklyExerciseCalories,
+                                    caloriesRecord = state.caloriesBurnedRecord,
+                                    exerciseCalories = state.weeklyExerciseCalories,
+                                    isVisible = pagerState.currentPage == 2,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .onPositionedRect { weeklyActivityRect = it }
                                 )
                             }
                         }
                         
-                        // Dark rounded pill button like the image
-                        Button(
-                            onClick = {
-                                android.util.Log.d("HealthConnect", "Button CLICKED!")
-                                onConnectHealth()
-                            },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF1C1C1E)
-                            ),
-                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.connect),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
+                        // Page 4: Today's Exercises
+                        3 -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp), // Reduced from 360.dp
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                if (state.exercises.isNotEmpty()) {
+                                    ExerciseSummaryCard(
+                                        exercises = state.exercises,
+                                        totalCalories = state.manualExerciseCalories
+                                    )
+                                } else {
+                                    // Empty state when no exercises logged
+                                    CalAICard(modifier = Modifier.fillMaxWidth()) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(24.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.FitnessCenter,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(48.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Text(
+                                                text = "No exercises logged today",
+                                                fontFamily = InterFontFamily,
+                                                fontSize = 14.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = "Log your workouts to track calories burned",
+                                                fontFamily = InterFontFamily,
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                            )
+                                        }
+                                    }
+                                }
                         }
+                    }
+                }
+            }
+                
+                // Page Indicators (4 dots) - Theme-aware colors
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(4) { index ->
+                        val isSelected = pagerState.currentPage == index
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .size(if (isSelected) 8.dp else 6.dp)
+                                .background(
+                                    color = if (isSelected) 
+                                        MaterialTheme.colorScheme.onSurface 
+                                    else 
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                    shape = CircleShape
+                                )
+                        )
                     }
                 }
             }
         }
         
-        // Unified Activity Card: Steps + Calories side by side
+        // AI Coach Card (standalone, above Weekly Review)
         item {
-            UnifiedActivityCard(
-                steps = state.steps.toInt(),
-                stepsGoal = state.stepsGoal,
-                calories = state.caloriesBurned,
-                isConnected = state.isHealthConnected,
-                exerciseCalories = state.manualExerciseCalories
-            )
-        }
-        
-        // Exercise Summary Card - shows logged exercises
-        if (state.exercises.isNotEmpty()) {
-            item {
-                ExerciseSummaryCard(
-                    exercises = state.exercises,
-                    totalCalories = state.manualExerciseCalories
+            Box(modifier = Modifier.fillMaxWidth().onPositionedRect { aiCoachRect = it }) {
+                AICoachCard(
+                    coachTip = state.coachTip
                 )
             }
-        }
-        
-        // Water Tracker Card - Premium design
-        item {
-            var showWaterSettings by remember { mutableStateOf(false) }
-            var waterServingSize by remember(state.waterServingSize) { 
-                mutableIntStateOf(state.waterServingSize) 
-            }
-            
-            WaterCardPremium(
-                modifier = Modifier.onPositionedRect { waterRect = it },
-                consumed = state.waterConsumed,
-                servingSize = waterServingSize,
-                onAdd = { onAddWater(waterServingSize) },
-                onRemove = { onRemoveWater(waterServingSize) },
-                onSettingsClick = { showWaterSettings = true }
-            )
-            
-            // Water Settings Dialog
-            WaterSettingsDialog(
-                showDialog = showWaterSettings,
-                currentServingSize = waterServingSize,
-                onDismiss = { showWaterSettings = false },
-                onServingSizeChange = { waterServingSize = it },
-                // Water Reminder Props
-                isPremium = true, // Access from somewhere? DashboardState doesn't have isPremium?
-                // Wait, DashboardState logic for premium? No.
-                // We should pass isPremium to DashboardContent or assume true/false.
-                // SettingsViewModel has isPremium. DashboardViewModel currently doesn't expose it in DashboardState, but it probably should or we pass it.
-                // Let's check DashboardState. It has no isPremium.
-                // However, WaterCardPremium implies it's "Premium Design", but logic requires checking.
-                // Let's use a default or fetch it.
-                // For now, let's assume we pass it or check logic.
-                // Ah, MainActivity passes isPremium to DashboardContent? No.
-                // I will add isPremium to DashboardContent params later if needed. For now let's use the state's implicit knowledge or fetch it.
-                // Actually, let's just use 'true' for now or handle it.
-                // Wait, `WaterCardPremium` is used.
-                // Let's pass the reminder state.
-                waterReminderEnabled = state.waterReminderEnabled,
-                waterReminderInterval = state.waterReminderIntervalHours,
-                waterReminderStartHour = state.waterReminderStartHour,
-                waterReminderEndHour = state.waterReminderEndHour,
-                waterReminderDailyGoal = state.waterReminderDailyGoalMl,
-                onWaterReminderEnabledChange = onWaterReminderEnabledChange,
-                onWaterReminderIntervalChange = onWaterReminderIntervalChange,
-                onWaterReminderDailyGoalChange = onWaterReminderDailyGoalChange,
-                onUpgradeClick = onUpgradeClick
-            )
         }
 
         item {
@@ -944,9 +1095,10 @@ fun HeaderSection(streakDays: Int = 0) {
             ) {
                 Text(
                     stringResource(R.string.dashboard_title),
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = com.example.calview.core.ui.theme.WaterlilyFontFamily,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-1).sp,
+                    fontFamily = com.example.calview.core.ui.theme.BrandingFontFamily,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
             }
@@ -1337,41 +1489,47 @@ fun NutritionOverviewCard(
                                     style = typography.secondaryLabel
                                 )
                             } else {
-                                // Hero "remaining" number with Space Grotesk
+                                // Hero "remaining" number with Space Grotesk - Reduced to match Macro cards
                                 Text(
                                     text = animatedRemaining.toString(),
                                     style = typography.heroNumber.copy(
-                                        fontSize = 42.sp
+                                        fontSize = 16.sp, // Match MacroCardUnified
+                                        fontFamily = SpaceGroteskFontFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        letterSpacing = (-0.02).sp
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        // Label with Inter - lighter and more breathable
-                                        Text(
-                                            text = buildAnnotatedString {
-                                                withStyle(SpanStyle(
-                                                    fontFamily = InterFontFamily,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )) {
-                                                    append("Calories ")
-                                                }
-                                                withStyle(SpanStyle(
-                                                    fontFamily = InterFontFamily,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )) {
-                                                    append("left")
-                                                }
-                                            },
-                                            style = typography.secondaryLabel
-                                        )
-                                        
-                                        // Indicators Row (Rollover + Active)
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
+                                        Column {
+                                            // Label with Inter - lighter and more breathable
+                                            Text(
+                                                text = buildAnnotatedString {
+                                                    withStyle(SpanStyle(
+                                                        fontFamily = InterFontFamily,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        fontSize = 10.sp // Match MacroCardUnified
+                                                    )) {
+                                                        append("Calories ")
+                                                    }
+                                                    withStyle(SpanStyle(
+                                                        fontFamily = InterFontFamily,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        fontSize = 10.sp // Match MacroCardUnified
+                                                    )) {
+                                                        append("left")
+                                                    }
+                                                },
+                                            )
+                                        }
+
+                                        // Indicators Column (Rollover + Active)
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
                                             // Rollover indicator
                                             if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
@@ -1387,12 +1545,12 @@ fun NutritionOverviewCard(
                                                         Icon(
                                                             imageVector = Icons.AutoMirrored.Filled.Redo, // Redo icon for rollover
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(10.dp),
+                                                            modifier = Modifier.size(8.dp), // Reduced size
                                                             tint = Color(0xFF2E7D32) // Dark green (matched)
                                                         )
                                                         Text(
                                                             text = "+$rolloverCaloriesAmount Rollover",
-                                                            style = MaterialTheme.typography.labelSmall,
+                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), // Reduced size
                                                             color = Color(0xFF2E7D32), // Dark green (matched)
                                                             fontWeight = FontWeight.Bold
                                                         )
@@ -1414,12 +1572,12 @@ fun NutritionOverviewCard(
                                                         Icon(
                                                             imageVector = Icons.Default.LocalFireDepartment, 
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(10.dp),
+                                                            modifier = Modifier.size(8.dp), // Reduced size
                                                             tint = Color(0xFF2E7D32) // Dark green
                                                         )
                                                         Text(
                                                             text = "+$burnedCalories Active",
-                                                            style = MaterialTheme.typography.labelSmall,
+                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), // Reduced size
                                                             color = Color(0xFF2E7D32),
                                                             fontWeight = FontWeight.Bold
                                                         )
@@ -1433,13 +1591,13 @@ fun NutritionOverviewCard(
                     }
                 }
                 
-                // Calorie ring
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+                // Calorie ring - Reduced size
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(60.dp)) {
                     CalorieRing(
                         consumed = consumedCalories.toFloat(), 
                         goal = goalCalories.toFloat(),
                     )
-                    Icon(Icons.Filled.LocalFireDepartment, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Filled.LocalFireDepartment, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -1545,6 +1703,16 @@ fun MicroCardUnified(
 ) {
     val remaining = maxOf(0, goalValue - consumedValue)
     
+    // Helper to format large numbers (e.g. 2300 -> 2.3K)
+    fun formatValue(value: Int): String {
+        return if (value >= 1000) {
+            val k = value / 1000f
+            if (k % 1f == 0f) "${k.toInt()}K" else String.format(java.util.Locale.US, "%.1fK", k)
+        } else {
+            value.toString()
+        }
+    }
+    
     // Calculate progress
     val progress = if (goalValue > 0) (consumedValue.toFloat() / goalValue).coerceIn(0f, 1f) else 0f
     
@@ -1575,16 +1743,16 @@ fun MicroCardUnified(
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(SpanStyle(
-                                    fontSize = 16.sp,
+                                    fontSize = 13.sp, // Reduced from 16.sp
                                     fontWeight = FontWeight.Bold
                                 )) {
-                                    append(consumedValue.toString())
+                                    append(formatValue(consumedValue))
                                 }
                                 withStyle(SpanStyle(
                                     fontSize = 10.sp,
                                     color = Color.Gray
                                 )) {
-                                    append(" /${goalValue}$unit")
+                                    append(" /${formatValue(goalValue)}$unit")
                                 }
                             }
                         )
@@ -1602,8 +1770,8 @@ fun MicroCardUnified(
                         )
                     } else {
                         Text(
-                            text = "${remaining}$unit",
-                            fontSize = 16.sp,
+                            text = "${formatValue(remaining)}$unit",
+                            fontSize = 13.sp, // Reduced from 16.sp
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -1717,7 +1885,7 @@ fun HealthScoreCardPremium(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
-                    .background(Color(0xFFF0F0F0))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Box(
                     modifier = Modifier
@@ -1800,7 +1968,9 @@ fun HealthScoreCardPremium(
                             text = tip.message,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = 16.sp
+                            lineHeight = 16.sp,
+                            maxLines = 3,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -1814,6 +1984,165 @@ fun HealthScoreCardPremium(
                     color = Color.Gray,
                     lineHeight = 14.sp
                 )
+            }
+        }
+    }
+}
+
+// ============ HEALTH SCORE CARD (without AI Coach) ============
+@Composable
+fun HealthScoreCard(
+    score: Int,
+    recommendation: String = "Track your meals to get personalized health insights.",
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val animatedScore by animateFloatAsState(
+        targetValue = if (isVisible) score / 10f else 0f,
+        animationSpec = tween(800),
+        label = "health_score"
+    )
+    
+    val animatedScoreInt by animateIntAsState(
+        targetValue = if (isVisible) score else 0,
+        animationSpec = tween(800),
+        label = "health_score_int"
+    )
+    
+    // Dynamic color based on score
+    val scoreColor = when {
+        score >= 7 -> Color(0xFF4CAF50) // Green
+        score >= 4 -> Color(0xFFFF9800) // Orange
+        else -> Color(0xFFF44336) // Red
+    }
+    
+    CalAICard(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Health score",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "$animatedScoreInt/10",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = scoreColor
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Progress bar with gradient effect
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(animatedScore)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = when {
+                                    score >= 7 -> listOf(Color(0xFF81C784), Color(0xFF4CAF50))
+                                    score >= 4 -> listOf(Color(0xFFFFB74D), Color(0xFFFF9800))
+                                    else -> listOf(Color(0xFFEF5350), Color(0xFFF44336))
+                                }
+                            )
+                        )
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = recommendation,
+                fontSize = 10.sp,
+                color = Color.Gray,
+                lineHeight = 13.sp,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// ============ AI COACH CARD (standalone) ============
+@Composable
+fun AICoachCard(
+    coachTip: CoachMessageGenerator.CoachTip?,
+    modifier: Modifier = Modifier
+) {
+    coachTip?.let { tip ->
+        CalAICard(modifier = modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Emoji Container
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tip.emoji,
+                            fontSize = 20.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "AI Coach",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = tip.category.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(6.dp))
+                        
+                        Text(
+                            text = tip.message,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            lineHeight = 18.sp,
+                            maxLines = 6,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
     }
@@ -2344,6 +2673,803 @@ fun WaterCardPremium(
         }
     }
 }
+
+// ============================================================================
+// REDESIGNED DASHBOARD CARD COMPOSABLES FOR HORIZONTAL PAGER
+// ============================================================================
+
+// Redesigned Calories Card - matches design image Page 1
+@Composable
+fun CaloriesCardRedesigned(
+    remainingCalories: Int,
+    consumedCalories: Int,
+    goalCalories: Int,
+    rolloverCaloriesEnabled: Boolean = false,
+    rolloverCaloriesAmount: Int = 0,
+    burnedCalories: Int = 0,
+    addCaloriesBackEnabled: Boolean = false,
+    showEaten: Boolean = true,
+    onToggle: () -> Unit = {},
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    // Animate number changes
+    val animatedCalories by animateIntAsState(
+        targetValue = if (isVisible) (if (showEaten) consumedCalories else remainingCalories) else 0,
+        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+        label = "calories_animation"
+    )
+    
+    CalAICard(modifier = modifier.fillMaxWidth(), onClick = onToggle) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                AnimatedContent(
+                    targetState = showEaten,
+                    transitionSpec = {
+                        (slideInVertically { height -> height } + fadeIn())
+                            .togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                    },
+                    label = "calories_content"
+                ) { isEaten ->
+                    Column {
+                        if (isEaten) {
+                            // Show consumed/goal format when showing "eaten"
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(
+                                        fontFamily = SpaceGroteskFontFamily,
+                                        fontSize = 32.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = (-0.02).sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )) {
+                                        append(animatedCalories.toString())
+                                    }
+                                    withStyle(SpanStyle(
+                                        fontFamily = InterFontFamily,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )) {
+                                        append("/$goalCalories")
+                                    }
+                                }
+                            )
+                            Text(
+                                text = buildAnnotatedString {
+                                    append("Calories ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                        append("eaten")
+                                    }
+                                },
+                                fontFamily = InterFontFamily,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            // Show remaining/goal format when showing "left"
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(
+                                        fontFamily = SpaceGroteskFontFamily,
+                                        fontSize = 32.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = (-0.02).sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )) {
+                                        append(animatedCalories.toString())
+                                    }
+                                    withStyle(SpanStyle(
+                                        fontFamily = InterFontFamily,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )) {
+                                        append("/$goalCalories")
+                                    }
+                                }
+                            )
+                            Text(
+                                text = buildAnnotatedString {
+                                    append("Calories ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                        append("left")
+                                    }
+                                },
+                                fontFamily = InterFontFamily,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                
+                // Show extra info badges
+                if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Redo,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = " +$rolloverCaloriesAmount rollover",
+                            fontSize = 10.sp,
+                            color = Color(0xFF4CAF50)
+                        )
+                    }
+                }
+                if (addCaloriesBackEnabled && burnedCalories > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.LocalFireDepartment,
+                            contentDescription = null,
+                            tint = Color(0xFFFF9800),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = " +$burnedCalories burned",
+                            fontSize = 10.sp,
+                            color = Color(0xFFFF9800)
+                        )
+                    }
+                }
+            }
+            
+                // Calorie ring
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+                CalorieRing(
+                    consumed = if (isVisible) consumedCalories.toFloat() else 0f,
+                    goal = goalCalories.toFloat(),
+                )
+                Icon(
+                    imageVector = Icons.Filled.LocalFireDepartment,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+// Redesigned Macro Card - compact design for horizontal row
+@Composable
+fun MacroCardRedesigned(
+    label: String,
+    consumed: Int,
+    goal: Int,
+    unit: String,
+    icon: ImageVector,
+    iconTint: Color,
+    showEaten: Boolean = true,
+    onToggle: () -> Unit = {},
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val remaining = maxOf(0, goal - consumed)
+    val progress = if (goal > 0) (consumed.toFloat() / goal).coerceIn(0f, 1f) else 0f
+    
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (isVisible) progress else 0f,
+        animationSpec = tween(500),
+        label = "macroProgress"
+    )
+    
+    val displayValue = if (showEaten) consumed else remaining
+    val animatedDisplayValue by animateIntAsState(
+        targetValue = if (isVisible) displayValue else 0,
+        animationSpec = tween(500),
+        label = "macroValue"
+    )
+    val displayLabel = if (showEaten) "$label eaten" else "$label left"
+    
+    CalAICard(modifier = modifier, onClick = onToggle) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // Value with unit and goal
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )) {
+                        append(animatedDisplayValue.toString())
+                    }
+                    withStyle(SpanStyle(
+                        fontFamily = InterFontFamily,
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )) {
+                        append("/$goal$unit")
+                    }
+                }
+            )
+            
+            // Label (eaten/left)
+            Text(
+                text = displayLabel,
+                fontFamily = InterFontFamily,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Progress ring with icon
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(44.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Track
+                    drawArc(
+                        color = iconTint.copy(alpha = 0.2f),
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                    // Progress
+                    drawArc(
+                        color = iconTint,
+                        startAngle = -90f,
+                        sweepAngle = 360f * animatedProgress,
+                        useCenter = false,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 4.dp.toPx(),
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    )
+                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = iconTint
+                )
+            }
+        }
+    }
+}
+
+// Redesigned Steps Card with integrated Health Connect CTA
+@Composable
+fun StepsTodayCardRedesigned(
+    steps: Int,
+    goal: Int,
+    isConnected: Boolean,
+    onConnectClick: () -> Unit,
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val progress = if (goal > 0) (steps.toFloat() / goal).coerceIn(0f, 1f) else 0f
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (isVisible) progress else 0f,
+        animationSpec = tween(800),
+        label = "stepsProgress"
+    )
+    
+    val animatedSteps by animateIntAsState(
+        targetValue = if (isVisible) steps else 0,
+        animationSpec = tween(800),
+        label = "stepsValue"
+    )
+    
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header: Steps value / goal
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFontFamily
+                    )) {
+                        append(animatedSteps.toString())
+                    }
+                    withStyle(SpanStyle(
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        fontFamily = InterFontFamily
+                    )) {
+                        append(" /$goal")
+                    }
+                }
+            )
+            
+            Text(
+                text = stringResource(R.string.steps_today),
+                fontFamily = InterFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            if (isConnected) {
+                // Show full circular progress ring - properly sized
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .aspectRatio(1f), // Ensure perfect circle
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            // Track arc (full circle)
+                            drawArc(
+                                color = Color(0xFFE0E0E0),
+                                startAngle = 0f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 6.dp.toPx(),
+                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                                )
+                            )
+                            // Progress arc
+                            drawArc(
+                                color = Color(0xFF424242),
+                                startAngle = -90f,
+                                sweepAngle = 360f * animatedProgress,
+                                useCenter = false,
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 6.dp.toPx(),
+                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                                )
+                            )
+                        }
+                        // Walking icon in center
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                            contentDescription = null,
+                            tint = Color(0xFF424242),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            } else {
+                // Health Connect CTA button inside card
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { 
+                            android.util.Log.d("StepsTodayCard", "Health Connect CTA clicked!")
+                            onConnectClick() 
+                        },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Google Health icon
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(Color(0xFFF5F5F5), RoundedCornerShape(6.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color(0xFFEA4335),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        
+                        Text(
+                            text = stringResource(R.string.connect_health_to_track_steps),
+                            fontFamily = InterFontFamily,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 12.sp,
+                            maxLines = 2
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Redesigned Calories Burned Card
+@Composable
+fun CaloriesBurnedCardRedesigned(
+    calories: Int,
+    stepsCalories: Int,
+    exerciseCalories: Int = 0,
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val animatedBurned by animateIntAsState(
+        targetValue = if (isVisible) calories else 0,
+        animationSpec = tween(800),
+        label = "burnedValue"
+    )
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header: fire icon + value on top
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocalFireDepartment,
+                    contentDescription = null,
+                    tint = Color(0xFFFF9800),
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = animatedBurned.toString(),
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Text(
+                text = stringResource(R.string.calories_burned),
+                fontFamily = InterFontFamily,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Steps and Exercise in one row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Steps calories row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Sneaker/Steps icon in dark circle
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(Color(0xFF1C1C1E), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    
+                    Column {
+                        Text(
+                            text = stringResource(R.string.steps_label),
+                            fontFamily = InterFontFamily,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "+$stepsCalories kcal",
+                            fontFamily = InterFontFamily,
+                            fontSize = 9.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+                
+                // Exercise calories row (only show if exerciseCalories > 0)
+                if (exerciseCalories > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Dumbbell icon in orange circle
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(Color(0xFFFF9800), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FitnessCenter,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                        
+                        Column {
+                            Text(
+                                text = "Exercise",
+                                fontFamily = InterFontFamily,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "+$exerciseCalories kcal",
+                                fontFamily = InterFontFamily,
+                                fontSize = 9.sp,
+                                color = Color(0xFFFF9800)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// Redesigned Water Card with glass icon
+@Composable
+fun WaterCardRedesigned(
+    consumed: Int,
+    servingSize: Int = 250,
+    onAdd: () -> Unit,
+    onRemove: () -> Unit,
+    onSettingsClick: () -> Unit = {},
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val animatedConsumed by animateIntAsState(
+        targetValue = if (isVisible) consumed else 0,
+        animationSpec = tween(800),
+        label = "waterValue"
+    )
+    val cups = consumed / servingSize
+    
+    CalAICard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Water glass icon (blue)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color(0xFFE3F2FD), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Custom glass-like representation using LocalDrink icon
+                Icon(
+                    imageVector = Icons.Filled.LocalDrink,
+                    contentDescription = null,
+                    tint = Color(0xFF2196F3),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.water_label),
+                    fontFamily = InterFontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.ml_suffix, animatedConsumed),
+                        fontFamily = SpaceGroteskFontFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "($cups cups)",
+                        fontFamily = InterFontFamily,
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { onSettingsClick() }
+                    )
+                }
+            }
+            
+            // +/- buttons
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Minus button - outline
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .border(1.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                        .clickable { onRemove() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Remove,
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                
+                // Plus button - filled
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .clickable { onAdd() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Redesigned Weekly Activity Summary Card for Page 3
+@Composable
+fun WeeklyActivitySummaryCard(
+    weeklySteps: Long,
+    weeklyCaloriesBurned: Int,
+    caloriesRecord: Int,
+    exerciseCalories: Int = 0,
+    isVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val animatedSteps by animateIntAsState(
+        targetValue = if (isVisible) weeklySteps.toInt() else 0,
+        animationSpec = tween(800),
+        label = "weeklySteps"
+    )
+    val animatedCalories by animateIntAsState(
+        targetValue = if (isVisible) weeklyCaloriesBurned else 0,
+        animationSpec = tween(800),
+        label = "weeklyCalories"
+    )
+    val animatedRecord by animateIntAsState(
+        targetValue = if (isVisible) caloriesRecord else 0,
+        animationSpec = tween(800),
+        label = "caloriesRecord"
+    )
+    val animatedExercise by animateIntAsState(
+        targetValue = if (isVisible) exerciseCalories else 0,
+        animationSpec = tween(800),
+        label = "exerciseCalories"
+    )
+    
+    CalAICard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Title
+            Text(
+                text = "Weekly Activity",
+                fontFamily = InterFontFamily,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 7d Steps
+                WeeklyStatItemText(
+                    value = animatedSteps,
+                    label = stringResource(R.string.weekly_steps_label),
+                    color = Color(0xFF9575CD)
+                )
+                
+                // 7d Burn
+                WeeklyStatItemText(
+                    value = animatedCalories,
+                    label = stringResource(R.string.weekly_burn_label),
+                    color = Color(0xFFFF9800)
+                )
+                
+                // Record
+                WeeklyStatItemText(
+                    value = animatedRecord,
+                    label = stringResource(R.string.record_label),
+                    color = Color(0xFFE91E63)
+                )
+                
+                // Exercise (Workouts)
+                WeeklyStatItemText(
+                    value = animatedExercise,
+                    label = "Workouts",
+                    color = Color(0xFF4CAF50)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyStatItemText(
+    value: Int,
+    label: String,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = label,
+            fontFamily = InterFontFamily,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = if (value >= 10000) "${value / 1000}k" else value.toString(),
+            fontFamily = SpaceGroteskFontFamily,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
+    }
+}
+
+// ============================================================================
+// END REDESIGNED DASHBOARD CARD COMPOSABLES
+// ============================================================================
 
 @Composable
 fun MacroCardUnified(
@@ -3631,7 +4757,6 @@ private fun getExerciseIcon(type: com.example.calview.core.data.local.ExerciseTy
     }
 }
 
-// Helper function to get exercise type color
 private fun getExerciseColor(type: com.example.calview.core.data.local.ExerciseType): Color {
     return when (type) {
         com.example.calview.core.data.local.ExerciseType.CARDIO -> Color(0xFFE53935)
@@ -3639,5 +4764,118 @@ private fun getExerciseColor(type: com.example.calview.core.data.local.ExerciseT
         com.example.calview.core.data.local.ExerciseType.FLEXIBILITY -> Color(0xFF43A047)
         com.example.calview.core.data.local.ExerciseType.SPORT -> Color(0xFFFF9800)
         com.example.calview.core.data.local.ExerciseType.OTHER -> Color(0xFF9C27B0)
+    }
+}
+
+// ============ COMBINED ACTIVITY OVERVIEW CARD ============
+@Composable
+fun ActivityOverviewCard(
+    todaySteps: Int,
+    stepsGoal: Int,
+    caloriesBurned: Int,
+    manualExerciseCalories: Int,
+    weeklySteps: Long,
+    weeklyCaloriesBurned: Int,
+    caloriesRecord: Int,
+    animationTriggered: Boolean
+) {
+    val stepsProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) (todaySteps.toFloat() / stepsGoal).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "stepsProgress"
+    )
+    val burnProgress by animateFloatAsState(
+        targetValue = if (animationTriggered) (caloriesBurned / kotlin.math.max(caloriesRecord.toFloat(), 3000f)).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "burnProgress"
+    )
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(360.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.activity_title),
+                    fontFamily = InterFontFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = GradientCyan.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.today_label),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontFamily = InterFontFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = GradientCyan
+                    )
+                }
+            }
+            
+            // Today's Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Steps
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                            drawArc(color = Color(0xFF9C27B0), startAngle = -90f, sweepAngle = 360f * stepsProgress, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                        }
+                        Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color(0xFF9C27B0))
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = todaySteps.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = stringResource(R.string.steps_label), fontFamily = InterFontFamily, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                
+                // Burned
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                            drawArc(color = Color(0xFFFF9800), startAngle = -90f, sweepAngle = 360f * burnProgress, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                        }
+                        Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color(0xFFFF9800))
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = caloriesBurned.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = stringResource(R.string.burned_label), fontFamily = InterFontFamily, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                
+                // Exercise
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        val exerciseProgress = (manualExerciseCalories / 500f).coerceIn(0f, 1f)
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                            drawArc(color = Color(0xFF1E88E5), startAngle = -90f, sweepAngle = 360f * exerciseProgress, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                        }
+                        Icon(Icons.Filled.FitnessCenter, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color(0xFF1E88E5))
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = manualExerciseCalories.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = stringResource(R.string.exercise_label), fontFamily = InterFontFamily, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
     }
 }

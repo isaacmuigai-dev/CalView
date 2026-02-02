@@ -9,6 +9,7 @@ interface MealRepository {
     fun getMealsForDate(dateString: String): Flow<List<MealEntity>>
     fun getRecentUploads(): Flow<List<MealEntity>>
     suspend fun getMealById(id: Long): MealEntity?
+    fun getMealByIdFlow(id: Long): Flow<MealEntity?>
     suspend fun logMeal(meal: MealEntity): Long
     suspend fun updateMeal(meal: MealEntity)
     suspend fun deleteMeal(meal: MealEntity)

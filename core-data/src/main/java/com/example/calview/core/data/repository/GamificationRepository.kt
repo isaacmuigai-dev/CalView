@@ -8,6 +8,7 @@ import com.example.calview.core.data.local.BadgeTier
 import com.example.calview.core.data.local.MealDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.util.Calendar
@@ -175,7 +176,7 @@ class GamificationRepository @Inject constructor(
         // Define badges map or fetch from somewhere
         val badge = when(badgeId) {
             "consistency_badge" -> BadgeEntity(
-                id = UUID.randomUUID().toString(),
+                id = "consistency_badge",
                 name = "Consistency King",
                 description = "Logged meals consistently for a week",
                 iconResName = "ic_badge_consistency",
@@ -183,7 +184,7 @@ class GamificationRepository @Inject constructor(
                 tier = BadgeTier.GOLD
             )
             "protein_badge" -> BadgeEntity(
-                id = UUID.randomUUID().toString(),
+                id = "protein_badge",
                 name = "Protein Master",
                 description = "Hit protein goals multiple times",
                 iconResName = "ic_badge_protein",
@@ -191,7 +192,7 @@ class GamificationRepository @Inject constructor(
                 tier = BadgeTier.SILVER
             )
             "early_bird_badge" -> BadgeEntity(
-                id = UUID.randomUUID().toString(),
+                id = "early_bird_badge",
                 name = "Early Bird",
                 description = "Consistent morning logger",
                 iconResName = "ic_badge_morning",
@@ -199,7 +200,7 @@ class GamificationRepository @Inject constructor(
                 tier = BadgeTier.BRONZE
             )
             "water_warrior" -> BadgeEntity(
-                id = UUID.randomUUID().toString(),
+                id = "water_warrior",
                 name = "Water Warrior",
                 description = "Hit your water goal for 3 days straight",
                 iconResName = "ic_badge_water",
@@ -207,7 +208,7 @@ class GamificationRepository @Inject constructor(
                 tier = BadgeTier.SILVER
             )
             "macro_master" -> BadgeEntity(
-                id = UUID.randomUUID().toString(),
+                id = "macro_master",
                 name = "Macro Master",
                 description = "Perfectly hit all your macro goals today",
                 iconResName = "ic_badge_macros",
@@ -257,6 +258,103 @@ class GamificationRepository @Inject constructor(
         } else {
             userPreferencesRepository.setUserXp(newXpTotal)
         }
+    }
+
+    // Master list of all available badges
+    private val ALL_BADGES = listOf(
+        BadgeEntity(
+            id = "consistency_badge",
+            name = "Consistency King",
+            description = "Log meals consistently for 5 days.",
+            iconResName = "ic_badge_consistency",
+            tier = BadgeTier.GOLD
+        ),
+        BadgeEntity(
+            id = "protein_badge",
+            name = "Protein Master",
+            description = "Hit your protein goal 3 times in a week.",
+            iconResName = "ic_badge_protein",
+            tier = BadgeTier.SILVER
+        ),
+        BadgeEntity(
+            id = "early_bird_badge",
+            name = "Early Bird",
+            description = "Log breakfast before 9 AM for 5 days.",
+            iconResName = "ic_badge_morning",
+            tier = BadgeTier.BRONZE
+        ),
+        BadgeEntity(
+            id = "water_warrior",
+            name = "Water Warrior",
+            description = "Hit your water goal for 3 days straight.",
+            iconResName = "ic_badge_water",
+            tier = BadgeTier.SILVER
+        ),
+        BadgeEntity(
+            id = "macro_master",
+            name = "Macro Master",
+            description = "Perfectly hit all your macro goals today.",
+            iconResName = "ic_badge_macros",
+            tier = BadgeTier.GOLD
+        ),
+        BadgeEntity(
+            id = "night_owl",
+            name = "Night Owl",
+            description = "Log a late night snack after 10 PM.",
+            iconResName = "ic_badge_moon",
+            tier = BadgeTier.BRONZE
+        ),
+        BadgeEntity(
+            id = "weekend_warrior",
+            name = "Weekend Warrior",
+            description = "Stay on track both Saturday and Sunday.",
+            iconResName = "ic_badge_weekend",
+            tier = BadgeTier.SILVER
+        ),
+        BadgeEntity(
+            id = "streak_flame",
+            name = "On Fire!",
+            description = "Reach a 7-day streak.",
+            iconResName = "ic_badge_fire",
+            tier = BadgeTier.PLATINUM
+        )
+    )
+
+    // Locked badges hints (Mystery Badges)
+    private val BADGE_HINTS = mapOf(
+        "consistency_badge" to "Show up for 5 days in a row...",
+        "protein_badge" to "Focus on your gains 3 times this week...",
+        "early_bird_badge" to "Catch the worm before 9 AM...",
+        "water_warrior" to "Stay hydrated for 3 days...",
+        "macro_master" to "Balance everything perfectly today...",
+        "night_owl" to "Getting hungry late at night?",
+        "weekend_warrior" to "Don't let the weekend break you...",
+        "streak_flame" to "Keep the fire burning for a week..."
+    )
+
+    /**
+     * Returns all badges, marking them as unlocked based on DB state.
+     * Locked badges have dateUnlocked = 0 and mystery descriptions.
+     */
+    val allBadges: Flow<List<BadgeEntity>> = gamificationDao.getAllBadges().map { unlockedList ->
+        val unlockedIds = unlockedList.map { it.id }.toSet()
+        
+        ALL_BADGES.map { badgeDef ->
+            if (unlockedIds.contains(badgeDef.id)) {
+                // Return the unlocked version from DB (contains correct date)
+                unlockedList.first { it.id == badgeDef.id }
+            } else {
+                // Return locked version with mystery hint
+                badgeDef.copy(
+                    dateUnlocked = 0,
+                    description = BADGE_HINTS[badgeDef.id] ?: "Mystery Badge...",
+                    name = "???"
+                )
+            }
+        }.sortedWith(
+            compareBy<BadgeEntity> { it.dateUnlocked == 0L }
+                .thenByDescending { it.tier }
+        ) // Unlocked first, then by prestige (Platinum -> Bronze)
     }
 
     suspend fun clearAllData() {

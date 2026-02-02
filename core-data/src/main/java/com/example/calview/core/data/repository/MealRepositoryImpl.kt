@@ -78,6 +78,10 @@ class MealRepositoryImpl @Inject constructor(
         return mealDao.getMealById(id)
     }
 
+    override fun getMealByIdFlow(id: Long): Flow<MealEntity?> {
+        return mealDao.getMealByIdFlow(id)
+    }
+
     override suspend fun logMeal(meal: MealEntity): Long {
         val id = mealDao.insertMeal(meal)
         

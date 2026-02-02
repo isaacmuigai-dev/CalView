@@ -13,16 +13,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +33,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -80,6 +90,9 @@ import com.example.calview.feature.dashboard.OpenSourceLicensesScreen
 import com.example.calview.feature.dashboard.FeatureRequestScreen
 import com.example.calview.feature.dashboard.LanguageSelectorScreen
 import com.example.calview.feature.dashboard.AutoGenerateGoalsNavHost
+import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.theme.Typography
 import com.example.calview.feature.dashboard.NutritionGoals
 import com.example.calview.feature.dashboard.FastingScreen
 import com.example.calview.feature.dashboard.ChallengesScreen
@@ -526,6 +539,11 @@ fun AppNavigation(
                 scrollToRecentUploads = scrollToUploads,
                 scrollToMealId = scrollToMealId,
                 showScanMenuOnStart = showScanMenuArg || showScanMenuBackstack,
+                onScanMenuConsumed = {
+                    if (showScanMenuBackstack) {
+                        backStackEntry.savedStateHandle["showScanMenu"] = false
+                    }
+                },
                 isPremium = isPremium,
                 onPaywallClick = { navController.navigate("paywall") },
                 onScanClick = { navController.navigate("scanner") },
@@ -632,6 +650,12 @@ fun AppNavigation(
             val scannerViewModel: ScannerViewModel = hiltViewModel()
             val meals by scannerViewModel.getAllMealsFlow().collectAsState(initial = emptyList())
             
+            // Get goals from repository
+            val currentCalories by userPreferencesRepository?.recommendedCalories?.collectAsState(initial = 2000)
+                ?: remember { mutableIntStateOf(2000) }
+            val currentProtein by userPreferencesRepository?.recommendedProtein?.collectAsState(initial = 125)
+                ?: remember { mutableIntStateOf(125) }
+            
             MyMealsScreen(
                 meals = meals,
                 onBack = { 
@@ -639,13 +663,45 @@ fun AppNavigation(
                     navController.popBackStack("main", false)
                 },
                 onScanFood = { navController.navigate("scanner") },
+                onMealClick = { meal ->
+                    navController.navigate("meal_detail/${meal.id}")
+                },
                 onCreateMeal = { name, calories, protein, carbs, fats ->
                     scannerViewModel.createCustomMeal(name, calories, protein, carbs, fats)
                 },
                 onDeleteMeal = { mealId ->
                     scannerViewModel.deleteMeal(mealId)
+                },
+                calorieGoal = currentCalories,
+                proteinGoal = currentProtein
+            )
+        }
+        
+        composable(
+            route = "meal_detail/{mealId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("mealId") {
+                    type = androidx.navigation.NavType.LongType
                 }
             )
+        ) { backStackEntry ->
+            val mealId = backStackEntry.arguments?.getLong("mealId") ?: -1L
+            val scannerViewModel: ScannerViewModel = hiltViewModel()
+            val meal by scannerViewModel.getMealById(mealId).collectAsState(initial = null)
+            
+            meal?.let { m ->
+                com.example.calview.feature.dashboard.FoodDetailScreen(
+                    meal = m,
+                    onBack = { navController.popBackStack() },
+                    onDelete = { mealToDelete ->
+                        scannerViewModel.deleteMeal(mealToDelete.id)
+                        navController.popBackStack()
+                    },
+                    onUpdate = { updatedMeal ->
+                        scannerViewModel.updateMeal(updatedMeal)
+                    }
+                )
+            }
         }
         
         composable("edit_name/{currentName}") { backStackEntry ->
@@ -966,6 +1022,7 @@ fun MainTabs(
     onPaywallClick: () -> Unit = {},
     onScanClick: () -> Unit,
     onFoodDatabaseClick: () -> Unit,
+    onScanMenuConsumed: () -> Unit = {},
     onEditNameClick: (String) -> Unit = {},
     onReferFriendClick: () -> Unit = {},
     onPersonalDetailsClick: () -> Unit = {},
@@ -992,6 +1049,7 @@ fun MainTabs(
     LaunchedEffect(showScanMenuOnStart) {
         if (showScanMenuOnStart) {
             showCameraMenu = true
+            onScanMenuConsumed()
         }
     }
     
@@ -1022,33 +1080,40 @@ fun MainTabs(
         ModalBottomSheet(
             onDismissRequest = { showCameraMenu = false },
             containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant) },
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                Text(
+                    text = "Quick Actions",
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
                 // Row 1: Food & Scan
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Food Database option
-                    CameraMenuItem(
-                        icon = Icons.Filled.Search,
-                        label = "Food Database",
+                    ActionMenuItem(
+                        icon = Icons.Rounded.Search,
+                        label = "Database",
                         modifier = Modifier.weight(1f),
                         onClick = {
                             showCameraMenu = false
                             onFoodDatabaseClick()
                         }
                     )
-                    
-                    // Scan Food option
-                    CameraMenuItem(
-                        icon = Icons.Filled.CameraAlt,
+                    ActionMenuItem(
+                        icon = Icons.Rounded.CameraAlt,
                         label = "Scan Food",
                         modifier = Modifier.weight(1f),
                         onClick = {
@@ -1061,22 +1126,19 @@ fun MainTabs(
                 // Row 2: Fasting & Challenges
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Fasting Timer
-                    CameraMenuItem(
-                        icon = Icons.Filled.Timer,
-                        label = "Fasting Timer",
+                    ActionMenuItem(
+                        icon = Icons.Rounded.Timer,
+                        label = "Fasting",
                         modifier = Modifier.weight(1f),
                         onClick = {
                             showCameraMenu = false
                             onFastingClick()
                         }
                     )
-                    
-                    // Challenges
-                    CameraMenuItem(
-                        icon = Icons.Filled.EmojiEvents,
+                    ActionMenuItem(
+                        icon = Icons.Rounded.EmojiEvents,
                         label = "Challenges",
                         modifier = Modifier.weight(1f),
                         onClick = {
@@ -1086,25 +1148,23 @@ fun MainTabs(
                     )
                 }
 
-                // Row 3: Achievements & Log Exercise
+                // Row 3: Achievements & Exercises
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Achievements (Badges)
-                    CameraMenuItem(
-                        icon = Icons.Filled.Star,
-                        label = "Achievements",
+                    ActionMenuItem(
+                        icon = Icons.Rounded.Star,
+                        label = "Badges",
                         modifier = Modifier.weight(1f),
                         onClick = {
                             showCameraMenu = false
                             onAchievementsClick()
                         }
                     )
-                    // Log Exercise
-                    CameraMenuItem(
-                        icon = Icons.Filled.FitnessCenter,
-                        label = "Log Exercise",
+                    ActionMenuItem(
+                        icon = Icons.Rounded.FitnessCenter,
+                        label = "Exercise",
                         modifier = Modifier.weight(1f),
                         onClick = {
                             showCameraMenu = false
@@ -1113,8 +1173,6 @@ fun MainTabs(
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
     
@@ -1379,43 +1437,62 @@ private fun MainTabsContent(
 }
 
 @Composable
-fun CameraMenuItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+private fun ActionMenuItem(
+    icon: ImageVector,
     label: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val bgColor = if (isDark) Color(0xFF1C1C1E) else Color(0xFFF2F2F7) // iOS system grouped background
+    val contentColor = if (isDark) Color.White else Color.Black
+    
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 400f),
+        label = "pressScale"
+    )
+
     Surface(
+        onClick = onClick,
         modifier = modifier
-            .clickable(onClick = onClick),
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = bgColor,
+        tonalElevation = 0.dp
     ) {
         Column(
-            modifier = Modifier
-                .padding(vertical = 20.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(MaterialTheme.colorScheme.surface, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = contentColor,
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                fontFamily = InterFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                textAlign = TextAlign.Center
             )
         }
     }

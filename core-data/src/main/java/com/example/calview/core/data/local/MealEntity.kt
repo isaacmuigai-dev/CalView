@@ -30,6 +30,8 @@ data class MealEntity(
     val analysisProgress: Float = 100f,  // 0-100 progress percentage
     val analysisStatusMessage: String = "",  // Current analysis phase message
     val healthInsight: String? = null,
+    val healthSwap: String? = null,
+    val nutrientSynergy: String? = null,
     val confidenceScore: Float = 0f,  // Overall confidence 0-100%
     val detectedItemsJson: String? = null  // JSON array of detected items with per-item confidence
 )

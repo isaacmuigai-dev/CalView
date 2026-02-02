@@ -599,18 +599,26 @@ class ProgressViewModel @Inject constructor(
                 weightHistoryRepository.getAllWeightHistory(),
                 userPreferencesRepository.goalWeight
             ) { historyEntities, goalWeight ->
-                // Convert entities to UI model
-                val uiHistory = historyEntities.map { entity ->
-                     WeightEntry(
-                         date = java.time.Instant.ofEpochMilli(entity.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
-                         weight = entity.weight
-                     )
-                }.sortedByDescending { it.date }
+                // Convert entities to UI model, deduplicating by date
+                val uiHistory = historyEntities
+                    .groupBy { 
+                        java.time.Instant.ofEpochMilli(it.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+                    }
+                    .map { (date, entities) ->
+                        val latestEntity = entities.maxByOrNull { it.timestamp } ?: entities.first()
+                        WeightEntry(date = date, weight = latestEntity.weight)
+                    }
+                    .sortedByDescending { it.date }
                 
                 // Generate prediction
                 val prediction = predictionEngine.predictWeight(historyEntities, goalWeight)
                 val predDateStr = prediction.projectedDate?.let {
-                    java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(it)
+                    java.time.Instant.ofEpochMilli(it)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"))
                 }
                 
                 Triple(uiHistory, prediction, predDateStr)

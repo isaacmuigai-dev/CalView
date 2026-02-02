@@ -99,9 +99,10 @@ fun SplashScreen(
                 // App Name
                 Text(
                     text = "CalViewAI",
-                    fontFamily = com.example.calview.core.ui.theme.WaterlilyFontFamily,
-                    fontSize = 45.sp,
-                    fontWeight = FontWeight.Normal,
+                    fontFamily = com.example.calview.core.ui.theme.BrandingFontFamily,
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-1).sp,
                     color = if (isDarkTheme) Color.White else Color(0xFF000000)
                 )
             }

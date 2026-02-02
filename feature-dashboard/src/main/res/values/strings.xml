@@ -15,6 +15,21 @@
     <string name="fiber_left">Fiber left</string>
     <string name="sugar_left">Sugar left</string>
     <string name="sodium_left">Sodium left</string>
+    
+    <!-- Redesigned Dashboard Cards -->
+    <string name="steps_today">Steps Today</string>
+    <string name="calories_burned">Calories burned</string>
+    <string name="steps_label">Steps</string>
+    <string name="water_label">Water</string>
+    <string name="connect_health_to_track_steps">Connect Google Health to track your steps</string>
+    <string name="activity_title">Activity</string>
+    <string name="today_label">Today</string>
+    <string name="exercise_label">Exercise</string>
+    <string name="weekly_steps_label">7d Steps</string>
+    <string name="weekly_burn_label">7d Burn</string>
+    <string name="record_label">Record</string>
+    <string name="cal_unit">cal</string>
+    <string name="plus_value_format">+%d</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -299,6 +314,7 @@
     <string name="walkthrough_health_desc">Sync with Google Fit or Samsung Health via Health Connect to automatically track your steps and activity.</string>
     <string name="walkthrough_water_title">Hydration Tracker</string>
     <string name="walkthrough_water_desc">Staying hydrated is key to your health. Quickly log your water intake throughout the day.</string>
+    <string name="walkthrough_activity_desc">View your 7-day activity summary, including steps, burned calories, and exercise records.</string>
     <string name="walkthrough_meal_title">Scanned Meals</string>
     <string name="walkthrough_meal_desc">Your recently scanned meals appear here. Tap any meal to see detailed nutrition information.</string>
 

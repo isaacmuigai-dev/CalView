@@ -45,9 +45,28 @@ val InterFontFamily = FontFamily(
 val Inter = InterFontFamily
 
 // =============================================================================
+// BRAND FONT: PLUS JAKARTA SANS
+// Premium choice for "CalViewAI" branding. 
+// Sleeker, more modern, and highly legible.
+// =============================================================================
+private val plusJakartaSansFont = GoogleFont("Plus Jakarta Sans")
+
+val PlusJakartaSansFontFamily = FontFamily(
+    GoogleFontRes(googleFont = plusJakartaSansFont, fontProvider = googleFontProvider, weight = FontWeight.Normal),
+    GoogleFontRes(googleFont = plusJakartaSansFont, fontProvider = googleFontProvider, weight = FontWeight.Medium),
+    GoogleFontRes(googleFont = plusJakartaSansFont, fontProvider = googleFontProvider, weight = FontWeight.SemiBold),
+    GoogleFontRes(googleFont = plusJakartaSansFont, fontProvider = googleFontProvider, weight = FontWeight.Bold),
+    GoogleFontRes(googleFont = plusJakartaSansFont, fontProvider = googleFontProvider, weight = FontWeight.ExtraBold),
+)
+
+// Alias for branding to allow easy switching
+val BrandingFontFamily = PlusJakartaSansFontFamily
+
+// =============================================================================
 // BRAND FONT: WATERLILY
 // Used for "CalViewAI" branding on splash and dashboard
 // =============================================================================
+// [DEPRECATED] Old brand font
 val WaterlilyFontFamily = FontFamily(
     Font(com.example.calview.core.ui.R.font.waterlily, FontWeight.Normal)
 )

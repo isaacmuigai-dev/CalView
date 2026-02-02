@@ -77,7 +77,9 @@ class GeminiFoodAnalysisService @Inject constructor(
                   ],
                   "total": { "calories": integer, "protein": integer, "carbs": integer, "fats": integer, "fiber": integer, "sugar": integer, "sodium": integer },
                   "confidence_score": number (0.0 to 1.0),
-                  "health_insight": "string"
+                  "health_insight": "string summarizing macro balance",
+                  "health_swap": "Short suggestion for a healthier alternative (e.g., 'Swap white rice for quinoa to add protein/fiber')",
+                  "nutrient_synergy": "One sentence on how ingredients interact (e.g., 'Vitamin C from peppers increases Iron absorption from steak')"
                 }
                 If no food is detected, return: {"error": "No food detected"}
             """.trimIndent()
@@ -127,7 +129,9 @@ class GeminiFoodAnalysisService @Inject constructor(
                   ],
                   "total": { "calories": integer, "protein": integer, "carbs": integer, "fats": integer, "fiber": integer, "sugar": integer, "sodium": integer },
                   "confidence_score": 1.0,
-                  "health_insight": "string"
+                  "health_insight": "string summarizing balance",
+                  "health_swap": "Short healthier alternative swap suggestion",
+                  "nutrient_synergy": "One sentence on ingredient interaction"
                 }
                 
                 IMPORTANT: Return all nutritional amounts (weight, calories, macros) as INTEGERS. Round to the nearest whole number.

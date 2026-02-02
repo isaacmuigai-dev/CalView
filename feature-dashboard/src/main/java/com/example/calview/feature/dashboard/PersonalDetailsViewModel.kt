@@ -88,13 +88,6 @@ class PersonalDetailsViewModel @Inject constructor(
     fun updateWeight(weight: Float) {
         viewModelScope.launch {
             userPreferencesRepository.setWeight(weight)
-            // Also save to history
-            weightHistoryRepository.insertWeight(
-                com.example.calview.core.data.local.WeightHistoryEntity(
-                    weight = weight,
-                    timestamp = System.currentTimeMillis()
-                )
-            )
         }
     }
 

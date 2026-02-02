@@ -56,7 +56,9 @@ fun MyMealsScreen(
     onScanFood: () -> Unit,
     onMealClick: (MealEntity) -> Unit = {},
     onCreateMeal: (name: String, calories: Int, protein: Int, carbs: Int, fats: Int) -> Unit,
-    onDeleteMeal: (Long) -> Unit
+    onDeleteMeal: (Long) -> Unit,
+    calorieGoal: Int = 2000,
+    proteinGoal: Int = 150
 ) {
     var showCreateMealDialog by remember { mutableStateOf(false) }
     var mealToDelete by remember { mutableStateOf<MealEntity?>(null) }
@@ -185,7 +187,9 @@ fun MyMealsScreen(
                         MealCard(
                             meal = meal,
                             onClick = { onMealClick(meal) },
-                            onDelete = { mealToDelete = meal }
+                            onDelete = { mealToDelete = meal },
+                            calorieGoal = calorieGoal,
+                            proteinGoal = proteinGoal
                         )
                     }
                 }
@@ -285,7 +289,9 @@ private fun QuickActionCard(
 private fun MealCard(
     meal: MealEntity,
     onClick: () -> Unit = {},
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    calorieGoal: Int = 2000,
+    proteinGoal: Int = 150
 ) {
     val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
     val dateString = dateFormat.format(Date(meal.timestamp))
@@ -454,9 +460,158 @@ private fun MealCard(
                         MacroItem("F", "${meal.fats}g", Color(0xFF3B82F6))
                     }
                 }
+
+                if (!meal.healthSwap.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Satiety Score
+                        val satiety = calculateSatiety(meal)
+                        val satietyColor = when {
+                            satiety >= 7 -> Color(0xFF10B981)
+                            satiety >= 4 -> Color(0xFFF59E0B)
+                            else -> Color(0xFFEF4444)
+                        }
+                        
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            color = satietyColor.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(0.5.dp, satietyColor.copy(alpha = 0.3f))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Satiety Index",
+                                    fontSize = 10.sp,
+                                    color = satietyColor,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = "$satiety/10",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = satietyColor,
+                                    fontFamily = SpaceGroteskFontFamily
+                                )
+                            }
+                        }
+
+                        // Goal Contribution
+                        Surface(
+                            modifier = Modifier.weight(1.5f),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text(
+                                    text = "Daily Contribution",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    val proteinPct = (meal.protein.toFloat() / proteinGoal.coerceAtLeast(1) * 100).toInt()
+                                    ContributionBar(
+                                        label = "P",
+                                        percent = proteinPct,
+                                        color = Color(0xFFEF4444),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    val calPct = (meal.calories.toFloat() / calorieGoal.coerceAtLeast(1) * 100).toInt()
+                                    ContributionBar(
+                                        label = "Cal",
+                                        percent = calPct,
+                                        color = Color(0xFFFF6B35),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    if (meal.healthSwap != null) {
+                        Surface(
+                            color = Color(0xFFFFF7ED),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(0.5.dp, Color(0xFFF97316).copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = "⚡", fontSize = 10.sp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "View AI Swap suggestion",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9A3412)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(10.dp),
+                                    tint = Color(0xFF9A3412)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun ContributionBar(
+    label: String,
+    percent: Int,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            Text("$percent%", fontSize = 9.sp)
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+        LinearProgressIndicator(
+            progress = { percent.toFloat() / 100f },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(CircleShape),
+            color = color,
+            trackColor = color.copy(alpha = 0.2f),
+        )
+    }
+}
+
+private fun calculateSatiety(meal: MealEntity): Int {
+    val proteinWeight = 10
+    val fiberWeight = 20
+    val fatsWeight = 5
+    val sugarWeight = 8
+    
+    val rawScore = 3.5f + (meal.protein * proteinWeight + meal.fiber * fiberWeight - meal.fats * fatsWeight - meal.sugar * sugarWeight) / 100f
+    return rawScore.coerceIn(1f, 10f).toInt()
 }
 
 @Composable

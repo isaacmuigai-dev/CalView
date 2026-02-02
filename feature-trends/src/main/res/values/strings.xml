@@ -112,7 +112,7 @@
     <string name="trend_up">Trending Up</string>
     <string name="trend_stable">Stable</string>
     <string name="in_30_days">In 30 Days</string>
-    <string name="reach_goal_by">Reach Goal By</string>
+    <string name="reach_goal_by">Forecasted Goal (Trend)</string>
     <string name="weekly_rate_label">Weekly Rate</string>
     <string name="keep_pushing">Keep pushing!</string>
     <string name="unit_kg_format">%1$.1f kg</string>
@@ -127,7 +127,7 @@
     <string name="to_action_format">📊 To %s</string>
     <string name="estimated_label">⏱️ Estimated</string>
     <string name="weeks_format">%d weeks</string>
-    <string name="estimated_goal_date_label">🎯 Estimated Goal Date: </string>
+    <string name="estimated_goal_date_label">Target Goal (Plan): </string>
     <string name="action_lose">Lose</string>
     <string name="action_gain">Gain</string>
     <string name="action_maintain">Maintain</string>
@@ -158,6 +158,7 @@
     <string name="walkthrough_macro_desc">Check your protein, carbs, and fats distribution to ensure a balanced diet.</string>
     <string name="walkthrough_bmi_title">Health Indicator</string>
     <string name="walkthrough_bmi_desc">Keep an eye on your BMI and health category based on your weight and height.</string>
+    <string name="walkthrough_activity_desc">View your 7-day activity summary, including steps, burned calories, and exercise records.</string>
 
     <!-- Graph Ranges -->
     <string name="range_3m">3M</string>

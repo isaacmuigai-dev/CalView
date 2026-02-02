@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.DateRange
@@ -120,6 +121,7 @@ fun ProgressContent(
     var goalRect by remember { mutableStateOf<Rect?>(null) }
     var chartRect by remember { mutableStateOf<Rect?>(null) }
     var macroRect by remember { mutableStateOf<Rect?>(null) }
+    var activityRect by remember { mutableStateOf<Rect?>(null) }
     var bmiRect by remember { mutableStateOf<Rect?>(null) }
     
     var currentStepIndex by remember(uiState.hasSeenWalkthrough) { 
@@ -150,6 +152,12 @@ fun ProgressContent(
             title = stringResource(R.string.walkthrough_macro_title),
             description = stringResource(R.string.walkthrough_macro_desc),
             targetRect = macroRect
+        ),
+        WalkthroughStep(
+            id = "activity",
+            title = stringResource(R.string.activity_title),
+            description = stringResource(R.string.walkthrough_activity_desc),
+            targetRect = activityRect
         ),
         WalkthroughStep(
             id = "bmi",
@@ -304,41 +312,13 @@ fun ProgressContent(
         }
         
         
-        // 2. & 2.5. Weight Cards (Adaptive)
-        if (isTablet) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Box(modifier = Modifier.weight(1f)) {
-                    WeightProgressCard(
-                        currentWeight = uiState.currentWeight,
-                        goalWeight = uiState.goalWeight,
-                        progress = uiState.weightProgress,
-                        animationTriggered = animationTriggered
-                    )
-                }
-                Box(modifier = Modifier.weight(1f)) {
-                    WeightPredictionCard(
-                        predictedWeight = uiState.predictedWeight30Days,
-                        projectedDate = uiState.predictedDate,
-                        trend = uiState.predictionTrend,
-                        animationTriggered = animationTriggered
-                    )
-                }
-            }
-        } else {
-            WeightProgressCard(
-                currentWeight = uiState.currentWeight,
-                goalWeight = uiState.goalWeight,
-                progress = uiState.weightProgress,
-                animationTriggered = animationTriggered
-            )
-            
-            WeightPredictionCard(
-                predictedWeight = uiState.predictedWeight30Days,
-                projectedDate = uiState.predictedDate,
-                trend = uiState.predictionTrend,
-                animationTriggered = animationTriggered
-            )
-        }
+        // 2. Weight Progress Card
+        WeightProgressCard(
+            currentWeight = uiState.currentWeight,
+            goalWeight = uiState.goalWeight,
+            progress = uiState.weightProgress,
+            animationTriggered = animationTriggered
+        )
         
         // 2.6. Weight History Graph with time filters
         if (uiState.weightHistory.isNotEmpty()) {
@@ -361,16 +341,18 @@ fun ProgressContent(
         
         
         // 5. Combined Activity Overview Card
-        ActivityOverviewCard(
-            todaySteps = uiState.todaySteps,
-            stepsGoal = uiState.stepsGoal,
-            caloriesBurned = uiState.caloriesBurned,
-            manualExerciseCalories = uiState.manualExerciseCalories,
-            weeklySteps = uiState.weeklySteps,
-            weeklyCaloriesBurned = (uiState.weeklyCaloriesBurned + uiState.weeklyExerciseCalories).toInt(),
-            caloriesRecord = uiState.caloriesBurnedRecord.toInt(),
-            animationTriggered = animationTriggered
-        )
+        Box(modifier = Modifier.fillMaxWidth().onPositionedRect { activityRect = it }) {
+            ActivityOverviewCard(
+                todaySteps = uiState.todaySteps,
+                stepsGoal = uiState.stepsGoal,
+                caloriesBurned = uiState.caloriesBurned,
+                manualExerciseCalories = uiState.manualExerciseCalories,
+                weeklySteps = uiState.weeklySteps,
+                weeklyCaloriesBurned = (uiState.weeklyCaloriesBurned + uiState.weeklyExerciseCalories).toInt(),
+                caloriesRecord = uiState.caloriesBurnedRecord.toInt(),
+                animationTriggered = animationTriggered
+            )
+        }
 
         // 6. BMI Card - Last with height/weight
         CompactBMICard(
@@ -816,7 +798,10 @@ fun WeightProgressCard(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Progress bar
+            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+            val fillBrush = if (isDark) Brush.horizontalGradient(listOf(Color.White, Color.White.copy(alpha = 0.8f)))
+                           else Brush.horizontalGradient(listOf(Color.Black, Color.Black.copy(alpha = 0.8f)))
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -829,7 +814,7 @@ fun WeightProgressCard(
                         .fillMaxWidth(animatedProgress)
                         .fillMaxHeight()
                         .background(
-                            Brush.horizontalGradient(listOf(GradientCyan, GradientBlue)),
+                            fillBrush,
                             RoundedCornerShape(6.dp)
                         )
                 )
@@ -1136,11 +1121,13 @@ fun WeeklyCaloriesChart(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 weekOptions.forEach { (offset, label) ->
+                    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+                    val highlightColor = if (isDark) Color.White else Color.Black
                     val isSelected = selectedWeekOffset == offset
                     Surface(
                         onClick = { onWeekSelected(offset) },
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isSelected) GradientCyan else MaterialTheme.colorScheme.surfaceVariant,
+                        color = if (isSelected) highlightColor else MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.height(32.dp)
                     ) {
                         Box(
@@ -1151,7 +1138,7 @@ fun WeeklyCaloriesChart(
                                 text = label,
                                 fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isSelected) (if (isDark) Color.Black else Color.White) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -1253,14 +1240,18 @@ fun WeeklyCaloriesChart(
                                         .width(24.dp),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
+                                    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .fillMaxHeight(animatedHeight.coerceIn(0f, 1f))
                                             .background(
-                                                Brush.verticalGradient(
-                                                    listOf(barColor, barColor.copy(alpha = 0.6f))
-                                                ),
+                                                if (isOverGoal) {
+                                                    Brush.verticalGradient(listOf(barColor, barColor.copy(alpha = 0.6f)))
+                                                } else {
+                                                    if (isDark) Brush.verticalGradient(listOf(Color.White, Color.White.copy(alpha = 0.6f)))
+                                                    else Brush.verticalGradient(listOf(Color.Black, Color.Black.copy(alpha = 0.6f)))
+                                                },
                                                 RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
                                             )
                                     )
@@ -1485,15 +1476,18 @@ fun DayStreakCard(
                             fontWeight = FontWeight.Medium,
                             color = if (isCompleted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
                         Spacer(modifier = Modifier.height(4.dp))
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(
-                                    if (isCompleted) 
-                                        Brush.linearGradient(listOf(GradientCyan, GradientBlue))
-                                    else 
-                                        Brush.linearGradient(listOf(Color(0xFFE5E7EB), Color(0xFFE5E7EB))),
+                                    if (isCompleted) {
+                                        if (isDark) Brush.linearGradient(listOf(Color.White, Color.White))
+                                        else Brush.linearGradient(listOf(Color.Black, Color.Black))
+                                    } else {
+                                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)))
+                                    },
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -1503,7 +1497,7 @@ fun DayStreakCard(
                                     Icons.Filled.Check,
                                     contentDescription = stringResource(R.string.day_completed_desc),
                                     modifier = Modifier.size(18.dp),
-                                    tint = Color.White
+                                    tint = if (isDark) Color.Black else Color.White
                                 )
                             }
                         }
@@ -2191,9 +2185,9 @@ fun WeightHistoryGraphCard(
     
     val filteredHistory = remember(weightHistory, selectedRange) {
         val cutoffDate = if (selectedRange < 3) {
-            LocalDate.now().minusDays(rangeDays[selectedRange])
+            java.time.LocalDate.now().minusDays(rangeDays[selectedRange])
         } else {
-            LocalDate.MIN
+            java.time.LocalDate.MIN
         }
         weightHistory.filter { it.date >= cutoffDate }.sortedBy { it.date }
     }
@@ -2256,7 +2250,6 @@ fun WeightHistoryGraphCard(
                 val lastWeight = filteredHistory.last().weight
                 val weightChange = lastWeight - firstWeight
                 val trendUp = weightChange > 0
-                val trendIcon = if (trendUp) "↑" else if (weightChange < 0) "↓" else "→"
                 val trendColor = when {
                     weightChange > 0.5f -> Color(0xFFE57373) // Red for gain
                     weightChange < -0.5f -> Color(0xFF81C784) // Green for loss
@@ -2269,7 +2262,7 @@ fun WeightHistoryGraphCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = trendIcon,
+                        text = if (trendUp) "↑" else if (weightChange < 0) "↓" else "→",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = trendColor
@@ -2344,53 +2337,32 @@ fun WeightHistoryGraphCard(
                                 )
                             }
                     ) {
+                        val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+                        val curveColor = if (isDark) Color.White else Color.Black
+                        
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val width = size.width
                             val height = size.height
-                            val pointsCount = filteredHistory.size
-                            val xStep = width / (pointsCount - 1).coerceAtLeast(1)
+                            val xStep = width / (filteredHistory.size - 1).coerceAtLeast(1)
                             
-                            val primaryColor = Color.White // Theme primary handles selection better
-                            val accentColor = Color(0xFF00D4AA) // Using Cyan for contrast
-                            
-                            // Draw horizontal grid lines
-                            val gridLines = 4
-                            for (i in 0..gridLines) {
-                                val y = height * i / gridLines
-                                drawLine(Color.Gray.copy(alpha = 0.1f), Offset(0f, y), Offset(width, y), strokeWidth = 1.dp.toPx())
-                            }
-                            
-                            // Draw goal line
-                            if (goalWeight in minWeight..maxWeight) {
-                                val goalY = height - ((goalWeight - minWeight) / weightRange * height)
-                                drawLine(GradientOrange, Offset(0f, goalY), Offset(width, goalY), strokeWidth = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)))
-                            }
-                            
-                            // Draw weight line (Smoother curve)
                             val path = Path()
+                            val filledPath = Path()
+                            
                             filteredHistory.forEachIndexed { index, entry ->
                                 val x = index * xStep * animatedProgress
                                 val y = height - ((entry.weight - minWeight) / weightRange * height * animatedProgress)
-                                
                                 if (index == 0) {
                                     path.moveTo(x, y)
+                                    filledPath.moveTo(x, height)
+                                    filledPath.lineTo(x, y)
                                 } else {
-                                    val prevX = (index - 1) * xStep * animatedProgress
-                                    val prevEntry = filteredHistory[index - 1]
-                                    val prevY = height - ((prevEntry.weight - minWeight) / weightRange * height * animatedProgress)
-                                    
-                                    val controlX1 = prevX + (x - prevX) / 2
-                                    path.cubicTo(controlX1, prevY, controlX1, y, x, y)
+                                    path.lineTo(x, y)
+                                    filledPath.lineTo(x, y)
                                 }
-                            }
-                            
-                            // Create filled path for gradient
-                            val filledPath = Path().apply {
-                                addPath(path)
-                                val lastX = (filteredHistory.size - 1) * xStep * animatedProgress
-                                lineTo(lastX, height)
-                                lineTo(0f, height)
-                                close()
+                                if (index == filteredHistory.size - 1) {
+                                    filledPath.lineTo(x, height)
+                                    filledPath.close()
+                                }
                             }
                             
                             // Draw gradient fill
@@ -2398,13 +2370,13 @@ fun WeightHistoryGraphCard(
                                 filledPath, 
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
-                                        Color(0xFF6366F1).copy(alpha = 0.3f * animatedProgress),
-                                        Color(0xFF6366F1).copy(alpha = 0.05f * animatedProgress)
+                                        curveColor.copy(alpha = 0.3f * animatedProgress),
+                                        curveColor.copy(alpha = 0.05f * animatedProgress)
                                     )
                                 )
                             )
                             
-                            drawPath(path, Color(0xFF6366F1), style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+                            drawPath(path, curveColor, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
                             
                             // Draw selection indicator
                             if (selectedPointIndex != -1) {
@@ -2462,7 +2434,7 @@ fun WeightHistoryGraphCard(
                                         fontFamily = SpaceGroteskFontFamily
                                     )
                                     Text(
-                                        text = entry.date.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                                        text = entry.date.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy")),
                                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                                         fontSize = 10.sp,
                                         fontFamily = InterFontFamily
@@ -2484,7 +2456,7 @@ fun WeightHistoryGraphCard(
                         List(labelCount) { i -> (i * (filteredHistory.size - 1) / (labelCount - 1)) }
                     } else listOf(0)
                     
-                    val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
+                    val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM d")
                     
                     indices.forEach { index ->
                         val entry = filteredHistory[index]

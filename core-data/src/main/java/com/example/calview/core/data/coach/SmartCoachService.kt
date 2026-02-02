@@ -426,11 +426,15 @@ class SmartCoachService @Inject constructor(
         
         // Personal best streak
         if (snapshot.currentStreak > 0 && snapshot.currentStreak == snapshot.bestStreak) {
+            val messages = listOf(
+                "You're on a ${snapshot.currentStreak}-day streak — your personal best! This level of consistency is what transforms habits into lifestyle. Keep it up!",
+                "Amazing! A ${snapshot.currentStreak}-day personal record! Your body is adapting to this healthy routine in incredible ways. Don't stop now!",
+                "${snapshot.currentStreak} days of pure dedication! You're rewriting your health story one log at a time. Keep the chain going!",
+                "New personal best: ${snapshot.currentStreak} days! Consistent tracking is the secret sauce to reaching your goals. You've got this!",
+                "Look at you go! ${snapshot.currentStreak} days of being your best self. Your consistency is inspiring. Let's make it ${snapshot.currentStreak + 1} tomorrow!"
+            )
             tips.add(SmartCoachTip(
-                message = "You're on a ${snapshot.currentStreak}-day streak - your personal best! " +
-                        "This level of consistency is what transforms habits into lifestyle. " +
-                        "Your body is adapting to your healthy routine in amazing ways. " +
-                        "Don't break the chain - log today's meals to keep going strong!",
+                message = messages.random(),
                 emoji = "🔥",
                 category = CoachMessageGenerator.TipCategory.ACHIEVEMENT,
                 priority = 90

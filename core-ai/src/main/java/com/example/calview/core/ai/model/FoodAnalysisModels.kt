@@ -7,7 +7,9 @@ data class FoodAnalysisResponse(
     val detected_items: List<FoodItem>,
     val total: NutritionalData,
     val confidence_score: Double,
-    val health_insight: String
+    val health_insight: String,
+    val health_swap: String? = null,
+    val nutrient_synergy: String? = null
 )
 
 @Serializable

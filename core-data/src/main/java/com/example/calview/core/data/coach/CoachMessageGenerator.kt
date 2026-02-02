@@ -70,9 +70,13 @@ class CoachMessageGenerator @Inject constructor() {
                 message = listOf(
                     "Good morning! Set an intention today: What's one healthy choice you'll make?",
                     "Rise and shine! Ready to crush your goals today?",
-                    "New day, new opportunities. What are we tracking first?"
+                    "New day, new opportunities. What are we tracking first?",
+                    "Breakfast is the fuel for your morning. What's on the menu?",
+                    "Consistency is your superpower. Let's make today count!",
+                    "You've got this! Focus on small wins throughout the day.",
+                    "A fresh start awaits. How will you nourish your body today?"
                 ).random(),
-                emoji = "☀️",
+                emoji = listOf("☀️", "🌅", "✨", "🧘", "🍏").random(),
                 category = TipCategory.MOTIVATION
             )
         }
@@ -126,9 +130,13 @@ class CoachMessageGenerator @Inject constructor() {
                 message = listOf(
                     "Another day of progress! Every meal logged is a step toward your goals.",
                     "Great work today! Consistency is the secret to change.",
-                    "Day complete! Your future self will thank you for today's logs."
+                    "Day complete! Your future self will thank you for today's logs.",
+                    "Reflect on today's wins. What are you proud of achieving?",
+                    "Rest up and recharge. You've earned it with today's effort!",
+                    "Tomorrow is another chance to shine. Sleep well!",
+                    "You stayed committed today. That's how real change happens."
                 ).random(),
-                emoji = "✨",
+                emoji = listOf("✨", "🌙", "😴", "🌟", "✅").random(),
                 category = TipCategory.MOTIVATION
             )
         }
@@ -180,9 +188,13 @@ class CoachMessageGenerator @Inject constructor() {
                 message = listOf(
                     "You're doing great! Keep making balanced choices.",
                     "Solid progress! Your macros are looking balanced.",
-                    "Nice work! You're staying consistent with your logging."
+                    "Nice work! You're staying consistent with your logging.",
+                    "Balance is key. Keep aimining for those macro targets!",
+                    "You're mastering the art of tracking. Keep it up!",
+                    "Every log helps you understand your body better. Great job!",
+                    "Staying on track with your macros is a huge win. Finish strong!"
                 ).random(),
-                emoji = "👍",
+                emoji = listOf("👍", "📊", "🎯", "🥗", "⚖️").random(),
                 category = TipCategory.MOTIVATION
             )
         }
@@ -245,9 +257,13 @@ class CoachMessageGenerator @Inject constructor() {
                 message = listOf(
                     "Consistency is key. Log every meal to see your score improve.",
                     "Every log counts! Your health score grows with your consistency.",
-                    "Success is built daily. Keep logging to track your journey accurately."
+                    "Success is built daily. Keep logging to track your journey accurately.",
+                    "Small habits lead to big results. Stay focused on your goals!",
+                    "Your health score is a reflection of your daily dedication.",
+                    "Keep the momentum going! Each log brings you closer to your best self.",
+                    "Focus on the process, and the score will follow. You've got this!"
                 ).random(),
-                emoji = "📝",
+                emoji = listOf("📝", "💪", "🌱", "📈", "💎").random(),
                 category = TipCategory.MOTIVATION
             )
         }

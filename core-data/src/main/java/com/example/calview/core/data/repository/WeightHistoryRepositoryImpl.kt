@@ -28,10 +28,25 @@ class WeightHistoryRepositoryImpl @Inject constructor(
     override suspend fun getLatestWeight(): WeightHistoryEntity? = weightHistoryDao.getLatestWeight()
 
     override suspend fun insertWeight(entry: WeightHistoryEntity): Long {
-        val id = weightHistoryDao.insertWeight(entry)
-        val inserted = entry.copy(id = id)
+        // Calculate start and end of the day for the given timestamp
+        val date = java.time.Instant.ofEpochMilli(entry.timestamp)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDate()
+        val startTime = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endTime = date.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+
+        val existingEntry = weightHistoryDao.getWeightEntryInRange(startTime, endTime)
         
-        syncToCloud(inserted)
+        val entryToInsert = if (existingEntry != null) {
+            existingEntry.copy(weight = entry.weight, timestamp = entry.timestamp)
+        } else {
+            entry
+        }
+
+        val id = weightHistoryDao.insertWeight(entryToInsert)
+        val finalEntry = entryToInsert.copy(id = id)
+        
+        syncToCloud(finalEntry)
         checkGoalAchievement(entry.weight)
         return id
     }

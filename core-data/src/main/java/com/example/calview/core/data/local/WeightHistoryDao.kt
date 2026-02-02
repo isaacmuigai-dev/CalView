@@ -41,6 +41,12 @@ interface WeightHistoryDao {
      */
     @Query("SELECT * FROM weight_history WHERE timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp ASC")
     fun getWeightHistoryBetween(startTime: Long, endTime: Long): Flow<List<WeightHistoryEntity>>
+
+    /**
+     * Get weight entry for a specific time range (e.g., a single day)
+     */
+    @Query("SELECT * FROM weight_history WHERE timestamp BETWEEN :startTime AND :endTime LIMIT 1")
+    suspend fun getWeightEntryInRange(startTime: Long, endTime: Long): WeightHistoryEntity?
     
     /**
      * Delete all weight history (for account deletion)

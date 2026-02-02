@@ -169,7 +169,7 @@ fun GoalJourneyCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = targetDateStr,
+                        text = " - $targetDateStr",
                         fontFamily = SpaceGroteskFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,

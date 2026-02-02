@@ -62,6 +62,11 @@ import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.core.ui.theme.InterFontFamily
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import android.Manifest
 
 // NOTE: Use MaterialTheme.colorScheme for all colors - no hardcoded values
 
@@ -110,6 +115,42 @@ fun FoodDetailScreen(
             val balance = minOf(proteinRatio * 10, 10f)
             (balance * 0.4f + 4f).toInt().coerceIn(1, 10)
         } else 4
+    }
+    
+    // Satiety Index (1-10)
+    val satietyIndex = remember(currentMeal) {
+        val proteinWeight = 10
+        val fiberWeight = 20
+        val fatsWeight = 5
+        val sugarWeight = 8
+        val rawScore = 3.5f + (currentMeal.protein * proteinWeight + currentMeal.fiber * fiberWeight - currentMeal.fats * fatsWeight - currentMeal.sugar * sugarWeight) / 100f
+        rawScore.coerceIn(1f, 10f).toInt()
+    }
+    
+    // Permission launcher for saving to gallery on older Android versions
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            scope.launch {
+                saveImageToGallery(context, currentMeal, servingCount)
+            }
+        } else {
+            Toast.makeText(context, "Storage permission required to save image", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    val onSaveWithPermissionCheck = {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            scope.launch {
+                saveImageToGallery(context, currentMeal, servingCount)
+            }
+        }
+        Unit
     }
     
     Box(modifier = Modifier.fillMaxSize()) {
@@ -247,9 +288,7 @@ fun FoodDetailScreen(
                                     leadingIcon = { Icon(Icons.Outlined.Download, null) },
                                     onClick = {
                                         showOptionsMenu = false
-                                        scope.launch {
-                                            saveImageToGallery(context, meal)
-                                        }
+                                        onSaveWithPermissionCheck()
                                     }
                                 )
                                 HorizontalDivider()
@@ -546,6 +585,77 @@ fun FoodDetailScreen(
                                         )
                                     }
                                 }
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                // Satiety Index Card
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                                    color = surfaceColor
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "🥣",
+                                                    fontSize = 24.sp
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                            Column {
+                                                Text(
+                                                    text = "Satiety Index",
+                                                    fontFamily = InterFontFamily,
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = onSurfaceColor
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                // Progress bar
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(100.dp)
+                                                        .height(6.dp)
+                                                        .clip(RoundedCornerShape(3.dp))
+                                                        .background(Color(0xFFE5E7EB))
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth(satietyIndex / 10f)
+                                                            .fillMaxHeight()
+                                                            .background(
+                                                                Brush.horizontalGradient(
+                                                                    listOf(Color(0xFF3B82F6), Color(0xFF60A5FA))
+                                                                ),
+                                                                RoundedCornerShape(3.dp)
+                                                            )
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Text(
+                                            text = "$satietyIndex/10",
+                                            fontFamily = SpaceGroteskFontFamily,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = (-0.02).sp,
+                                            color = onSurfaceColor
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -833,6 +943,74 @@ fun FoodDetailScreen(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // AI Swap suggestion
+                meal.healthSwap?.let { swap ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFFFF7ED),
+                        border = BorderStroke(1.dp, Color(0xFFF97316).copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(text = "⚡", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "AI Swap Suggestion",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9A3412)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = swap,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF9A3412),
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Nutrient Synergy
+                meal.nutrientSynergy?.let { synergy ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFEFF6FF),
+                        border = BorderStroke(1.dp, Color(0xFF3B82F6).copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(text = "🧪", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Nutrient Synergy",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1E40AF)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = synergy,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF1E40AF),
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
                 
@@ -930,7 +1108,8 @@ fun FoodDetailScreen(
             ShareFoodSheet(
                 meal = currentMeal,
                 servingCount = servingCount,
-                onDismiss = { showShareSheet = false }
+                onDismiss = { showShareSheet = false },
+                onSaveToGallery = onSaveWithPermissionCheck
             )
         }
         
@@ -1036,7 +1215,8 @@ private fun MicroDetailCard(
 private fun ShareFoodSheet(
     meal: MealEntity,
     servingCount: Int,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onSaveToGallery: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -1194,16 +1374,16 @@ private fun ShareFoodSheet(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // App Logo - compact 80dp
+                                // App Logo - 100dp
                                 Image(
                                     painter = androidx.compose.ui.res.painterResource(
                                         id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
                                     ),
                                     contentDescription = "CalViewAI Logo",
-                                    modifier = Modifier.size(90.dp)
+                                    modifier = Modifier
+                                        .size(100.dp),
+                                    contentScale = ContentScale.Crop
                                 )
-                                
-                                Spacer(modifier = Modifier.width(2.dp))
                                 
                                 // Food name and app branding
                                 Column(modifier = Modifier.weight(1f)) {
@@ -1243,11 +1423,7 @@ private fun ShareFoodSheet(
                     ShareOptionButton(
                         icon = Icons.Filled.Download,
                         label = "Save",
-                        onClick = {
-                            scope.launch {
-                                saveImageToGallery(context, meal)
-                            }
-                        }
+                        onClick = onSaveToGallery
                     )
                     ShareOptionButton(
                         icon = Icons.Filled.ContentCopy,
@@ -1469,27 +1645,33 @@ private suspend fun saveImageToGallery(context: Context, meal: MealEntity, servi
                     
                     try {
                         if (!calviewDir.exists()) {
-                            calviewDir.mkdirs()
+                            val created = calviewDir.mkdirs()
+                            android.util.Log.d("ShareFood", "Created directory: $created at ${calviewDir.absolutePath}")
                         }
                         val destFile = File(calviewDir, fileName)
                         cacheFile.copyTo(destFile, overwrite = true)
                         
                         // Notify media scanner
-                        android.media.MediaScannerConnection.scanFile(context, arrayOf(destFile.absolutePath), null, null)
+                        android.media.MediaScannerConnection.scanFile(context, arrayOf(destFile.absolutePath), null, { path, uri ->
+                             android.util.Log.d("ShareFood", "Scanned $path: uri=$uri")
+                        })
                         
                         withContext(Dispatchers.Main) {
                             Toast.makeText(context, "✓ Saved to Pictures/CalViewAI", Toast.LENGTH_LONG).show()
                         }
                     } catch (e: Exception) {
                         // Fallback - keep in cache and show different message
-                        android.util.Log.e("ShareFood", "Failed to copy to Pictures, keeping in cache: ${e.message}")
+                        android.util.Log.e("ShareFood", "Failed to copy to Pictures: ${e.message}", e)
+                        
+                        // If it's a permission issue or something else, at least tell the user where it is
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "✓ Image saved (check app cache)", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Saved to app cache (Gallery access failed)", Toast.LENGTH_LONG).show()
                         }
                     }
                     
-                    // Clean up cache file if copy succeeded, otherwise keep it
-                    if (File(calviewDir, fileName).exists()) {
+                    // Clean up cache file if copy succeeded
+                    val verifyFile = File(calviewDir, fileName)
+                    if (verifyFile.exists() && verifyFile.length() > 0) {
                         cacheFile.delete()
                     }
                 } catch (e: Exception) {
@@ -1690,8 +1872,9 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
 
         // --- DRAW BOTTOM BRANDING CARD ---
         val density = context.resources.displayMetrics.density
-        // Use a smaller, more proportional logo size (60dp equivalent)
-        val logoSize = (90 * density).toInt()
+        // App logo size: 20% of width up to 120dp
+        val maxLogoSizePx = (120 * density).toInt()
+        val logoSize = (width * 0.20f).coerceAtMost(maxLogoSizePx.toFloat()).toInt()
         
         // Available width for text (full width - margins - padding - logo)
         val textLeft = horizontalMargin + padding + logoSize + padding * 1.5f
@@ -1720,28 +1903,35 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         }
         canvas.drawRoundRect(cardRect, cardRadius, cardRadius, glassPaint)
         
-        // Draw Logo - preserve aspect ratio
+        // Draw Logo - implement ContentScale.Crop behavior in a square area
         val logoBitmap = try {
             val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.ic_calview_logo)
             if (drawable != null) {
-                // Get intrinsic dimensions to preserve aspect ratio
+                // Get intrinsic dimensions
                 val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: logoSize
                 val intrinsicHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: logoSize
                 val aspectRatio = intrinsicWidth.toFloat() / intrinsicHeight
                 
+                // ContentScale.Crop logic: fill the logoSize x logoSize square
                 val drawWidth: Int
                 val drawHeight: Int
-                if (aspectRatio > 1) {
-                    drawWidth = logoSize
-                    drawHeight = (logoSize / aspectRatio).toInt()
-                } else {
+                if (aspectRatio > 1f) {
+                    // Wider than tall: match height, crop width
                     drawHeight = logoSize
                     drawWidth = (logoSize * aspectRatio).toInt()
+                } else {
+                    // Taller than wide: match width, crop height
+                    drawWidth = logoSize
+                    drawHeight = (logoSize / aspectRatio).toInt()
                 }
                 
-                val b = Bitmap.createBitmap(drawWidth, drawHeight, Bitmap.Config.ARGB_8888)
+                val b = Bitmap.createBitmap(logoSize, logoSize, Bitmap.Config.ARGB_8888)
                 val c = Canvas(b)
-                drawable.setBounds(0, 0, drawWidth, drawHeight)
+                
+                // Center the drawable to achieve crop behavior
+                val left = (logoSize - drawWidth) / 2
+                val top = (logoSize - drawHeight) / 2
+                drawable.setBounds(left, top, left + drawWidth, top + drawHeight)
                 drawable.draw(c)
                 b
             } else null
