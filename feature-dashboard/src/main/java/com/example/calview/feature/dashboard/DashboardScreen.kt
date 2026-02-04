@@ -95,7 +95,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import java.io.File
 import java.text.SimpleDateFormat
@@ -207,10 +206,10 @@ fun DashboardScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     
     // State for showing Health Connect onboarding
-    var showHealthOnboarding by remember { mutableStateOf(false) }
+    var showHealthOnboarding by rememberSaveable { mutableStateOf(false) }
     
     // State for showing streak lost dialog
-    var showStreakLostDialog by remember { mutableStateOf(false) }
+    var showStreakLostDialog by rememberSaveable { mutableStateOf(false) }
     var hasShownStreakLostDialog by rememberSaveable { mutableStateOf(false) }
     
     // State for showing food detail screen
@@ -384,7 +383,7 @@ fun DashboardContent(
     var aiCoachRect by remember { mutableStateOf<Rect?>(null) }
     var weeklyActivityRect by remember { mutableStateOf<Rect?>(null) }
     
-    var currentStepIndex by remember(state.hasSeenWalkthrough) { 
+    var currentStepIndex by rememberSaveable(state.hasSeenWalkthrough) { 
         mutableIntStateOf(if (!state.hasSeenWalkthrough) 0 else -1) 
     }
     
@@ -528,7 +527,7 @@ fun DashboardContent(
             // Pager State for horizontal scrollable cards
             
             // Shared state for eaten/left toggle across all nutrition cards
-            var showEaten by remember { mutableStateOf(true) }
+            var showEaten by rememberSaveable { mutableStateOf(true) }
             
             Column(
                 modifier = Modifier
@@ -548,7 +547,7 @@ fun DashboardContent(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(300.dp), // Reduced from 360.dp for a more compact design
+                                    .height(265.dp), // Increased from 320.dp
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 // Calories Card
@@ -620,7 +619,7 @@ fun DashboardContent(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(300.dp), // Reduced from 360.dp
+                                    .height(265.dp), // Increased from 320.dp
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 // Micros Row (Fiber, Sugar, Sodium) - uniform height
@@ -707,7 +706,7 @@ fun DashboardContent(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(300.dp) // Reduced from 360.dp
+                                    .height(265.dp) // Increased from 320.dp
                                     .onPositionedRect { healthConnectRect = it },
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
@@ -716,23 +715,23 @@ fun DashboardContent(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // Steps Card (larger - 55% width)
+                                    // Steps Card (smaller - 45% width)
                                     StepsTodayCardRedesigned(
                                         steps = state.steps.toInt(),
                                         isVisible = pagerState.currentPage == 2,
                                         goal = state.stepsGoal,
                                         isConnected = state.isHealthConnected,
                                         onConnectClick = onConnectHealth,
-                                        modifier = Modifier.weight(1.2f)
+                                        modifier = Modifier.weight(0.9f)
                                     )
                                     
-                                    // Calories Burned Card (smaller - 45% width)
+                                    // Calories Burned Card (larger - 55% width)
                                     CaloriesBurnedCardRedesigned(
                                         calories = state.caloriesBurned,
                                         isVisible = pagerState.currentPage == 2,
                                         stepsCalories = state.steps.toInt() / 20, // Approx calories from steps
                                         exerciseCalories = state.manualExerciseCalories, // From logged exercises
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1.1f)
                                     )
                                 }
                                 
@@ -741,7 +740,7 @@ fun DashboardContent(
                                     weeklySteps = state.weeklySteps,
                                     weeklyCaloriesBurned = state.weeklyCaloriesBurned + state.weeklyExerciseCalories,
                                     caloriesRecord = state.caloriesBurnedRecord,
-                                    exerciseCalories = state.weeklyExerciseCalories,
+                                    exerciseCalories = state.manualExerciseCalories,
                                     isVisible = pagerState.currentPage == 2,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -756,7 +755,7 @@ fun DashboardContent(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(300.dp), // Reduced from 360.dp
+                                    .height(265.dp), // Increased from 320.dp
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 if (state.exercises.isNotEmpty()) {
@@ -777,20 +776,20 @@ fun DashboardContent(
                                             Icon(
                                                 imageVector = Icons.Filled.FitnessCenter,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(48.dp),
+                                                modifier = Modifier.size(40.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                             )
                                             Spacer(modifier = Modifier.height(12.dp))
                                             Text(
                                                 text = "No exercises logged today",
                                                 fontFamily = InterFontFamily,
-                                                fontSize = 14.sp,
+                                                fontSize = 13.sp,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
                                                 text = "Log your workouts to track calories burned",
                                                 fontFamily = InterFontFamily,
-                                                fontSize = 12.sp,
+                                                fontSize = 11.sp,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                             )
                                         }
@@ -1448,14 +1447,14 @@ fun NutritionOverviewCard(
                         
                         Column {
                             if (isEaten) {
-                                // Hero calorie number with Space Grotesk - tight tracking for premium feel
+                                    // Hero calorie number with Space Grotesk - tight tracking
                                 Text(
                                     text = buildAnnotatedString {
                                         withStyle(SpanStyle(
                                             fontFamily = SpaceGroteskFontFamily,
-                                            fontSize = 42.sp,
+                                            fontSize = 44.sp, // Increased from 42.sp
                                             fontWeight = FontWeight.Bold,
-                                            letterSpacing = (-0.02).sp // Tight tracking = confident & premium
+                                            letterSpacing = (-0.02).sp
                                         )) {
                                             append(animatedConsumed.toString())
                                         }
@@ -1469,7 +1468,7 @@ fun NutritionOverviewCard(
                                         }
                                     }
                                 )
-                                // Label with Inter - lighter and more breathable
+                                // Label with Inter
                                 Text(
                                     text = buildAnnotatedString {
                                         withStyle(SpanStyle(
@@ -1486,14 +1485,14 @@ fun NutritionOverviewCard(
                                             append("eaten")
                                         }
                                     },
-                                    style = typography.secondaryLabel
+                                    style = typography.secondaryLabel.copy(fontSize = 12.sp) // Increased size
                                 )
                             } else {
-                                // Hero "remaining" number with Space Grotesk - Reduced to match Macro cards
+                                // Hero "remaining" number
                                 Text(
                                     text = animatedRemaining.toString(),
                                     style = typography.heroNumber.copy(
-                                        fontSize = 16.sp, // Match MacroCardUnified
+                                        fontSize = 18.sp, // Increased from 16.sp
                                         fontFamily = SpaceGroteskFontFamily,
                                         fontWeight = FontWeight.SemiBold,
                                         letterSpacing = (-0.02).sp
@@ -1504,84 +1503,76 @@ fun NutritionOverviewCard(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Column {
-                                            // Label with Inter - lighter and more breathable
-                                            Text(
-                                                text = buildAnnotatedString {
-                                                    withStyle(SpanStyle(
-                                                        fontFamily = InterFontFamily,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        fontSize = 10.sp // Match MacroCardUnified
-                                                    )) {
-                                                        append("Calories ")
-                                                    }
-                                                    withStyle(SpanStyle(
-                                                        fontFamily = InterFontFamily,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        fontSize = 10.sp // Match MacroCardUnified
-                                                    )) {
-                                                        append("left")
-                                                    }
-                                                },
-                                            )
-                                        }
+                                        // Label with Inter
+                                        Text(
+                                            text = buildAnnotatedString {
+                                                withStyle(SpanStyle(
+                                                    fontFamily = InterFontFamily,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    fontSize = 12.sp // Increased from 10.sp
+                                                )) {
+                                                    append("Calories ")
+                                                }
+                                                withStyle(SpanStyle(
+                                                    fontFamily = InterFontFamily,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    fontSize = 12.sp // Increased from 10.sp
+                                                )) {
+                                                    append("left")
+                                                }
+                                            },
+                                        )
 
-                                        // Indicators Column (Rollover + Active)
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            // Rollover indicator
-                                            if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
-                                                Surface(
-                                                    color = Color(0xFFE8F5E9), // Light green (matched)
-                                                    shape = RoundedCornerShape(4.dp)
+                                        // Indicators (Rollover + Active) in same row
+                                        if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
+                                            Surface(
+                                                color = Color(0xFFE8F5E9),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                                                 ) {
-                                                    Row(
-                                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.AutoMirrored.Filled.Redo, // Redo icon for rollover
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(8.dp), // Reduced size
-                                                            tint = Color(0xFF2E7D32) // Dark green (matched)
-                                                        )
-                                                        Text(
-                                                            text = "+$rolloverCaloriesAmount Rollover",
-                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), // Reduced size
-                                                            color = Color(0xFF2E7D32), // Dark green (matched)
-                                                            fontWeight = FontWeight.Bold
-                                                        )
-                                                    }
+                                                    Icon(
+                                                        imageVector = Icons.AutoMirrored.Filled.Redo,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(7.dp), // Reduced from 8.dp
+                                                        tint = Color(0xFF2E7D32)
+                                                    )
+                                                    Text(
+                                                        text = "+$rolloverCaloriesAmount",
+                                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), // Reduced from 9.sp
+                                                        color = Color(0xFF2E7D32),
+                                                        fontWeight = FontWeight.Bold
+                                                    )
                                                 }
                                             }
-                                            
-                                            // Active Calories indicator
-                                            if (addCaloriesBackEnabled && burnedCalories > 0) {
-                                                Surface(
-                                                    color = Color(0xFFE8F5E9), // Light green
-                                                    shape = RoundedCornerShape(4.dp)
+                                        }
+                                        
+                                        if (addCaloriesBackEnabled && burnedCalories > 0) {
+                                            Surface(
+                                                color = Color(0xFFE8F5E9),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                                                 ) {
-                                                    Row(
-                                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.LocalFireDepartment, 
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(8.dp), // Reduced size
-                                                            tint = Color(0xFF2E7D32) // Dark green
-                                                        )
-                                                        Text(
-                                                            text = "+$burnedCalories Active",
-                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), // Reduced size
-                                                            color = Color(0xFF2E7D32),
-                                                            fontWeight = FontWeight.Bold
-                                                        )
-                                                    }
+                                                    Icon(
+                                                        imageVector = Icons.Default.LocalFireDepartment, 
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(7.dp), // Reduced from 8.dp
+                                                        tint = Color(0xFF2E7D32)
+                                                    )
+                                                    Text(
+                                                        text = "+$burnedCalories",
+                                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), // Reduced from 9.sp
+                                                        color = Color(0xFF2E7D32),
+                                                        fontWeight = FontWeight.Bold
+                                                    )
                                                 }
                                             }
                                         }
@@ -1592,7 +1583,7 @@ fun NutritionOverviewCard(
                 }
                 
                 // Calorie ring - Reduced size
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(60.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(70.dp)) {
                     CalorieRing(
                         consumed = consumedCalories.toFloat(), 
                         goal = goalCalories.toFloat(),
@@ -1749,7 +1740,7 @@ fun MicroCardUnified(
                                     append(formatValue(consumedValue))
                                 }
                                 withStyle(SpanStyle(
-                                    fontSize = 10.sp,
+                                    fontSize = 8.sp, // Reduced from 10.sp for goal
                                     color = Color.Gray
                                 )) {
                                     append(" /${formatValue(goalValue)}$unit")
@@ -1766,7 +1757,9 @@ fun MicroCardUnified(
                                 }
                             },
                             fontSize = 10.sp,
-                            color = Color.Gray
+                            color = Color.Gray,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     } else {
                         Text(
@@ -1785,7 +1778,9 @@ fun MicroCardUnified(
                                 }
                             },
                             fontSize = 10.sp,
-                            color = Color.Gray
+                            color = Color.Gray,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -2138,7 +2133,7 @@ fun AICoachCard(
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             lineHeight = 18.sp,
-                            maxLines = 6,
+                            maxLines = 10,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
@@ -2702,7 +2697,7 @@ fun CaloriesCardRedesigned(
     
     CalAICard(modifier = modifier.fillMaxWidth(), onClick = onToggle) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -2721,7 +2716,7 @@ fun CaloriesCardRedesigned(
                                 text = buildAnnotatedString {
                                     withStyle(SpanStyle(
                                         fontFamily = SpaceGroteskFontFamily,
-                                        fontSize = 32.sp,
+                                        fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = (-0.02).sp,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -2746,7 +2741,7 @@ fun CaloriesCardRedesigned(
                                     }
                                 },
                                 fontFamily = InterFontFamily,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
@@ -2755,7 +2750,7 @@ fun CaloriesCardRedesigned(
                                 text = buildAnnotatedString {
                                     withStyle(SpanStyle(
                                         fontFamily = SpaceGroteskFontFamily,
-                                        fontSize = 32.sp,
+                                        fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = (-0.02).sp,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -2780,58 +2775,61 @@ fun CaloriesCardRedesigned(
                                     }
                                 },
                                 fontFamily = InterFontFamily,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
                 
-                // Show extra info badges
-                if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Redo,
-                            contentDescription = null,
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = " +$rolloverCaloriesAmount rollover",
-                            fontSize = 10.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                    }
-                }
-                if (addCaloriesBackEnabled && burnedCalories > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.LocalFireDepartment,
-                            contentDescription = null,
-                            tint = Color(0xFFFF9800),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = " +$burnedCalories burned",
-                            fontSize = 10.sp,
-                            color = Color(0xFFFF9800)
-                        )
-                    }
+               
+            }
+            // Show extra info badges
+            Column {
+            if (rolloverCaloriesEnabled && rolloverCaloriesAmount > 0) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Redo,
+                        contentDescription = null,
+                        tint = Color(0xFF4CAF50),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = " +$rolloverCaloriesAmount ",
+                        fontSize = 10.sp,
+                        color = Color(0xFF4CAF50)
+                    )
                 }
             }
-            
+            if (addCaloriesBackEnabled && burnedCalories > 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.LocalFireDepartment,
+                        contentDescription = null,
+                        tint = Color(0xFFFF9800),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = " +$burnedCalories ",
+                        fontSize = 10.sp,
+                        color = Color(0xFFFF9800)
+                    )
+                }
+            }
+            }
                 // Calorie ring
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(70.dp)) {
                 CalorieRing(
                     consumed = if (isVisible) consumedCalories.toFloat() else 0f,
                     goal = goalCalories.toFloat(),
+                    strokeWidth = 4.dp
                 )
                 Icon(
                     imageVector = Icons.Filled.LocalFireDepartment,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(25.dp)
                 )
             }
         }
@@ -2873,7 +2871,7 @@ fun MacroCardRedesigned(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             horizontalAlignment = Alignment.Start
         ) {
             // Value with unit and goal
@@ -2900,7 +2898,7 @@ fun MacroCardRedesigned(
             Text(
                 text = displayLabel,
                 fontFamily = InterFontFamily,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
@@ -2975,20 +2973,20 @@ fun StepsTodayCardRedesigned(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             // Header: Steps value / goal
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = SpaceGroteskFontFamily
                     )) {
                         append(animatedSteps.toString())
                     }
                     withStyle(SpanStyle(
-                        fontSize = 12.sp,
+                        fontSize = 10.sp,
                         color = Color.Gray,
                         fontFamily = InterFontFamily
                     )) {
@@ -3005,52 +3003,38 @@ fun StepsTodayCardRedesigned(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(1.dp))
             
             if (isConnected) {
-                // Show full circular progress ring - properly sized
-                Box(
+                // Linear Progress Bar with Icon
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(70.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    
+                    // Custom Linear Progress Indicator
                     Box(
                         modifier = Modifier
-                            .size(60.dp)
-                            .aspectRatio(1f), // Ensure perfect circle
-                        contentAlignment = Alignment.Center
+                            .weight(1f)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                            // Track arc (full circle)
-                            drawArc(
-                                color = Color(0xFFE0E0E0),
-                                startAngle = 0f,
-                                sweepAngle = 360f,
-                                useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                    width = 6.dp.toPx(),
-                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                                )
-                            )
-                            // Progress arc
-                            drawArc(
-                                color = Color(0xFF424242),
-                                startAngle = -90f,
-                                sweepAngle = 360f * animatedProgress,
-                                useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                    width = 6.dp.toPx(),
-                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                                )
-                            )
-                        }
-                        // Walking icon in center
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
-                            contentDescription = null,
-                            tint = Color(0xFF424242),
-                            modifier = Modifier.size(24.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(animatedProgress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -3067,14 +3051,14 @@ fun StepsTodayCardRedesigned(
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp),
+                        modifier = Modifier.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // Google Health icon
                         Box(
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(22.dp)
                                 .background(Color(0xFFF5F5F5), RoundedCornerShape(6.dp)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -3089,10 +3073,10 @@ fun StepsTodayCardRedesigned(
                         Text(
                             text = stringResource(R.string.connect_health_to_track_steps),
                             fontFamily = InterFontFamily,
-                            fontSize = 10.sp,
+                            fontSize = 8.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 12.sp,
+                            lineHeight = 10.sp,
                             maxLines = 2
                         )
                     }
@@ -3120,7 +3104,7 @@ fun CaloriesBurnedCardRedesigned(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             // Header: fire icon + value on top
             Row(
@@ -3131,12 +3115,12 @@ fun CaloriesBurnedCardRedesigned(
                     imageVector = Icons.Filled.LocalFireDepartment,
                     contentDescription = null,
                     tint = Color(0xFFFF9800),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Text(
                     text = animatedBurned.toString(),
                     fontFamily = SpaceGroteskFontFamily,
-                    fontSize = 20.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -3145,26 +3129,27 @@ fun CaloriesBurnedCardRedesigned(
             Text(
                 text = stringResource(R.string.calories_burned),
                 fontFamily = InterFontFamily,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
-            // Steps and Exercise in one row
+            // Steps and Exercise in one Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Steps calories row
+                // Steps calories
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Sneaker/Steps icon in dark circle
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
+                            .size(24.dp)
                             .background(Color(0xFF1C1C1E), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -3172,37 +3157,28 @@ fun CaloriesBurnedCardRedesigned(
                             imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(10.dp)
                         )
                     }
-                    
-                    Column {
-                        Text(
-                            text = stringResource(R.string.steps_label),
-                            fontFamily = InterFontFamily,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "+$stepsCalories kcal",
-                            fontFamily = InterFontFamily,
-                            fontSize = 9.sp,
-                            color = Color.Gray
-                        )
-                    }
+                    Text(
+                        text = "+$stepsCalories kcal",
+                        fontFamily = InterFontFamily,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray
+                    )
                 }
                 
-                // Exercise calories row (only show if exerciseCalories > 0)
+                // Exercise calories (only show if exerciseCalories > 0)
                 if (exerciseCalories > 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         // Dumbbell icon in orange circle
                         Box(
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(24.dp)
                                 .background(Color(0xFFFF9800), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -3210,25 +3186,16 @@ fun CaloriesBurnedCardRedesigned(
                                 imageVector = Icons.Filled.FitnessCenter,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(10.dp)
                             )
                         }
-                        
-                        Column {
-                            Text(
-                                text = "Exercise",
-                                fontFamily = InterFontFamily,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "+$exerciseCalories kcal",
-                                fontFamily = InterFontFamily,
-                                fontSize = 9.sp,
-                                color = Color(0xFFFF9800)
-                            )
-                        }
+                        Text(
+                            text = "+$exerciseCalories kcal",
+                            fontFamily = InterFontFamily,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFFFF9800)
+                        )
                     }
                 }
             }
@@ -3259,7 +3226,7 @@ fun WaterCardRedesigned(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Water glass icon (blue)
@@ -3347,7 +3314,7 @@ fun WaterCardRedesigned(
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Add",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -3391,8 +3358,8 @@ fun WeeklyActivitySummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             // Title
             Text(
@@ -3452,15 +3419,15 @@ private fun WeeklyStatItemText(
         Text(
             text = label,
             fontFamily = InterFontFamily,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = if (value >= 10000) "${value / 1000}k" else value.toString(),
             fontFamily = SpaceGroteskFontFamily,
-            fontSize = 18.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = color
         )
@@ -3718,7 +3685,14 @@ fun RecentMealCard(
                             contentDescription = "Food image for ${meal.name}",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
-                            onError = { imageLoadError = true }
+                            onError = { error ->
+                                android.util.Log.e("MealCardImage", "Failed to load image: $path")
+                                android.util.Log.e("MealCardImage", "Error: ${error.result.throwable.message}")
+                                imageLoadError = true
+                            },
+                            onSuccess = {
+                                android.util.Log.d("MealCardImage", "Successfully loaded image: $path")
+                            }
                         )
                     }
                     
@@ -4630,7 +4604,7 @@ fun ExerciseSummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             // Header
             Row(
@@ -4643,12 +4617,13 @@ fun ExerciseSummaryCard(
                         imageVector = Icons.Default.FitnessCenter,
                         contentDescription = null,
                         tint = Color(0xFF4CAF50),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Today's Exercise",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -4666,14 +4641,14 @@ fun ExerciseSummaryCard(
                             imageVector = Icons.Default.LocalFireDepartment,
                             contentDescription = null,
                             tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "$totalCalories cal",
                             color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
                         )
                     }
                 }
@@ -4703,13 +4678,14 @@ fun ExerciseSummaryCard(
                             imageVector = getExerciseIcon(exercise.type),
                             contentDescription = null,
                             tint = getExerciseColor(exercise.type),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
                                 text = exercise.name,
                                 style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -4717,6 +4693,7 @@ fun ExerciseSummaryCard(
                             Text(
                                 text = "${exercise.durationMinutes} min",
                                 style = MaterialTheme.typography.bodySmall,
+                                fontSize = 11.sp,
                                 color = Color.Gray
                             )
                         }
@@ -4725,6 +4702,7 @@ fun ExerciseSummaryCard(
                     Text(
                         text = "${exercise.caloriesBurned} cal",
                         style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF4CAF50)
                     )
@@ -4737,6 +4715,7 @@ fun ExerciseSummaryCard(
                 Text(
                     text = "+${exercises.size - 3} more exercise${if (exercises.size - 3 > 1) "s" else ""}",
                     style = MaterialTheme.typography.bodySmall,
+                    fontSize = 11.sp,
                     color = Color.Gray,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center

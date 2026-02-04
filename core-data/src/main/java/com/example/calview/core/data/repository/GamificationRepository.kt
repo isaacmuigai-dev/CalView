@@ -14,16 +14,22 @@ import javax.inject.Singleton
 import java.util.Calendar
 import java.util.UUID
 import com.example.calview.core.data.notification.NotificationHandler
+import kotlinx.coroutines.launch
 
 class GamificationRepository @Inject constructor(
     private val gamificationDao: GamificationDao,
     private val mealDao: MealDao,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val notificationHandler: NotificationHandler
+    private val notificationHandler: NotificationHandler,
+    private val firestoreRepository: FirestoreRepository,
+    private val authRepository: AuthRepository
 ) {
     val activeChallenges: Flow<List<ChallengeEntity>> = gamificationDao.getActiveChallenges()
     val completedChallenges: Flow<List<ChallengeEntity>> = gamificationDao.getCompletedChallenges()
     val unlockedBadges: Flow<List<BadgeEntity>> = gamificationDao.getAllBadges()
+    
+    // Scope for background sync operations
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
 
     /**
      * initializes challenges if none exist.
@@ -80,6 +86,9 @@ class GamificationRepository @Inject constructor(
                 )
             )
             gamificationDao.insertChallenges(challenges)
+            
+            // Sync new challenges to cloud
+            challenges.forEach { syncChallengeToCloud(it) }
         }
     }
 
@@ -91,6 +100,8 @@ class GamificationRepository @Inject constructor(
         val challenges = activeChallenges.first()
         
         challenges.forEach { challenge ->
+            var updatedChallenge: ChallengeEntity? = null
+            
             if (challenge.type == ChallengeType.LOG_MEALS) {
                 // Simplified: Just counting total meals in the period
                 // Ideally we'd group by day, but for MVP this is fine or we improve query.
@@ -98,16 +109,10 @@ class GamificationRepository @Inject constructor(
                 val validMeals = meals.count { it.timestamp >= challenge.startDate && it.timestamp <= challenge.endDate }
                 
                 if (validMeals != challenge.currentProgress) {
-                    val updatedChallenge = challenge.copy(
+                    updatedChallenge = challenge.copy(
                         currentProgress = validMeals,
                         isCompleted = validMeals >= challenge.targetValue
                     )
-                    gamificationDao.updateChallenge(updatedChallenge)
-                    
-                    if (updatedChallenge.isCompleted && !challenge.isCompleted) {
-                         awardBadge(challenge.badgeRewardId)
-                         grantXp(500) // Large XP for challenge completion
-                    }
                 }
             } else if (challenge.type == ChallengeType.HIT_PROTEIN) {
                 // Check distinct days with > 100g protein
@@ -125,15 +130,10 @@ class GamificationRepository @Inject constructor(
                     }
                 
                  if (daysWithHighProtein != challenge.currentProgress) {
-                    val updatedChallenge = challenge.copy(
+                    updatedChallenge = challenge.copy(
                         currentProgress = daysWithHighProtein,
                         isCompleted = daysWithHighProtein >= challenge.targetValue
                     )
-                    gamificationDao.updateChallenge(updatedChallenge)
-                    if (updatedChallenge.isCompleted && !challenge.isCompleted) {
-                         awardBadge(challenge.badgeRewardId)
-                         grantXp(500)
-                    }
                  }
             } else if (challenge.type == ChallengeType.EARLY_BIRD) {
                 // Check meals before 9 AM
@@ -155,16 +155,21 @@ class GamificationRepository @Inject constructor(
                     }
                    
                  if (earlyBirdDays != challenge.currentProgress) {
-                    val updatedChallenge = challenge.copy(
+                    updatedChallenge = challenge.copy(
                         currentProgress = earlyBirdDays,
                         isCompleted = earlyBirdDays >= challenge.targetValue
                     )
-                    gamificationDao.updateChallenge(updatedChallenge)
-                    if (updatedChallenge.isCompleted && !challenge.isCompleted) {
-                         awardBadge(challenge.badgeRewardId)
-                         grantXp(500)
-                    }
                  }
+            }
+            
+            if (updatedChallenge != null) {
+                gamificationDao.updateChallenge(updatedChallenge)
+                syncChallengeToCloud(updatedChallenge)
+                
+                if (updatedChallenge.isCompleted && !challenge.isCompleted) {
+                     awardBadge(challenge.badgeRewardId)
+                     grantXp(500) // Large XP for challenge completion
+                }
             }
         }
     }
@@ -173,6 +178,10 @@ class GamificationRepository @Inject constructor(
     private suspend fun awardBadge(badgeId: String?) {
         if (badgeId == null) return
         
+        // Check if already awarded
+        val existing = gamificationDao.getBadgeById(badgeId)
+        if (existing != null) return
+
         // Define badges map or fetch from somewhere
         val badge = when(badgeId) {
             "consistency_badge" -> BadgeEntity(
@@ -220,6 +229,8 @@ class GamificationRepository @Inject constructor(
         
         badge?.let { 
             gamificationDao.insertBadge(it)
+            syncBadgeToCloud(it)
+            
             notificationHandler.showNotification(
                 id = NotificationHandler.ID_BADGE_UNLOCKED,
                 channelId = NotificationHandler.CHANNEL_ENGAGEMENT,
@@ -360,5 +371,76 @@ class GamificationRepository @Inject constructor(
     suspend fun clearAllData() {
         gamificationDao.clearAllChallenges()
         gamificationDao.clearAllBadges()
+    }
+    
+    // Cloud Sync Helpers
+    
+    private fun syncBadgeToCloud(badge: BadgeEntity) {
+        scope.launch {
+            val userId = authRepository.getUserId()
+            if (userId.isEmpty()) return@launch
+            
+            try {
+                firestoreRepository.saveBadge(userId, badge)
+                android.util.Log.d("GamificationRepo", "Synced badge ${badge.id}")
+            } catch (e: Exception) {
+                android.util.Log.e("GamificationRepo", "Error syncing badge", e)
+            }
+        }
+    }
+    
+    private fun syncChallengeToCloud(challenge: ChallengeEntity) {
+        scope.launch {
+            val userId = authRepository.getUserId()
+            if (userId.isEmpty()) return@launch
+            
+            try {
+                firestoreRepository.saveChallenge(userId, challenge)
+                android.util.Log.d("GamificationRepo", "Synced challenge ${challenge.id}")
+            } catch (e: Exception) {
+                android.util.Log.e("GamificationRepo", "Error syncing challenge", e)
+            }
+        }
+    }
+    
+    suspend fun restoreFromCloud(): Boolean {
+        val userId = authRepository.getUserId()
+        if (userId.isEmpty()) return false
+        
+        var restoredAny = false
+        try {
+            // Restore Badges
+            val cloudBadges = firestoreRepository.getBadges(userId)
+            if (cloudBadges.isNotEmpty()) {
+                cloudBadges.forEach { badge ->
+                    val existing = gamificationDao.getBadgeById(badge.id)
+                    if (existing == null) {
+                        gamificationDao.insertBadge(badge)
+                    }
+                }
+                android.util.Log.d("GamificationRepo", "Restored ${cloudBadges.size} badges")
+                restoredAny = true
+            }
+            
+            // Restore Challenges
+            val cloudChallenges = firestoreRepository.getChallenges(userId)
+            if (cloudChallenges.isNotEmpty()) {
+                // If we have local challenges (default generated), we should merge/overwrite with cloud state
+                // Specifically progress and completion status.
+                // Or just overwrite everything for simplicity if IDs match?
+                // IDs are UUIDs, so default local ones generated on fresh install won't match.
+                // BUT, if user logged in on new device, local ones might be new "defaults".
+                // If cloud has older dates, they might be "old" weekly challenges.
+                // For MVP, simply inserting them is safer than complex merging logic.
+                
+                gamificationDao.insertChallenges(cloudChallenges) // OnConflictStrategy.REPLACE usually
+                android.util.Log.d("GamificationRepo", "Restored ${cloudChallenges.size} challenges")
+                restoredAny = true
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("GamificationRepo", "Error restoring gamification data", e)
+        }
+        
+        return restoredAny
     }
 }

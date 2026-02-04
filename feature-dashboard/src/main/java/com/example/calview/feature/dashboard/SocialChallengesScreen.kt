@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +55,8 @@ fun SocialChallengesScreen(
     viewModel: SocialChallengesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showCreateDialog by remember { mutableStateOf(false) }
-    var showJoinDialog by remember { mutableStateOf(false) }
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var showJoinDialog by rememberSaveable { mutableStateOf(false) }
     
     // Adaptive layout support
     val windowSizeClass = LocalWindowSizeClass.current
@@ -578,9 +579,9 @@ private fun CreateChallengeDialog(
     onDismiss: () -> Unit,
     onCreate: (String, SocialChallengeType, Int) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf(SocialChallengeType.LOGGING) }
-    var duration by remember { mutableStateOf(7) }
+    var title by rememberSaveable { mutableStateOf("") }
+    var selectedType by rememberSaveable { mutableStateOf(SocialChallengeType.LOGGING) }
+    var duration by rememberSaveable { mutableStateOf(7) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -761,7 +762,7 @@ private fun JoinChallengeDialog(
     onDismiss: () -> Unit,
     onJoin: (String) -> Unit
 ) {
-    var code by remember { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
     
     AlertDialog(
         onDismissRequest = onDismiss,

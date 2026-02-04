@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -300,7 +301,7 @@ private fun TooltipContent(
 
 // Extension to help capture coordinates
 fun Modifier.onPositionedRect(onRect: (Rect) -> Unit): Modifier = this.onGloballyPositioned { coordinates ->
-    val position = coordinates.positionInWindow()
+    val position = coordinates.positionInRoot()
     val size = coordinates.size
     onRect(
         Rect(

@@ -23,6 +23,8 @@ import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 import java.text.DateFormatSymbols
 import java.util.Locale
+import java.util.Calendar
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /**
  * Set Birthday screen with Month, Day, Year wheel pickers.
@@ -41,12 +43,13 @@ fun EditBirthdayScreen(
     val months = remember(currentLocale) {
         DateFormatSymbols.getInstance(currentLocale).months.filter { it.isNotEmpty() }
     }
+    val currentYearInt = Calendar.getInstance().get(Calendar.YEAR)
     val days = (1..31).toList()
-    val years = (1940..2010).toList()
+    val years = (1900..currentYearInt).toList()
     
-    var selectedMonth by remember { mutableStateOf(currentMonth) }
-    var selectedDay by remember { mutableIntStateOf(currentDay) }
-    var selectedYear by remember { mutableIntStateOf(currentYear) }
+    var selectedMonth by rememberSaveable { mutableStateOf(currentMonth) }
+    var selectedDay by rememberSaveable { mutableIntStateOf(currentDay) }
+    var selectedYear by rememberSaveable { mutableIntStateOf(currentYear) }
     
     Scaffold(
         topBar = {
@@ -108,7 +111,7 @@ fun EditBirthdayScreen(
                 // Year picker
                 BirthdayWheelPicker(
                     items = years.map { it.toString() },
-                    selectedIndex = (selectedYear - 1940).coerceIn(0, years.lastIndex),
+                    selectedIndex = (selectedYear - 1900).coerceIn(0, years.lastIndex),
                     onSelectedIndexChange = { selectedYear = years[it] },
                     modifier = Modifier.weight(0.8f)
                 )
@@ -172,9 +175,16 @@ private fun BirthdayWheelPicker(
             
             if (targetIndex != selectedIndex) {
                 onSelectedIndexChange(targetIndex)
-            }
-            scope.launch {
-                listState.animateScrollToItem(targetIndex)
+                scope.launch {
+                    listState.animateScrollToItem(targetIndex)
+                }
+            } else {
+                // Determine if we need to snap even if index didn't change (minor alignment fix)
+                if (offset != 0) {
+                     scope.launch {
+                        listState.animateScrollToItem(targetIndex)
+                    }
+                }
             }
         }
     }

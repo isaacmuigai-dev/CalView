@@ -20,6 +20,10 @@ import com.example.calview.core.ui.theme.Inter
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+
 /**
  * Edit name screen.
  * Allows users to edit their display name.
@@ -31,7 +35,7 @@ fun EditNameScreen(
     onBack: () -> Unit,
     onSave: (String) -> Unit
 ) {
-    var name by remember { mutableStateOf(currentName) }
+    var name by rememberSaveable { mutableStateOf(currentName) }
     
     Scaffold(
         topBar = {
@@ -103,7 +107,10 @@ fun EditNameScreen(
                         color = Color.Black,
                         shape = RoundedCornerShape(12.dp)
                     )
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .semantics { 
+                        contentDescription = "Enter your name" 
+                    },
                 decorationBox = { innerTextField ->
                     Box(
                         contentAlignment = Alignment.CenterStart,

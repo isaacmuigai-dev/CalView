@@ -17,8 +17,8 @@ android {
         applicationId = "com.calviewai.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 23
-        versionName = "2.0.6"
+        versionCode = 24
+        versionName = "2.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
@@ -127,6 +127,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.ai)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
 
     // Coroutines (used in core-data/core-ai)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")

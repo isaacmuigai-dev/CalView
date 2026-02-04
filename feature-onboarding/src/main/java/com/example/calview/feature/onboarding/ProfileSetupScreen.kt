@@ -23,6 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.util.AdaptiveLayoutUtils
+import com.example.calview.core.ui.util.LocalWindowSizeClass
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /**
  * Consolidated Profile Setup Screen
@@ -60,13 +67,20 @@ fun ProfileSetupScreen(
     // Resources
     val monthNames = androidx.compose.ui.res.stringArrayResource(com.example.calview.feature.onboarding.R.array.month_names)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
-            .statusBarsPadding()
-            .navigationBarsPadding()  // Ensure buttons don't overlap navigation bar
+    val windowSizeClass = LocalWindowSizeClass.current
+    
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass))
+                .fillMaxSize()
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+                .statusBarsPadding()
+                .navigationBarsPadding()  // Ensure buttons don't overlap navigation bar
+        ) {
         // Top bar with back button and progress
         Row(
             modifier = Modifier
@@ -287,6 +301,7 @@ fun ProfileSetupScreen(
         }
     }
 }
+}
 
 @Composable
 private fun SectionTitle(title: String, emoji: String) {
@@ -319,6 +334,10 @@ private fun GenderChip(
             .height(80.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
+            .semantics { 
+                role = Role.RadioButton 
+                selected = isSelected
+            }
             .then(
                 if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                 else Modifier
@@ -353,7 +372,7 @@ private fun DropdownSelector(
     onValueSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     
     Column(modifier = modifier) {
         if (label.isNotEmpty()) {
@@ -375,7 +394,7 @@ private fun DropdownSelector(
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(

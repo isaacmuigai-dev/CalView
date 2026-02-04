@@ -45,7 +45,7 @@ fun CalAICard(
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(8.dp)
                 .fillMaxWidth()
         ) {
             if (title != null) {

@@ -75,6 +75,7 @@ fun CoachTipCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         SuggestionChip(
                             onClick = { },
+                            enabled = false,
                             label = { 
                                 Text(
                                     text = tip.category.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -84,7 +85,9 @@ fun CoachTipCard(
                             modifier = Modifier.height(24.dp),
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), // Maintain color when disabled
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             border = null
                         )

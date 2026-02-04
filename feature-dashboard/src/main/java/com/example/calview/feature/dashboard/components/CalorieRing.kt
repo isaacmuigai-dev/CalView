@@ -24,7 +24,8 @@ fun CalorieRing(
     goal: Float,
     modifier: Modifier = Modifier,
     trackColor: Color = Color(0xFF2D2D30), // Dark track for contrast
-    progressColor: Color = CalAIGreen
+    progressColor: Color = CalAIGreen,
+    strokeWidth: androidx.compose.ui.unit.Dp = 4.dp
 ) {
     val progress = if (goal > 0) (consumed / goal).coerceIn(0f, 1f) else 0f
     
@@ -39,7 +40,6 @@ fun CalorieRing(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        val strokeWidth = 10.dp
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             // Track (background circle) - darker for better visibility

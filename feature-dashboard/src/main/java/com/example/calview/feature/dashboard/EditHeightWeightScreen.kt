@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import com.example.calview.feature.dashboard.R
 import androidx.compose.ui.res.stringResource
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /**
  * Set Height & Weight screen with metric units only (cm/kg).
@@ -36,8 +37,8 @@ fun EditHeightWeightScreen(
     onSave: (heightCm: Int, weightKg: Float) -> Unit
 ) {
     // Metric-only app (kg/cm)
-    var heightCm by remember { mutableIntStateOf(currentHeightCm) }
-    var weightKg by remember { mutableIntStateOf(currentWeightKg.toInt()) }
+    var heightCm by rememberSaveable { mutableIntStateOf(currentHeightCm) }
+    var weightKg by rememberSaveable { mutableIntStateOf(currentWeightKg.toInt()) }
     
 
     
@@ -188,9 +189,17 @@ private fun WheelPickerWidget(
             
             if (targetIndex != selectedIndex) {
                 onSelectedIndexChange(targetIndex)
-            }
-            scope.launch {
-                listState.animateScrollToItem(targetIndex)
+                scope.launch {
+                    listState.animateScrollToItem(targetIndex)
+                }
+            } else {
+                // Determine if we need to snap even if index didn't change (minor alignment fix)
+                // But only if we are not already perfectly aligned
+                if (offset != 0) {
+                     scope.launch {
+                        listState.animateScrollToItem(targetIndex)
+                    }
+                }
             }
         }
     }

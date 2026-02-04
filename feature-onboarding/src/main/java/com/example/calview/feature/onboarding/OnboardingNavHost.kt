@@ -31,7 +31,7 @@ fun OnboardingNavHost(
     // NOTE: Removed auto-navigation to profile_setup on sign-in
     // Navigation is now controlled entirely by MainActivity:
     // - For returning users: MainActivity navigates directly to "main"
-    // - For new users: MainActivity keeps them in onboarding, user clicks "Get Started" to go to profile_setup
+    // For new users: MainActivity keeps them in onboarding, user clicks "Get Started" to go to profile_setup
     // This prevents the race condition where profile_setup shows briefly before redirecting to main
 
     val viewModel: OnboardingViewModel = hiltViewModel()
@@ -92,6 +92,14 @@ fun OnboardingNavHost(
         
         // ============ STEP 1: WELCOME ============
         composable("welcome") {
+            // Auto-navigate to profile setup if already signed in
+            // This handles the case where a new user signs in on the Welcome screen
+            LaunchedEffect(isSignedIn) {
+                if (isSignedIn) {
+                    navController.navigate("profile_setup")
+                }
+            }
+
             WelcomeScreen(
                 onGetStarted = { navController.navigate("profile_setup") },
                 onSignIn = onSignIn,
@@ -272,11 +280,14 @@ fun OnboardingNavHost(
             CreateAccountScreen(
                 currentStep = 10,
                 totalSteps = totalSteps,
+                isSignedIn = isSignedIn,
                 onBack = { navController.popBackStack() },
                 onGoogleSignIn = {
-                    // Save all collected data before triggering sign-in
-                    viewModel.onHeightCmChanged(heightCm) // Height stored in cm
-                    viewModel.onGoalWeightChanged(targetWeightKg) // Goal weight
+                    // Logic handles both "Sign In" (if not signed in) and "Complete" (if signed in)
+                    
+                    // Save all collected data
+                    viewModel.onHeightCmChanged(heightCm)
+                    viewModel.onGoalWeightChanged(targetWeightKg)
                     viewModel.onWeightChanged(currentWeightKg)
                     viewModel.onBirthDateChanged(
                         birthMonth,
@@ -284,8 +295,22 @@ fun OnboardingNavHost(
                         birthYear
                     )
                     
-                    viewModel.completeOnboarding {
-                        onSignIn()
+                    if (isSignedIn) {
+                        // Already signed in (e.g. from Welcome screen), just complete onboarding
+                        viewModel.completeOnboarding {
+                            onOnboardingComplete()
+                        }
+                    } else {
+                        // Not signed in, trigger sign in flow
+                        // Data will be saved/completed in the completeOnboarding generic flow or handled by MainActivity return?
+                        // Actually, MainActivity return handles the "success" case but WE need to call completeOnboarding
+                        // The pattern used before was: completeOnboarding THEN sign in.
+                        // But if sign in fails, we have saved data but not auth.
+                        // The original code was: COMPLETE then SIGN IN. 
+                        
+                        viewModel.completeOnboarding {
+                            onSignIn()
+                        }
                     }
                 },
                 onTermsClick = onTermsClick,

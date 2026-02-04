@@ -21,12 +21,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
+import com.example.calview.core.ui.util.AdaptiveLayoutUtils
+import com.example.calview.core.ui.util.LocalWindowSizeClass
 import kotlin.math.roundToInt
 
 /**
@@ -66,13 +71,20 @@ fun GoalPreferencesScreen(
     val isGainWeight = selectedGoal == "Gain Weight"
     val isComplete = selectedGoal.isNotEmpty()
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
-            .statusBarsPadding()
-            .navigationBarsPadding()
+    val windowSizeClass = LocalWindowSizeClass.current
+    
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass))
+                .fillMaxSize()
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+        ) {
         // Top bar with back button and progress
         Row(
             modifier = Modifier
@@ -462,12 +474,15 @@ fun GoalPreferencesScreen(
             GoalSectionTitle(title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.rollover_label), emoji = "🔄")
             
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onRolloverChanged(!rolloverEnabled) },
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onRolloverChanged(!rolloverEnabled) }
+            .semantics(mergeDescendants = true) {
+                role = Role.Switch
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -512,10 +527,13 @@ fun GoalPreferencesScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onAddCaloriesBurnedChanged(!addCaloriesBurnedEnabled) },
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
+            .clickable { onAddCaloriesBurnedChanged(!addCaloriesBurnedEnabled) }
+            .semantics(mergeDescendants = true) {
+                role = Role.Switch
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -580,6 +598,8 @@ fun GoalPreferencesScreen(
         }
     }
 }
+}
+
 
 @Composable
 private fun GoalSectionTitle(title: String, emoji: String) {
@@ -612,6 +632,10 @@ private fun GoalOption(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
+            .semantics { 
+                role = Role.RadioButton 
+                selected = isSelected
+            }
             .then(
                 if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                 else Modifier
@@ -670,6 +694,10 @@ private fun DietChip(
             .height(56.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
+            .semantics { 
+                role = Role.RadioButton 
+                selected = isSelected
+            }
             .then(
                 if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
                 else Modifier

@@ -158,6 +158,40 @@ interface FirestoreRepository {
      */
     suspend fun updateCommentCount(requestId: String, count: Int)
     
+    // ==================== WATER REMINDER SETTINGS ====================
+    
+    /**
+     * Save water reminder settings
+     */
+    suspend fun saveWaterSettings(userId: String, settings: com.example.calview.core.data.local.WaterReminderSettingsEntity)
+    
+    /**
+     * Get water reminder settings
+     */
+    suspend fun getWaterSettings(userId: String): com.example.calview.core.data.local.WaterReminderSettingsEntity?
+    
+    // ==================== GAMIFICATION (BADGES & CHALLENGGES) ====================
+    
+    /**
+     * Save a badge (unlocked state)
+     */
+    suspend fun saveBadge(userId: String, badge: com.example.calview.core.data.local.BadgeEntity)
+    
+    /**
+     * Get all unlocked badges
+     */
+    suspend fun getBadges(userId: String): List<com.example.calview.core.data.local.BadgeEntity>
+    
+    /**
+     * Save a challenge progress
+     */
+    suspend fun saveChallenge(userId: String, challenge: com.example.calview.core.data.local.ChallengeEntity)
+    
+    /**
+     * Get all challenges
+     */
+    suspend fun getChallenges(userId: String): List<com.example.calview.core.data.local.ChallengeEntity>
+
     // ==================== USER DATA MANAGEMENT ====================
     
     /**

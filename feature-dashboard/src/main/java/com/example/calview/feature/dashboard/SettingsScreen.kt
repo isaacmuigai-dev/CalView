@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -169,8 +170,8 @@ fun SettingsContent(
     deletionMessage: String = ""
 ) {
     val context = LocalContext.current
-    var showDeleteAccountDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by rememberSaveable { mutableStateOf(false) }
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     
     // Support email handler
     val onSupportEmailClick = {
@@ -371,6 +372,9 @@ fun ProfileHeader(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Edit profile, $name"
+            }
             .clickable(onClick = onNameClick),
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp)
@@ -654,6 +658,10 @@ fun PreferenceToggle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Switch
+            }
+            .clickable { onCheckedChange(!checked) }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

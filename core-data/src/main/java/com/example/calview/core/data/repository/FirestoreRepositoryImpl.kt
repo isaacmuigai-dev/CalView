@@ -469,85 +469,143 @@ class FirestoreRepositoryImpl @Inject constructor(
         }
     }
     
+    // ==================== WATER REMINDER SETTINGS ====================
+    
+    override suspend fun saveWaterSettings(userId: String, settings: com.example.calview.core.data.local.WaterReminderSettingsEntity) {
+        try {
+            Log.d(TAG, "Saving water settings to Firestore")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("water_settings")
+                .document("config")
+                .set(settings)
+                .await()
+            Log.d(TAG, "Water settings saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving water settings to Firestore", e)
+            throw e
+        }
+    }
+    
+    override suspend fun getWaterSettings(userId: String): com.example.calview.core.data.local.WaterReminderSettingsEntity? {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("water_settings")
+                .document("config")
+                .get()
+                .await()
+            
+            if (snapshot.exists()) {
+                snapshot.toObject(com.example.calview.core.data.local.WaterReminderSettingsEntity::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting water settings from Firestore", e)
+            null
+        }
+    }
+
+    // ==================== GAMIFICATION (BADGES & CHALLENGES) ====================
+
+    override suspend fun saveBadge(userId: String, badge: com.example.calview.core.data.local.BadgeEntity) {
+        try {
+            Log.d(TAG, "Saving badge to Firestore: ${badge.id}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("badges")
+                .document(badge.id)
+                .set(badge)
+                .await()
+            Log.d(TAG, "Badge saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving badge to Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun getBadges(userId: String): List<com.example.calview.core.data.local.BadgeEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("badges")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.BadgeEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting badges from Firestore", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun saveChallenge(userId: String, challenge: com.example.calview.core.data.local.ChallengeEntity) {
+        try {
+            Log.d(TAG, "Saving challenge to Firestore: ${challenge.id}")
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("challenges")
+                .document(challenge.id)
+                .set(challenge)
+                .await()
+            Log.d(TAG, "Challenge saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving challenge to Firestore", e)
+            throw e
+        }
+    }
+
+    override suspend fun getChallenges(userId: String): List<com.example.calview.core.data.local.ChallengeEntity> {
+        return try {
+            val snapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection("challenges")
+                .get()
+                .await()
+            
+            snapshot.toObjects(com.example.calview.core.data.local.ChallengeEntity::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting challenges from Firestore", e)
+            emptyList()
+        }
+    }
+    
     // ==================== USER DATA MANAGEMENT ====================
     
     override suspend fun deleteUserData(userId: String) {
         try {
             Log.d(TAG, "Deleting all Firestore data for user: $userId")
             
-            // 1. Delete all meals in the meals subcollection
-            val mealsCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("meals")
-            
-            val mealsSnapshot = mealsCollection.get().await()
-            for (mealDoc in mealsSnapshot.documents) {
-                mealDoc.reference.delete().await()
-                Log.d(TAG, "Deleted meal: ${mealDoc.id}")
+            // Helper function to delete entire collection
+            suspend fun deleteCollection(collectionName: String) {
+                val collection = firestore.collection(USERS_COLLECTION).document(userId).collection(collectionName)
+                val snapshot = collection.get().await()
+                for (doc in snapshot.documents) {
+                    doc.reference.delete().await()
+                }
+                Log.d(TAG, "Deleted ${snapshot.size()} documents from $collectionName")
             }
-            Log.d(TAG, "Deleted ${mealsSnapshot.size()} meals")
-            
-            // 2. Delete all daily logs in the dailyLogs subcollection
-            val dailyLogsCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("dailyLogs")
-            
-            val dailyLogsSnapshot = dailyLogsCollection.get().await()
-            for (logDoc in dailyLogsSnapshot.documents) {
-                logDoc.reference.delete().await()
-                Log.d(TAG, "Deleted daily log: ${logDoc.id}")
-            }
-            Log.d(TAG, "Deleted ${dailyLogsSnapshot.size()} daily logs")
-            
-            // 3. Delete all fasting sessions in the fasting_sessions subcollection
-            val fastingCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("fasting_sessions")
-            
-            val fastingSnapshot = fastingCollection.get().await()
-            for (fastDoc in fastingSnapshot.documents) {
-                fastDoc.reference.delete().await()
-                Log.d(TAG, "Deleted fasting session: ${fastDoc.id}")
-            }
-            Log.d(TAG, "Deleted ${fastingSnapshot.size()} fasting sessions")
-            
-            // 4. Delete all streak freezes in the streak_freezes subcollection
-            val streakFreezesCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("streak_freezes")
-            
-            val streakFreezesSnapshot = streakFreezesCollection.get().await()
-            for (freezeDoc in streakFreezesSnapshot.documents) {
-                freezeDoc.reference.delete().await()
-                Log.d(TAG, "Deleted streak freeze: ${freezeDoc.id}")
-            }
-            Log.d(TAG, "Deleted ${streakFreezesSnapshot.size()} streak freezes")
-            
-            // 5. Delete all weight entries in the weight_history subcollection
-            val weightHistoryCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("weight_history")
-            
-            val weightHistorySnapshot = weightHistoryCollection.get().await()
-            for (weightDoc in weightHistorySnapshot.documents) {
-                weightDoc.reference.delete().await()
-                Log.d(TAG, "Deleted weight entry: ${weightDoc.id}")
-            }
-            Log.d(TAG, "Deleted ${weightHistorySnapshot.size()} weight entries")
-            
-            // 5.5 Delete all exercises in the exercises subcollection
-            val exercisesCollection = firestore.collection(USERS_COLLECTION)
-                .document(userId)
-                .collection("exercises")
-            
-            val exercisesSnapshot = exercisesCollection.get().await()
-            for (exerciseDoc in exercisesSnapshot.documents) {
-                exerciseDoc.reference.delete().await()
-                Log.d(TAG, "Deleted exercise: ${exerciseDoc.id}")
-            }
-            Log.d(TAG, "Deleted ${exercisesSnapshot.size()} exercises")
 
-            // 6. Delete challenge participation
+            // Delete all subcollections
+            deleteCollection("meals")
+            deleteCollection("dailyLogs") // Note: some implementations assume daily_logs snake_case, check consistency!
+            // Wait, DailyLogRepository uses "daily_logs". Checking implementation...
+            // "private const val DAILY_LOGS_COLLECTION = "daily_logs"" in DailyLogRepositoryImpl
+            // But previous deleteUserData used "dailyLogs"... I should fix this here.
+            deleteCollection("daily_logs") 
+            // Also try "dailyLogs" just in case legacy data exists
+            deleteCollection("dailyLogs")
+            
+            deleteCollection("fasting_sessions")
+            deleteCollection("streak_freezes")
+            deleteCollection("weight_history")
+            deleteCollection("exercises")
+            deleteCollection("water_settings")
+            deleteCollection("badges")
+            deleteCollection("challenges")
+
+            // Delete challenge participation
             val participationQuery = firestore.collection("challenge_participants")
                 .whereEqualTo("odsmUserId", userId)
             val participationSnapshot = participationQuery.get().await()
@@ -555,9 +613,8 @@ class FirestoreRepositoryImpl @Inject constructor(
                 pDoc.reference.delete().await()
                 Log.d(TAG, "Deleted challenge participation: ${pDoc.id}")
             }
-            Log.d(TAG, "Deleted ${participationSnapshot.size()} challenge participations")
-
-            // 7. Delete social challenges created by user
+            
+            // Delete social challenges created by user
             val challengesQuery = firestore.collection("social_challenges")
                 .whereEqualTo("creatorId", userId)
             val challengesSnapshot = challengesQuery.get().await()
@@ -565,9 +622,8 @@ class FirestoreRepositoryImpl @Inject constructor(
                 cDoc.reference.delete().await()
                 Log.d(TAG, "Deleted social challenge: ${cDoc.id}")
             }
-            Log.d(TAG, "Deleted ${challengesSnapshot.size()} social challenges")
             
-            // 8. Delete the user document itself
+            // Delete the user document itself
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .delete()

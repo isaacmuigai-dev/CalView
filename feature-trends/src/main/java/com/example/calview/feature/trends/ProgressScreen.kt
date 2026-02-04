@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,7 +125,7 @@ fun ProgressContent(
     var activityRect by remember { mutableStateOf<Rect?>(null) }
     var bmiRect by remember { mutableStateOf<Rect?>(null) }
     
-    var currentStepIndex by remember(uiState.hasSeenWalkthrough) { 
+    var currentStepIndex by rememberSaveable(uiState.hasSeenWalkthrough) { 
         mutableIntStateOf(if (!uiState.hasSeenWalkthrough) 0 else -1) 
     }
     
@@ -182,25 +183,31 @@ fun ProgressContent(
     val screenHeight = configuration.screenHeightDp.dp.value
 
     // Auto-scroll logic for walkthrough
-    LaunchedEffect(currentStepIndex) {
+    // Re-run when step changes OR when the target rect for the current step becomes available
+    val currentTargetRect = if (currentStepIndex in walkthroughSteps.indices) {
+        walkthroughSteps[currentStepIndex].targetRect
+    } else null
+
+    LaunchedEffect(currentStepIndex, currentTargetRect) {
         if (currentStepIndex >= 0 && currentStepIndex < walkthroughSteps.size) {
             val step = walkthroughSteps[currentStepIndex]
             
-            // Wait for layout and rects
-            delay(200) 
-            
-            step.targetRect?.let { rect ->
-                // Calculate position relative to container and center it
-                // targetOffset = (absoluteItemTop - absoluteContainerTop) + currentScroll - (halfViewportHeight)
-                val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
-                val itemTopInContainer = rect.top - containerTop + scrollState.value
-                val itemHeight = rect.height
-                val scrollTarget = itemTopInContainer - (viewportHeightPx / 2) + (itemHeight / 2)
-                
-                scrollState.animateScrollTo(
-                    scrollTarget.toInt().coerceIn(0, scrollState.maxValue),
-                    animationSpec = tween(700, easing = FastOutSlowInEasing)
-                )
+            // Wait slightly for layout stability if needed, though dependency on rect helps
+            if (step.targetRect != null) {
+                 delay(100)
+                 step.targetRect?.let { rect ->
+                    // Calculate position relative to container and center it
+                    // targetOffset = (absoluteItemTop - absoluteContainerTop) + currentScroll - (halfViewportHeight)
+                    val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+                    val itemTopInContainer = rect.top - containerTop + scrollState.value
+                    val itemHeight = rect.height
+                    val scrollTarget = itemTopInContainer - (viewportHeightPx / 2) + (itemHeight / 2)
+                    
+                    scrollState.animateScrollTo(
+                        scrollTarget.toInt().coerceIn(0, scrollState.maxValue),
+                        animationSpec = tween(700, easing = FastOutSlowInEasing)
+                    )
+                }
             }
         }
     }
@@ -2245,7 +2252,7 @@ fun WeightHistoryGraphCard(
             Spacer(modifier = Modifier.height(12.dp))
             
             // Weight change summary for the period
-            if (filteredHistory.size >= 2) {
+            if (filteredHistory.isNotEmpty()) {
                 val firstWeight = filteredHistory.first().weight
                 val lastWeight = filteredHistory.last().weight
                 val weightChange = lastWeight - firstWeight
@@ -2287,7 +2294,7 @@ fun WeightHistoryGraphCard(
             }
             
             // Graph
-            if (filteredHistory.size >= 2) {
+            if (filteredHistory.isNotEmpty()) {
                 val minWeight = (filteredHistory.minOf { it.weight } - 2f).coerceAtLeast(0f)
                 val maxWeight = filteredHistory.maxOf { it.weight } + 2f
                 val weightRange = (maxWeight - minWeight).coerceAtLeast(1f)
@@ -2358,6 +2365,11 @@ fun WeightHistoryGraphCard(
                                 } else {
                                     path.lineTo(x, y)
                                     filledPath.lineTo(x, y)
+                                }
+                                
+                                // Draw dot for single point
+                                if (filteredHistory.size == 1) {
+                                    drawCircle(curveColor, 4.dp.toPx(), Offset(x, y))
                                 }
                                 if (index == filteredHistory.size - 1) {
                                     filledPath.lineTo(x, height)

@@ -55,7 +55,8 @@ class SettingsViewModel @Inject constructor(
     private val fastingRepository: FastingRepository,
     private val weightHistoryRepository: WeightHistoryRepository,
     private val socialChallengeRepository: SocialChallengeRepository,
-    private val gamificationRepository: GamificationRepository
+    private val gamificationRepository: GamificationRepository,
+    private val exerciseRepository: ExerciseRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -253,6 +254,7 @@ class SettingsViewModel @Inject constructor(
                 waterReminderRepository.clearAllData()
                 socialChallengeRepository.clearAllData()
                 gamificationRepository.clearAllData()
+                exerciseRepository.clearAllExercises()
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to clear some local data", e)
             }
@@ -291,6 +293,7 @@ class SettingsViewModel @Inject constructor(
                 waterReminderRepository.clearAllData()
                 socialChallengeRepository.clearAllData()
                 gamificationRepository.clearAllData()
+                exerciseRepository.clearAllExercises()
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to clear local data during logout", e)
             }

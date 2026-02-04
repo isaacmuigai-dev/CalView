@@ -18,6 +18,10 @@ import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 
 
 /**
@@ -33,6 +37,17 @@ class CalViewApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Initialize Firebase App Check
+        // Use Debug provider for local builds, Play Integrity for release
+        val appCheck = FirebaseAppCheck.getInstance()
+        appCheck.installAppCheckProviderFactory(
+            if (BuildConfig.DEBUG) {
+                DebugAppCheckProviderFactory.getInstance()
+            } else {
+                PlayIntegrityAppCheckProviderFactory.getInstance()
+            }
+        )
 
         // Force load BeginSignInRequest to prevent ClassNotFoundException during unmarshalling
         // This ensures the class is available early to all processes (including Firebase Analytics)

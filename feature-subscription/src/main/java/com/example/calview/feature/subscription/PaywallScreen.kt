@@ -316,6 +316,7 @@ fun PaywallScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     modifier = Modifier
                         .clickable { openUrl(context, "https://calview.ai/terms") }
+                        .semantics { role = Role.Button }
                         .padding(horizontal = 8.dp)
                 )
                 Text(
@@ -329,6 +330,7 @@ fun PaywallScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     modifier = Modifier
                         .clickable { openUrl(context, "https://calview.ai/privacy") }
+                        .semantics { role = Role.Button }
                         .padding(horizontal = 8.dp)
                 )
             }

@@ -20,6 +20,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.feature.onboarding.components.OnboardingScreenLayout
+import com.example.calview.core.ui.util.AdaptiveLayoutUtils
+import com.example.calview.core.ui.util.LocalWindowSizeClass
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Reach your goals with notifications screen.
@@ -72,15 +77,28 @@ fun NotificationsScreen(
         }
     }
     
-    OnboardingScreenLayout(
-        currentStep = currentStep,
-        totalSteps = totalSteps,
-        title = "",
-        subtitle = null,
-        onBack = onBack,
-        onContinue = onContinue,
-        continueEnabled = true
+
+    
+    val windowSizeClass = LocalWindowSizeClass.current
+    
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass))
+                .fillMaxSize()
+        ) {
+            OnboardingScreenLayout(
+                currentStep = currentStep,
+                totalSteps = totalSteps,
+                title = "",
+                subtitle = null,
+                onBack = onBack,
+                onContinue = onContinue,
+                continueEnabled = true
+            ) {
         Spacer(modifier = Modifier.weight(0.3f))
         
         Column(
@@ -136,8 +154,8 @@ fun NotificationsScreen(
                             shape = RoundedCornerShape(12.dp),
                             color = if (!notificationsEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
-                                .weight(1f)
                                 .height(48.dp)
+                                .semantics { role = Role.Button }
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -159,8 +177,8 @@ fun NotificationsScreen(
                             shape = RoundedCornerShape(12.dp),
                             color = if (notificationsEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
-                                .weight(1f)
                                 .height(48.dp)
+                                .semantics { role = Role.Button }
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -190,4 +208,6 @@ fun NotificationsScreen(
         
         Spacer(modifier = Modifier.weight(0.4f))
     }
+}
+}
 }

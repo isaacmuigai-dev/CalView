@@ -141,6 +141,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var firestoreRepository: com.example.calview.core.data.repository.FirestoreRepository
     
     @Inject
+    lateinit var exerciseRepository: com.example.calview.core.data.repository.ExerciseRepository
+    
+    @Inject
     lateinit var fastingRepository: com.example.calview.core.data.repository.FastingRepository
 
     @Inject
@@ -226,6 +229,7 @@ class MainActivity : AppCompatActivity() {
                         waterReminderRepository = waterReminderRepository,
                         socialChallengeRepository = socialChallengeRepository,
                         gamificationRepository = gamificationRepository,
+                        exerciseRepository = exerciseRepository,
                         billingManager = billingManager
                     )
                 }
@@ -261,6 +265,7 @@ fun AppNavigation(
     waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository? = null,
     socialChallengeRepository: com.example.calview.core.data.repository.SocialChallengeRepository? = null,
     gamificationRepository: com.example.calview.core.data.repository.GamificationRepository? = null,
+    exerciseRepository: com.example.calview.core.data.repository.ExerciseRepository? = null,
     billingManager: BillingManager? = null
 ) {
     val navController = rememberNavController()
@@ -348,6 +353,9 @@ fun AppNavigation(
                             dailyLogRepository?.restoreFromCloud()
                             streakFreezeRepository?.restoreFromCloud()
                             fastingRepository?.restoreFromCloud()
+                            waterReminderRepository?.restoreFromCloud()
+                            gamificationRepository?.restoreFromCloud()
+                            exerciseRepository?.restoreFromCloud()
                             
                             // If restored, were we complete?
                             val cloudOnboardingComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false

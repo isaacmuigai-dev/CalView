@@ -23,6 +23,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.InterFontFamily
+import com.example.calview.core.ui.util.AdaptiveLayoutUtils
+import com.example.calview.core.ui.util.LocalWindowSizeClass
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Create an account screen - mandatory Google sign-in.
@@ -33,19 +38,27 @@ fun CreateAccountScreen(
     currentStep: Int,
     totalSteps: Int,
     isLoading: Boolean = false,
+    isSignedIn: Boolean = false,
     onBack: () -> Unit,
     onGoogleSignIn: () -> Unit,
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
-            .padding(horizontal = 24.dp)
-            .statusBarsPadding()
-            .navigationBarsPadding()
+    val windowSizeClass = LocalWindowSizeClass.current
+    
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass))
+                .fillMaxSize()
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+                .padding(horizontal = 24.dp)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+        ) {
         Spacer(modifier = Modifier.height(16.dp))
         
         // Top bar with back button and progress
@@ -87,7 +100,7 @@ fun CreateAccountScreen(
         
         // Title
         Text(
-            text = "Create an account",
+            text = if (isSignedIn) "Complete Account" else "Create an account",
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
@@ -132,13 +145,15 @@ fun CreateAccountScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Google "G" logo with 4 colors
-                    GoogleLogo(modifier = Modifier.size(20.dp))
-                    
-                    Spacer(modifier = Modifier.width(12.dp))
+                    if (!isSignedIn) {
+                        // Google "G" logo with 4 colors
+                        GoogleLogo(modifier = Modifier.size(20.dp))
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
                     
                     Text(
-                        text = "Sign in with Google",
+                        text = if (isSignedIn) "Finish Setup" else "Sign in with Google",
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
@@ -171,7 +186,9 @@ fun CreateAccountScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable { onTermsClick() }
+                    modifier = Modifier
+                        .clickable { onTermsClick() }
+                        .semantics { role = Role.Button }
                 )
             }
             Row {
@@ -197,12 +214,15 @@ fun CreateAccountScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable { onPrivacyClick() }
+                    modifier = Modifier
+                        .clickable { onPrivacyClick() }
+                        .semantics { role = Role.Button }
                 )
             }
         }
         
         Spacer(modifier = Modifier.height(48.dp))
+        }
     }
 }
 
