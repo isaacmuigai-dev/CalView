@@ -41,13 +41,16 @@ class CalViewApp : Application(), Configuration.Provider {
         // Initialize Firebase App Check
         // Use Debug provider for local builds, Play Integrity for release
         val appCheck = FirebaseAppCheck.getInstance()
-        appCheck.installAppCheckProviderFactory(
-            if (BuildConfig.DEBUG) {
-                DebugAppCheckProviderFactory.getInstance()
-            } else {
-                PlayIntegrityAppCheckProviderFactory.getInstance()
-            }
-        )
+        val useDebugProvider = BuildConfig.DEBUG
+        Log.d("CalViewApp", "🔐 App Check Init: DEBUG=$useDebugProvider")
+        
+        if (useDebugProvider) {
+            Log.d("CalViewApp", "🛠️ Installing DebugAppCheckProviderFactory")
+            appCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance())
+        } else {
+            Log.d("CalViewApp", "🛡️ Installing PlayIntegrityAppCheckProviderFactory")
+            appCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
+        }
 
         // Force load BeginSignInRequest to prevent ClassNotFoundException during unmarshalling
         // This ensures the class is available early to all processes (including Firebase Analytics)

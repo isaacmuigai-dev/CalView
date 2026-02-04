@@ -112,9 +112,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
+import com.example.calview.feature.trends.WeightEntry as TrendWeightEntry
+import com.example.calview.feature.dashboard.WeightEntry as DashboardWeightEntry
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.example.calview.core.ui.util.LocalWindowSizeClass
+import java.time.Instant
+import java.time.ZoneId
+import java.util.Date
 
 
 import androidx.appcompat.app.AppCompatActivity
@@ -495,7 +500,9 @@ fun AppNavigation(
         composable("onboarding") {
             OnboardingNavHost(
                 isSignedIn = isSignedIn,
+                isSigningIn = isSigningIn,
                 isRedirecting = isRedirecting,
+                isOnboardingComplete = isOnboardingComplete,
                 onOnboardingComplete = {
                     navController.navigate("main") {
                         popUpTo("onboarding") { inclusive = true }
@@ -900,8 +907,27 @@ fun AppNavigation(
         }
         
         composable("weight_history") {
+            val weightHistoryEntities by weightHistoryRepository?.getAllWeightHistory()?.collectAsState(initial = emptyList())
+                ?: remember { mutableStateOf(emptyList()) }
+            val weightHistory = remember(weightHistoryEntities) {
+                weightHistoryEntities.map { entity ->
+                    TrendWeightEntry(
+                        date = java.time.Instant.ofEpochMilli(entity.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate(),
+                        weight = entity.weight
+                    ).let { trendEntry ->
+                        // Map to the dashboard version of WeightEntry which uses java.util.Date
+                        DashboardWeightEntry(
+                            weight = trendEntry.weight,
+                            date = java.util.Date.from(trendEntry.date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant())
+                        )
+                    }
+                }
+            }
+            
             WeightHistoryScreen(
-                weightHistory = emptyList(), // TODO: Load from repository
+                weightHistory = weightHistory,
                 onBack = { 
                     navController.popBackStack()
                 }

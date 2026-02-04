@@ -337,26 +337,8 @@ fun FoodDetailScreen(
                             color = onSurfaceVariantColor
                         )
                     }
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Food name and serving controls
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = meal.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Normal,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-                        color = onSurfaceColor,
-                        modifier = Modifier.weight(1f)
-                    )
-                    
-                    // Serving counter
+
+                    // Serving counter relocated here
                     Surface(
                         shape = RoundedCornerShape(24.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -396,6 +378,23 @@ fun FoodDetailScreen(
                             }
                         }
                     }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Food name (serving controls removed from here)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = meal.name,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = SpaceGroteskFontFamily,
+                        color = onSurfaceColor,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -853,66 +852,65 @@ fun FoodDetailScreen(
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Original ingredient item
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = surfaceColor
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${currentMeal.name} • ${currentMeal.calories * servingCount} cal",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = onSurfaceColor
-                        )
-                        Text(
-                            text = "×$servingCount",
-                            fontSize = 14.sp,
-                            color = onSurfaceVariantColor
-                        )
-                    }
+                // Ingredients List (Numbered)
+                val allIngredients = remember(currentMeal.name, additionalIngredients, servingCount) {
+                    listOf("${currentMeal.name} • ${currentMeal.calories * servingCount} cal") + additionalIngredients
                 }
-                
-                // Additional ingredients
-                additionalIngredients.forEachIndexed { index, ingredient ->
-                    Spacer(modifier = Modifier.height(8.dp))
+
+                allIngredients.forEachIndexed { index, ingredient ->
+                    if (index > 0) Spacer(modifier = Modifier.height(8.dp))
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        color = surfaceColor
+                        shape = RoundedCornerShape(12.dp),
+                        color = surfaceColor,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
+                                text = "${index + 1}.",
+                                fontFamily = SpaceGroteskFontFamily,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.width(28.dp)
+                            )
+                            
+                            Text(
                                 text = ingredient,
-                                fontSize = 15.sp,
+                                fontFamily = SpaceGroteskFontFamily,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = onSurfaceColor,
                                 modifier = Modifier.weight(1f)
                             )
-                            IconButton(
-                                onClick = { 
-                                    additionalIngredients = additionalIngredients.toMutableList().also { it.removeAt(index) }
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = "Remove",
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color(0xFFEF4444)
+                            
+                            if (index > 0) { // Can remove additional ingredients
+                                IconButton(
+                                    onClick = { 
+                                        additionalIngredients = additionalIngredients.toMutableList().also { it.removeAt(index - 1) }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = "Remove",
+                                        modifier = Modifier.size(14.dp),
+                                        tint = Color(0xFFEF4444)
+                                    )
+                                }
+                            } else {
+                                // For the main ingredient, show quantity
+                                Text(
+                                    text = "×$servingCount",
+                                    fontFamily = SpaceGroteskFontFamily,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = onSurfaceVariantColor
                                 )
                             }
                         }

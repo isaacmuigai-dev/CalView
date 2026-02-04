@@ -45,6 +45,7 @@ import androidx.compose.foundation.Image
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
     onSignIn: () -> Unit,
+    isLoading: Boolean = false,
     selectedLanguage: LanguageOption = supportedLanguages.first(),
     onLanguageSelected: (LanguageOption) -> Unit = {}
 ) {
@@ -139,6 +140,19 @@ fun WelcomeScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // Loading Overlay
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(enabled = false) { },
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
             }
         }
     }

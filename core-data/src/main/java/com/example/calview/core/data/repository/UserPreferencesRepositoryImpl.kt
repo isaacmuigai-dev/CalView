@@ -527,10 +527,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setGoalWeight(weight: Float) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GOAL_WEIGHT] = weight
-            // If starting weight isn't set, set it now to current weight
-            if (preferences[PreferencesKeys.START_WEIGHT] == null || preferences[PreferencesKeys.START_WEIGHT] == 0f) {
-                 preferences[PreferencesKeys.START_WEIGHT] = preferences[PreferencesKeys.WEIGHT] ?: weight
-            }
+            // Always update start weight to current weight when setting a new goal
+            // This ensures progress is calculated relative to the start of the new goal
+            preferences[PreferencesKeys.START_WEIGHT] = preferences[PreferencesKeys.WEIGHT] ?: weight
         }
         syncToFirestore()
     }

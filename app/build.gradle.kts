@@ -58,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     
     // Support for 16 KB page sizes (Android 15+)

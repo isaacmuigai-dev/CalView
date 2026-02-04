@@ -19,7 +19,9 @@ import android.util.Log
 @Composable
 fun OnboardingNavHost(
     isSignedIn: Boolean = false,
+    isSigningIn: Boolean = false,
     isRedirecting: Boolean = false,
+    isOnboardingComplete: Boolean = false,
     onOnboardingComplete: () -> Unit,
     onSignIn: () -> Unit,
     onTermsClick: () -> Unit = {},
@@ -92,10 +94,11 @@ fun OnboardingNavHost(
         
         // ============ STEP 1: WELCOME ============
         composable("welcome") {
-            // Auto-navigate to profile setup if already signed in
+            // Auto-navigate to profile setup if already signed in AND not currently checking/redirecting
             // This handles the case where a new user signs in on the Welcome screen
-            LaunchedEffect(isSignedIn) {
-                if (isSignedIn) {
+            LaunchedEffect(isSignedIn, isSigningIn, isRedirecting, isOnboardingComplete) {
+                if (isSignedIn && !isSigningIn && !isRedirecting && !isOnboardingComplete) {
+                    Log.d("OnboardingNav", "Navigating to profile_setup: signed in and checks complete")
                     navController.navigate("profile_setup")
                 }
             }
@@ -103,6 +106,7 @@ fun OnboardingNavHost(
             WelcomeScreen(
                 onGetStarted = { navController.navigate("profile_setup") },
                 onSignIn = onSignIn,
+                isLoading = isSigningIn || isRedirecting,
                 selectedLanguage = selectedLanguage,
                 onLanguageSelected = { language -> 
                     selectedLanguage = language
