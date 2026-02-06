@@ -1110,9 +1110,11 @@ fun ScannerCameraContent(
                                 // Update UI with partial text if needed, 
                                 // currently VoiceState doesn't hold text, so we might need to update that.
                                 // For now, we'll just use the final result, but the dialog can show "Listening..."
-                            }, onError = {
+                            }, onError = { code ->
+                                // Voice recognition errors can be transient.
+                                // Resetting isListening allows the user to click the mic again.
                                 isListening = false
-                                voiceState = VoiceState.Error("Didn't catch that. Try again.", 0)
+                                voiceState = VoiceState.Error("I didn't hear that clearly. Tap the mic to try again.", code)
                             })
                         }
                     },
@@ -1147,7 +1149,7 @@ fun ScannerCameraContent(
         
         // Voice dialog
         if (isListening || voiceState !is VoiceState.Idle) {
-            VoiceLoggingDialog(
+            ScannerVoiceLoggingOverlay(
                 voiceState = voiceState,
                 isListening = isListening,
                 onStopListening = {
@@ -1171,7 +1173,7 @@ private fun startListening(
     context: Context,
     onResults: (String) -> Unit,
     onPartialResults: (String) -> Unit = {},
-    onError: () -> Unit
+    onError: (Int) -> Unit
 ) {
     val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -1188,7 +1190,7 @@ private fun startListening(
         override fun onError(error: Int) { 
              // Common errors: 7 (No match), 6 (No speech)
             Log.e("ScannerScreen", "Speech error: $error")
-            onError() 
+            onError(error) 
         }
         override fun onResults(results: android.os.Bundle?) {
             val matches = results?.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION)
@@ -1865,7 +1867,7 @@ private fun NutritionBadge(
 }
 
 @Composable
-fun VoiceLoggingDialog(
+private fun ScannerVoiceLoggingOverlay(
     voiceState: VoiceState,
     isListening: Boolean,
     onStopListening: () -> Unit,
@@ -1897,9 +1899,18 @@ fun VoiceLoggingDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val title = produceState(initialValue = "Listening...") {
+                        value = when {
+                            isListening -> "Listening..."
+                            voiceState is VoiceState.Processing -> "Analyzing..."
+                            voiceState is VoiceState.Error -> "Voice Error"
+                            else -> "Voice Log"
+                        }
+                    }.value
+
                     Text(
-                        text = if (isListening) "Listening..." else "Processing...",
-                        fontSize = 20.sp, // MaterialTheme.typography.titleLarge
+                        text = title,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )

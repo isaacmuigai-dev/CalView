@@ -1087,7 +1087,7 @@ fun HeaderSection(streakDays: Int = 0) {
                 contentDescription = "CalViewAI Icon",
                 modifier = Modifier.fillMaxWidth(0.10f)
                     .size(60.dp),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
             Column(
                 verticalArrangement = Arrangement.Center
@@ -3055,20 +3055,12 @@ fun StepsTodayCardRedesigned(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Google Health icon
-                        Box(
-                            modifier = Modifier
-                                .size(22.dp)
-                                .background(Color(0xFFF5F5F5), RoundedCornerShape(6.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.FavoriteBorder,
-                                contentDescription = null,
-                                tint = Color(0xFFEA4335),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        // Google Fit logo
+                        Image(
+                            painter = painterResource(id = R.drawable.google_fit_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
                         
                         Text(
                             text = stringResource(R.string.connect_health_to_track_steps),
@@ -3386,21 +3378,25 @@ fun WeeklyActivitySummaryCard(
                 WeeklyStatItemText(
                     value = animatedCalories,
                     label = stringResource(R.string.weekly_burn_label),
-                    color = Color(0xFFFF9800)
+                    color = Color(0xFFFF9800),
+                    suffix = " kcal"
                 )
                 
                 // Record
                 WeeklyStatItemText(
                     value = animatedRecord,
                     label = stringResource(R.string.record_label),
-                    color = Color(0xFFE91E63)
+                    color = Color(0xFFE91E63),
+                    icon = Icons.Filled.EmojiEvents,
+                    suffix = " kcal"
                 )
                 
                 // Exercise (Workouts)
                 WeeklyStatItemText(
                     value = animatedExercise,
                     label = "Workouts",
-                    color = Color(0xFF4CAF50)
+                    color = Color(0xFF4CAF50),
+                    suffix = " kcal"
                 )
             }
         }
@@ -3411,7 +3407,9 @@ fun WeeklyActivitySummaryCard(
 private fun WeeklyStatItemText(
     value: Int,
     label: String,
-    color: Color
+    color: Color,
+    icon: ImageVector? = null,
+    suffix: String = ""
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -3424,13 +3422,24 @@ private fun WeeklyStatItemText(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = if (value >= 10000) "${value / 1000}k" else value.toString(),
-            fontFamily = SpaceGroteskFontFamily,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = (if (value >= 10000 && suffix.isEmpty()) "${value / 1000}k" else value.toString()) + suffix,
+                fontFamily = SpaceGroteskFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = color
+            )
+        }
     }
 }
 

@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 
 
@@ -45,8 +44,18 @@ class CalViewApp : Application(), Configuration.Provider {
         Log.d("CalViewApp", "🔐 App Check Init: DEBUG=$useDebugProvider")
         
         if (useDebugProvider) {
-            Log.d("CalViewApp", "🛠️ Installing DebugAppCheckProviderFactory")
-            appCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance())
+            try {
+                // Use reflection to load DebugAppCheckProviderFactory as it's only available in debug builds
+                val debugProviderClass = Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory")
+                val getInstanceMethod = debugProviderClass.getMethod("getInstance")
+                val factory = getInstanceMethod.invoke(null) as? com.google.firebase.appcheck.AppCheckProviderFactory
+                if (factory != null) {
+                    Log.d("CalViewApp", "🛠️ Installing DebugAppCheckProviderFactory")
+                    appCheck.installAppCheckProviderFactory(factory)
+                }
+            } catch (e: Exception) {
+                Log.e("CalViewApp", "⚠️ Could not install DebugAppCheckProviderFactory", e)
+            }
         } else {
             Log.d("CalViewApp", "🛡️ Installing PlayIntegrityAppCheckProviderFactory")
             appCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())

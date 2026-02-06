@@ -298,6 +298,15 @@ class ProgressViewModel @Inject constructor(
                 metrics.copy(goal = goal)
             }.combine(userPreferencesRepository.weightChangePerWeek) { metrics, pace ->
                 metrics.copy(pace = pace)
+            }.combine(weightHistoryRepository.getAllWeightHistory()) { metrics, history ->
+                // Fallback: If startWeight is same as current (default), try to find oldest historical weight
+                // to show actual progress made so far.
+                val effectiveStart = if (kotlin.math.abs(metrics.startWeight - metrics.weight) < 0.1f) {
+                    history.minByOrNull { it.timestamp }?.weight ?: metrics.startWeight
+                } else {
+                    metrics.startWeight
+                }
+                metrics.copy(startWeight = effectiveStart)
             }.combine(
                 combine(
                     userPreferencesRepository.recommendedCarbs,
@@ -324,16 +333,23 @@ class ProgressViewModel @Inject constructor(
                 val current = metrics.weight
                 val goal = metrics.goalWeight
                 
-                val weightProgress = if (start == goal) {
-                    1f
-                } else if (goal < start) {
-                    // Losing weight: (start - current) / (start - goal)
-                    // If current goes below goal, it's 100%
-                    if (current <= goal) 1f else ((start - current) / (start - goal)).coerceIn(0f, 1f)
-                } else {
-                    // Gaining weight: (current - start) / (goal - start)
-                    // If current goes above goal, it's 100%
-                    if (current >= goal) 1f else ((current - start) / (goal - start)).coerceIn(0f, 1f)
+                val weightProgress = when (metrics.goal.trim().lowercase()) {
+                    "lose weight", "lose" -> {
+                        val totalToLose = start - goal
+                        val progress = if (totalToLose <= 0) 1f else ((start - current) / totalToLose).coerceIn(0f, 1f)
+                        android.util.Log.d("ProgressViewModel", "Weight Progress (Lose): Start=$start, Current=$current, Goal=$goal, Progress=$progress")
+                        progress
+                    }
+                    "gain weight", "gain" -> {
+                        val totalToGain = goal - start
+                        val progress = if (totalToGain <= 0) 1f else ((current - start) / totalToGain).coerceIn(0f, 1f)
+                        android.util.Log.d("ProgressViewModel", "Weight Progress (Gain): Start=$start, Current=$current, Goal=$goal, Progress=$progress")
+                        progress
+                    }
+                    else -> {
+                        android.util.Log.d("ProgressViewModel", "Weight Progress (Other): Goal='${metrics.goal}', Start=$start, Current=$current, GoalWeight=$goal")
+                        1f
+                    }
                 }
 
                 // Goal Journey Calculations
@@ -474,22 +490,42 @@ class ProgressViewModel @Inject constructor(
             }
         }
         
-        // Collect 7-day manual exercise calories
+        // Collect 7-day manual exercise calories and combined 7-day stats
         viewModelScope.launch {
             val today = LocalDate.now()
-            val sevenDaysAgo = today.minusDays(6)
             val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
             
             // Collect exercise calories for each of the past 7 days
-            val dailyFlows = (0..6).map { daysAgo ->
-                val date = today.minusDays(daysAgo.toLong())
-                exerciseRepository.getTotalCaloriesBurnedForDate(dateFormatter.format(date))
-            }
-            
-            combine(dailyFlows) { dailyCalories ->
-                dailyCalories.sum()
-            }.collect { weeklyExerciseCals ->
-                _uiState.update { it.copy(weeklyExerciseCalories = weeklyExerciseCals) }
+            // Collect 7-day manual exercise calories and combined 7-day stats
+            exerciseRepository.getLastSevenDaysCalories()
+                .combine(healthConnectManager.healthData) { manualCaloriesList, healthData ->
+                    // Calculate Combined 7-day burn
+                    val hcDaily = healthData.lastSevenDaysCalories
+                    
+                    // Sum of daily (Health Connect + Manual)
+                    // Ensure lists are same size; if not, fallback to simple sum
+                    val combinedWeekly = if (hcDaily.isNotEmpty() && hcDaily.size == manualCaloriesList.size) {
+                         (hcDaily.indices).sumOf { i -> hcDaily[i] + manualCaloriesList[i] }
+                    } else {
+                         healthData.weeklyCaloriesBurned + manualCaloriesList.sum()
+                    }
+
+                    // Calculate Combined Record (Max single day sum of HC + Manual)
+                    val combinedRecord = if (hcDaily.isNotEmpty() && hcDaily.size == manualCaloriesList.size) {
+                        (hcDaily.indices).maxOf { i -> hcDaily[i] + manualCaloriesList[i] }
+                    } else {
+                        maxOf(healthData.maxCaloriesBurnedRecord, manualCaloriesList.maxOrNull() ?: 0.0)
+                    }
+                    
+                    Triple(manualCaloriesList.sum().toInt(), combinedWeekly, combinedRecord)
+                }.collect { (manualWeekly, combinedWeekly, combinedRecord) ->
+                _uiState.update { 
+                    it.copy(
+                        weeklyExerciseCalories = manualWeekly,
+                        weeklyCaloriesBurned = combinedWeekly, // Now includes manual
+                        caloriesBurnedRecord = combinedRecord  // Now includes manual
+                    ) 
+                }
             }
         }
         

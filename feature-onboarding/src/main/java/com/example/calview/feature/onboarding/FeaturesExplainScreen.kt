@@ -14,71 +14,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.walkthrough.FeatureIntroCarousel
+import com.example.calview.feature.onboarding.components.OnboardingScreenLayout
 
 @Composable
 fun FeaturesExplainScreen(
-    viewModel: OnboardingViewModel,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    onBack: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    OnboardingScreenLayout(
+        currentStep = 8,
+        totalSteps = 10,
+        title = "Welcome to CalView AI",
+        subtitle = "Master your nutrition with the power of artificial intelligence.",
+        onBack = onBack,
+        onContinue = onContinue
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Text(
-            text = "Welcome to CalView AI",
-            fontFamily = InterFontFamily,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Master your nutrition with the power of artificial intelligence.",
-            fontFamily = InterFontFamily,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Carousel of features
         FeatureIntroCarousel(
             modifier = Modifier.weight(1f)
         )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                viewModel.setHasSeenFeatureIntro(true)
-                onContinue()
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(
-                text = "Continue",
-                fontFamily = InterFontFamily,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }

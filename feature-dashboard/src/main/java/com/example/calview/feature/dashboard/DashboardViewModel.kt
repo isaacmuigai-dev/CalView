@@ -211,16 +211,10 @@ class DashboardViewModel @Inject constructor(
     val healthData = healthConnectManager.healthData
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HealthData())
 
-    // 7-day manual exercise calories
-    private val weeklyExerciseCalories = flow {
-        val today = java.time.LocalDate.now()
-        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val dailyFlows = (0..6).map { daysAgo ->
-            val date = today.minusDays(daysAgo.toLong())
-             exerciseRepository.getTotalCaloriesBurnedForDate(dateFormatter.format(date))
-        }
-        emitAll(combine(dailyFlows) { it.sum() })
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    // 7-day manual exercise calories (Daily totals)
+    private val weeklyExerciseCalories = exerciseRepository.getLastSevenDaysCalories()
+        .map { list -> list.map { it.toInt() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Use typed combine (5 flows max with explicit type parameters)
     private val coreState = combine(
@@ -253,7 +247,20 @@ class DashboardViewModel @Inject constructor(
         val exerciseCals = flows[6] as Int
         @Suppress("UNCHECKED_CAST")
         val exercisesList = flows[7] as List<com.example.calview.core.data.local.ExerciseEntity>
-        val weeklyManualCals = flows[8] as Int
+        @Suppress("UNCHECKED_CAST")
+        val weeklyManualCalsList = flows[8] as List<Double>
+        
+        // Calculate weekly total
+        val weeklyManualSum = weeklyManualCalsList.sum().toInt()
+        val weeklyTotalBurned = (core.health.weeklyCaloriesBurned + weeklyManualSum).toInt()
+
+        // Calculate Record (Max of daily sums)
+        val hcDaily = core.health.lastSevenDaysCalories
+        val combinedRecord = if (hcDaily.isNotEmpty() && hcDaily.size == weeklyManualCalsList.size) {
+            (hcDaily.indices).maxOf { (hcDaily[it] + weeklyManualCalsList[it]).toInt() }
+        } else {
+             maxOf(core.health.maxCaloriesBurnedRecord.toInt(), weeklyManualCalsList.maxOrNull()?.toInt() ?: 0)
+        }
         
         // Only count completed meals for calorie totals
         val completedMeals = core.meals.filter { 
@@ -288,9 +295,9 @@ class DashboardViewModel @Inject constructor(
             manualExerciseCalories = exerciseCals,
             exercises = exercisesList,
             weeklySteps = core.health.weeklySteps,
-            weeklyCaloriesBurned = core.health.weeklyCaloriesBurned.toInt(),
-            weeklyExerciseCalories = weeklyManualCals,
-            caloriesBurnedRecord = core.health.maxCaloriesBurnedRecord.toInt()
+            weeklyCaloriesBurned = weeklyTotalBurned,
+            weeklyExerciseCalories = weeklyManualSum,
+            caloriesBurnedRecord = combinedRecord
         )
     }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
          Pair(intermediate, waterSettings)

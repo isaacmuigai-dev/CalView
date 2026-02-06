@@ -9,6 +9,7 @@ interface ExerciseRepository {
     fun getExercisesForToday(): Flow<List<ExerciseEntity>>
     fun getExercisesForDate(dateString: String): Flow<List<ExerciseEntity>>
     fun getTotalCaloriesBurnedForDate(dateString: String): Flow<Int>
+    fun getLastSevenDaysCalories(): Flow<List<Double>>
     fun getRecentExercises(limit: Int = 10): Flow<List<ExerciseEntity>>
     fun getExercisesByType(type: ExerciseType): Flow<List<ExerciseEntity>>
     

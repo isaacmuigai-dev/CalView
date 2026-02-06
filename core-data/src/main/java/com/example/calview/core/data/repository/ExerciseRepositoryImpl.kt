@@ -7,7 +7,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -39,6 +41,18 @@ class ExerciseRepositoryImpl @Inject constructor(
     override fun getTotalCaloriesBurnedForDate(dateString: String): Flow<Int> {
         val (startOfDay, endOfDay) = getDateTimestamps(dateString)
         return exerciseDao.getTotalCaloriesBurnedForDate(startOfDay, endOfDay)
+    }
+
+    override fun getLastSevenDaysCalories(): Flow<List<Double>> {
+        val today = Calendar.getInstance()
+        val flows = (0..6).map { daysAgo ->
+            val date = (today.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_YEAR, -daysAgo)
+            }
+            val dateString = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(date.time)
+            getTotalCaloriesBurnedForDate(dateString).map { it.toDouble() }
+        }
+        return combine(flows) { it.toList() }
     }
     
     override fun getRecentExercises(limit: Int): Flow<List<ExerciseEntity>> {

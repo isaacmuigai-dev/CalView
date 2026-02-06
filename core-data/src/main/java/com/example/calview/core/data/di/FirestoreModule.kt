@@ -27,8 +27,9 @@ object FirestoreModule {
     @Provides
     @Singleton
     fun provideFirestoreRepository(
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        storageRepository: com.example.calview.core.data.repository.StorageRepository
     ): FirestoreRepository {
-        return FirestoreRepositoryImpl(firestore)
+        return FirestoreRepositoryImpl(firestore, storageRepository)
     }
 }

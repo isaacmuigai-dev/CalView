@@ -389,7 +389,7 @@ fun FoodDetailScreen(
                 ) {
                     Text(
                         text = meal.name,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontFamily = SpaceGroteskFontFamily,
                         color = onSurfaceColor,
@@ -854,7 +854,16 @@ fun FoodDetailScreen(
                 
                 // Ingredients List (Numbered)
                 val allIngredients = remember(currentMeal.name, additionalIngredients, servingCount) {
-                    listOf("${currentMeal.name} • ${currentMeal.calories * servingCount} cal") + additionalIngredients
+                    val mealNameItems = currentMeal.name.split(", ", " & ", "&", ",")
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                    
+                    val baseIngredients = mealNameItems.mapIndexed { index, name ->
+                        if (index == 0) "$name • ${currentMeal.calories * servingCount} cal"
+                        else name
+                    }
+                    
+                    baseIngredients + additionalIngredients
                 }
 
                 allIngredients.forEachIndexed { index, ingredient ->
@@ -874,7 +883,7 @@ fun FoodDetailScreen(
                             Text(
                                 text = "${index + 1}.",
                                 fontFamily = SpaceGroteskFontFamily,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.width(28.dp)
@@ -883,7 +892,7 @@ fun FoodDetailScreen(
                             Text(
                                 text = ingredient,
                                 fontFamily = SpaceGroteskFontFamily,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = onSurfaceColor,
                                 modifier = Modifier.weight(1f)
@@ -1375,7 +1384,7 @@ private fun ShareFoodSheet(
                                 // App Logo - 100dp
                                 Image(
                                     painter = androidx.compose.ui.res.painterResource(
-                                        id = com.example.calview.feature.dashboard.R.drawable.ic_calview_logo
+                                        id = com.example.calview.core.ui.R.drawable.app_logo_share
                                     ),
                                     contentDescription = "CalViewAI Logo",
                                     modifier = Modifier
@@ -1903,7 +1912,7 @@ private fun generateBrandedImage(context: Context, meal: MealEntity, servingCoun
         
         // Draw Logo - implement ContentScale.Crop behavior in a square area
         val logoBitmap = try {
-            val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.feature.dashboard.R.drawable.ic_calview_logo)
+            val drawable = androidx.core.content.ContextCompat.getDrawable(context, com.example.calview.core.ui.R.drawable.app_logo_share)
             if (drawable != null) {
                 // Get intrinsic dimensions
                 val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: logoSize

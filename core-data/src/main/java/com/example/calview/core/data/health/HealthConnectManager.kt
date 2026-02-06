@@ -30,6 +30,7 @@ data class HealthData(
     val weeklyCaloriesBurned: Double = 0.0,
     val maxCaloriesBurnedRecord: Double = 0.0,
     val maxStepsRecord: Long = 0,  // Best daily steps in past 7 days
+    val lastSevenDaysCalories: List<Double> = emptyList(), // Daily activity calories for last 7 days
     val isConnected: Boolean = false,
     val isAvailable: Boolean = false
 )
@@ -301,6 +302,7 @@ class HealthConnectManager @Inject constructor(
                 weeklyCaloriesBurned = weeklyCaloriesBurned,
                 maxCaloriesBurnedRecord = maxCaloriesRecord,
                 maxStepsRecord = maxStepsRecord,
+                lastSevenDaysCalories = historicalDailyCalories, // Expose daily history
                 isConnected = true,
                 isAvailable = true
             )

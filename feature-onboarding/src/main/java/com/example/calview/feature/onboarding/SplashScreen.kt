@@ -93,7 +93,7 @@ fun SplashScreen(
                     contentDescription = "CalViewAI Icon",
                     modifier = Modifier.fillMaxWidth(0.16f)
                         .size(90.dp),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Fit
                 )
                 
                 // App Name

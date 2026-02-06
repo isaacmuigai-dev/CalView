@@ -355,8 +355,9 @@ fun ProgressContent(
                 caloriesBurned = uiState.caloriesBurned,
                 manualExerciseCalories = uiState.manualExerciseCalories,
                 weeklySteps = uiState.weeklySteps,
-                weeklyCaloriesBurned = (uiState.weeklyCaloriesBurned + uiState.weeklyExerciseCalories).toInt(),
+                weeklyCaloriesBurned = uiState.weeklyCaloriesBurned.toInt(),
                 caloriesRecord = uiState.caloriesBurnedRecord.toInt(),
+                workoutCalories = uiState.manualExerciseCalories,
                 animationTriggered = animationTriggered
             )
         }
@@ -842,7 +843,7 @@ fun WeightProgressCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${currentWeight.toInt()} kg",
+                        text = stringResource(R.string.unit_kg_decimal_format, currentWeight),
                         fontFamily = SpaceGroteskFontFamily,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -859,7 +860,7 @@ fun WeightProgressCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${goalWeight.toInt()} kg",
+                        text = stringResource(R.string.unit_kg_decimal_format, goalWeight),
                         fontFamily = SpaceGroteskFontFamily,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -2057,6 +2058,7 @@ fun ActivityOverviewCard(
     weeklySteps: Long,
     weeklyCaloriesBurned: Int,
     caloriesRecord: Int,
+    workoutCalories: Int = 0, // Daily workout calories
     animationTriggered: Boolean
 ) {
     val stepsProgress by animateFloatAsState(
@@ -2152,21 +2154,30 @@ fun ActivityOverviewCard(
             
             // 7-Day Summary Row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = stringResource(R.string.weekly_steps_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = weeklySteps.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = if (weeklySteps >= 10000) "${weeklySteps / 1000}k" else weeklySteps.toString(), fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
                 }
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = stringResource(R.string.weekly_burn_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = "$weeklyCaloriesBurned ${stringResource(R.string.cal_unit)}", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "$weeklyCaloriesBurned kcal", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
                 }
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = stringResource(R.string.record_label), fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.EmojiEvents, contentDescription = null, modifier = Modifier.size(14.dp), tint = GradientOrange)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "$caloriesRecord", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
+                        Text(text = "$caloriesRecord kcal", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
                     }
+                }
+                // Workouts
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "Workout", fontFamily = InterFontFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "$workoutCalories kcal", fontFamily = SpaceGroteskFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.02).sp, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

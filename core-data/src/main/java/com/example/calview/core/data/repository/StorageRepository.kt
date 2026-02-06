@@ -29,4 +29,10 @@ interface StorageRepository {
      * @param imageUrl The download URL of the image to delete.
      */
     suspend fun deleteMealImage(imageUrl: String)
+
+    /**
+     * Delete all images for a specific user.
+     * @param userId The ID of the user whose images should be deleted.
+     */
+    suspend fun deleteAllUserImages(userId: String)
 }

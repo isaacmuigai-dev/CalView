@@ -108,13 +108,7 @@ fun CalViewTheme(
             
             // For Android 15+ (SDK 35), edge-to-edge is enforced by default
             // We only need to set the system bar appearance (light/dark icons)
-            // For older versions, we also set transparent colors for compatibility
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                @Suppress("DEPRECATION")
-                window.statusBarColor = Color.Transparent.toArgb()
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = Color.Transparent.toArgb()
-            }
+            // rely on enableEdgeToEdge() in MainActivity for transparent bars on older versions
             
             // Set system bar icon colors (light icons for dark theme, dark icons for light theme)
             insetsController.isAppearanceLightStatusBars = !useDarkTheme

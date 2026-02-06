@@ -259,8 +259,11 @@ fun OnboardingNavHost(
         // ============ STEP 8: FEATURES EXPLAIN ============
         composable("features_explain") {
             FeaturesExplainScreen(
-                viewModel = viewModel,
-                onContinue = { navController.navigate("referral_code") }
+                onBack = { navController.popBackStack() },
+                onContinue = { 
+                    viewModel.setHasSeenFeatureIntro(true)
+                    navController.navigate("referral_code") 
+                }
             )
         }
         

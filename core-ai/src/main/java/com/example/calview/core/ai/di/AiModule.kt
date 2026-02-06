@@ -23,8 +23,8 @@ object AiModule {
     @Provides
     @Singleton
     fun provideGenerativeModel(): GenerativeModel {
-        // Initialize using Firebase AI Logic SDK with Gemini Developer API backend
-        return Firebase.ai(backend = GenerativeBackend.googleAI())
+        // Initialize using Firebase AI Logic SDK with Vertex AI backend
+        return Firebase.ai(backend = GenerativeBackend.vertexAI())
             .generativeModel("gemini-2.5-flash")
     }
 

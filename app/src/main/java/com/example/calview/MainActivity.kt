@@ -282,6 +282,43 @@ fun AppNavigation(
     var isSigningIn by remember { mutableStateOf(false) }
     var isRedirecting by remember { mutableStateOf(false) }
     
+    // Silent Restore for returning users (e.g. re-install without manual sign-in)
+    LaunchedEffect(isSignedIn) {
+        if (isSignedIn && mealRepository != null) {
+            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    // Check if we have any data. using meals as a proxy for "clean install"
+                    val hasMeals = mealRepository.hasAnyMeals()
+                    if (!hasMeals) {
+                        Log.d("SilentRestore", "User is signed in but local DB is empty. Attempting detailed restore...")
+                        
+                        // Restore preferences first (contains levels, xp, goals)
+                        userPreferencesRepository?.restoreFromCloud()
+                        
+                        // Restore content
+                        val mealsRestored = mealRepository.restoreFromCloud()
+                        if (mealsRestored) {
+                            Log.d("SilentRestore", "Restored meals from cloud.")
+                        }
+                        
+                        // Restore other entities
+                        exerciseRepository?.restoreFromCloud()
+                        weightHistoryRepository?.restoreFromCloud()
+                        dailyLogRepository?.restoreFromCloud()
+                        streakFreezeRepository?.restoreFromCloud()
+                        gamificationRepository?.restoreFromCloud()
+                        fastingRepository?.restoreFromCloud()
+                        waterReminderRepository?.restoreFromCloud()
+                        
+                        Log.d("SilentRestore", "Silent restore sequence completed.")
+                    }
+                } catch (e: Exception) {
+                    Log.e("SilentRestore", "Error during silent restore", e)
+                }
+            }
+        }
+    }
+
     // Global navigation redirect based on state
     // Note: Only redirect from "onboarding", NOT from "splash"
     // This ensures splash screen always shows for the full duration on cold start

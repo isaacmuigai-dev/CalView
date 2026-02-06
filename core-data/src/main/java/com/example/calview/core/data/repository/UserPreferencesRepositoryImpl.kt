@@ -308,8 +308,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     }
 
     override val startWeight: Flow<Float> = context.dataStore.data.map { preferences ->
-        // Default to current weight if start weight not set yet
-        preferences[PreferencesKeys.START_WEIGHT] ?: preferences[PreferencesKeys.WEIGHT] ?: 0f
+        val start = preferences[PreferencesKeys.START_WEIGHT] ?: 0f
+        if (start > 0f) start else preferences[PreferencesKeys.WEIGHT] ?: 0f
     }
     
     override val dailyStepsGoal: Flow<Int> = context.dataStore.data.map { preferences ->
@@ -527,9 +527,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setGoalWeight(weight: Float) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GOAL_WEIGHT] = weight
-            // Always update start weight to current weight when setting a new goal
-            // This ensures progress is calculated relative to the start of the new goal
-            preferences[PreferencesKeys.START_WEIGHT] = preferences[PreferencesKeys.WEIGHT] ?: weight
+            // Do NOT automatically reset start weight here. 
+            // It should only be reset if the user explicitly changes it or starts a new journey.
         }
         syncToFirestore()
     }

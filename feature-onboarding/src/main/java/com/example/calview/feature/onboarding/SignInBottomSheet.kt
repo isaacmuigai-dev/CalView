@@ -229,67 +229,9 @@ fun GoogleSignInButton(
 private fun GoogleGIcon(
     modifier: Modifier = Modifier
 ) {
-    // Try to use the vector drawable, fallback to custom drawn G
-    Box(
-        modifier = modifier.size(20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // Custom Google G with proper colors
-        androidx.compose.foundation.Canvas(
-            modifier = Modifier.size(20.dp)
-        ) {
-            val size = this.size
-            val centerX = size.width / 2
-            val centerY = size.height / 2
-            val radius = size.width * 0.4f
-            
-            // Draw the colored G segments
-            // Blue (right side)
-            drawArc(
-                color = Color(0xFF4285F4),
-                startAngle = -45f,
-                sweepAngle = 90f,
-                useCenter = true,
-                size = size
-            )
-            // Green (bottom right)
-            drawArc(
-                color = Color(0xFF34A853),
-                startAngle = 45f,
-                sweepAngle = 90f,
-                useCenter = true,
-                size = size
-            )
-            // Yellow (bottom left)
-            drawArc(
-                color = Color(0xFFFBBC05),
-                startAngle = 135f,
-                sweepAngle = 90f,
-                useCenter = true,
-                size = size
-            )
-            // Red (top left)
-            drawArc(
-                color = Color(0xFFEA4335),
-                startAngle = 225f,
-                sweepAngle = 90f,
-                useCenter = true,
-                size = size
-            )
-            
-            // White center circle
-            drawCircle(
-                color = Color.White,
-                radius = radius * 0.6f,
-                center = androidx.compose.ui.geometry.Offset(centerX, centerY)
-            )
-            
-            // Blue bar (horizontal line for the G)
-            drawRect(
-                color = Color(0xFF4285F4),
-                topLeft = androidx.compose.ui.geometry.Offset(centerX - radius * 0.1f, centerY - radius * 0.25f),
-                size = androidx.compose.ui.geometry.Size(radius * 0.8f, radius * 0.5f)
-            )
-        }
-    }
+    Image(
+        painter = painterResource(id = com.example.calview.feature.onboarding.R.drawable.google_logo),
+        contentDescription = "Google Logo",
+        modifier = modifier.size(20.dp)
+    )
 }

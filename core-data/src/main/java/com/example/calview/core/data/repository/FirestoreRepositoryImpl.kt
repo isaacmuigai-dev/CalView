@@ -17,7 +17,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class FirestoreRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val storageRepository: StorageRepository
 ) : FirestoreRepository {
     
     companion object {
@@ -589,14 +590,7 @@ class FirestoreRepositoryImpl @Inject constructor(
 
             // Delete all subcollections
             deleteCollection("meals")
-            deleteCollection("dailyLogs") // Note: some implementations assume daily_logs snake_case, check consistency!
-            // Wait, DailyLogRepository uses "daily_logs". Checking implementation...
-            // "private const val DAILY_LOGS_COLLECTION = "daily_logs"" in DailyLogRepositoryImpl
-            // But previous deleteUserData used "dailyLogs"... I should fix this here.
             deleteCollection("daily_logs") 
-            // Also try "dailyLogs" just in case legacy data exists
-            deleteCollection("dailyLogs")
-            
             deleteCollection("fasting_sessions")
             deleteCollection("streak_freezes")
             deleteCollection("weight_history")
@@ -604,6 +598,13 @@ class FirestoreRepositoryImpl @Inject constructor(
             deleteCollection("water_settings")
             deleteCollection("badges")
             deleteCollection("challenges")
+
+            // Delete storage images
+            try {
+                storageRepository.deleteAllUserImages(userId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete storage images", e)
+            }
 
             // Delete challenge participation
             val participationQuery = firestore.collection("challenge_participants")

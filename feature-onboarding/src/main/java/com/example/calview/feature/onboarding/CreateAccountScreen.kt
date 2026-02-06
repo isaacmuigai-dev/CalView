@@ -1,6 +1,6 @@
 package com.example.calview.feature.onboarding
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.util.AdaptiveLayoutUtils
 import com.example.calview.core.ui.util.LocalWindowSizeClass
@@ -231,60 +232,9 @@ fun CreateAccountScreen(
  */
 @Composable
 fun GoogleLogo(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val strokeWidth = size.width * 0.18f
-        val radius = (size.width - strokeWidth) / 2
-        val center = Offset(size.width / 2, size.height / 2)
-        
-        // Blue arc (right side) - 0° to 80°
-        drawArc(
-            color = Color(0xFF4285F4),
-            startAngle = -45f,
-            sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-            size = Size(size.width - strokeWidth, size.height - strokeWidth),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-        )
-        
-        // Green arc (bottom) - 80° to 170°
-        drawArc(
-            color = Color(0xFF34A853),
-            startAngle = 45f,
-            sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-            size = Size(size.width - strokeWidth, size.height - strokeWidth),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-        )
-        
-        // Yellow arc (left-bottom) - 170° to 260°
-        drawArc(
-            color = Color(0xFFFBBC05),
-            startAngle = 135f,
-            sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-            size = Size(size.width - strokeWidth, size.height - strokeWidth),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-        )
-        
-        // Red arc (top) - 260° to 360°
-        drawArc(
-            color = Color(0xFFEA4335),
-            startAngle = 225f,
-            sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-            size = Size(size.width - strokeWidth, size.height - strokeWidth),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-        )
-        
-        // Blue horizontal bar (the crossbar of the G)
-        drawRect(
-            color = Color(0xFF4285F4),
-            topLeft = Offset(center.x, center.y - strokeWidth / 2),
-            size = Size(radius, strokeWidth)
-        )
-    }
+    Image(
+        painter = painterResource(id = com.example.calview.feature.onboarding.R.drawable.google_logo),
+        contentDescription = "Google Logo",
+        modifier = modifier.size(20.dp)
+    )
 }

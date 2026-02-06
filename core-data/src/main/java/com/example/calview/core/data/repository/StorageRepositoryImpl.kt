@@ -75,4 +75,26 @@ class StorageRepositoryImpl @Inject constructor(
             Log.e(TAG, "Error deleting image", e)
         }
     }
+
+    override suspend fun deleteAllUserImages(userId: String) {
+        if (userId.isEmpty()) return
+
+        try {
+            val userStorageRef = storage.reference
+                .child(MEALS_FOLDER)
+                .child(userId)
+
+            // List all items in the user's folder and delete them
+            // Note: Firebase Storage doesn't support deleting a folder directly, 
+            // you must delete all files within it.
+            val result = userStorageRef.listAll().await()
+            result.items.forEach { fileRef ->
+                fileRef.delete().await()
+                Log.d(TAG, "Deleted file: ${fileRef.path}")
+            }
+            Log.d(TAG, "Successfully deleted all storage images for user: $userId")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting all user images from storage", e)
+        }
+    }
 }

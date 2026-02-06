@@ -52,6 +52,16 @@ class BillingManager @Inject constructor(
         private val TEST_EMAILS = listOf(
             "calviewai.reviewer@gmail.com",
         )
+
+        /**
+         * The Base64-encoded RSA public key to include in your app binary.
+         * You can get this from the Google Play Console:
+         * Monetization -> Monetization setup -> Licensing
+         * 
+         * [!IMPORTANT]
+         * REMOVE ALL SPACES BEFORE PASTING HERE.
+         */
+        private const val BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuKjGVOMyMdyDtuHw1q/SjYmctp6045ZZaDsKCFyAZzZ02/Ms0vnpPEHvUVc777zX3pSv+1CjwnlsAzx3IPj/nzRlOPvff2q5cab63G0efUhNVsF5vCvZIYN5El3kV/IlQzvYJ250oEaIoIq5/BVbkntBjdys7j62FjxvsxUS1wFvbQaHFiDDqIk+AKAtAYbVi+kxH0sN5itZGukMsaZVzNoyMKGpnA+OyBe8+DDNVavWgdDhReF7mAI5yAA0UTz50e1NQRvXDu3kG0XJ7TjpHZhj+FByGH4bOfGKqVGEN11oTETr8snoeugkg7ZGmfqpSmvGrdxp58bDWxAWYI0KUQIDAQAB"
     }
 
     private val _billingClient = BillingClient.newBuilder(context)
@@ -276,5 +286,14 @@ class BillingManager @Inject constructor(
     
     fun restorePurchases() {
         queryPurchases()
+    }
+
+    /**
+     * Reset billing state on logout.
+     */
+    fun reset() {
+        Log.d(TAG, "Resetting billing state")
+        currentUserEmail = null
+        _isPremium.value = false
     }
 }

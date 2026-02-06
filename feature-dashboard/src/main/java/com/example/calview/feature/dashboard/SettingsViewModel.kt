@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
+import android.content.Context
+import androidx.work.WorkManager
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.calview.core.data.billing.BillingManager
 
 data class SettingsUiState(
     val userName: String = "",
@@ -56,7 +60,9 @@ class SettingsViewModel @Inject constructor(
     private val weightHistoryRepository: WeightHistoryRepository,
     private val socialChallengeRepository: SocialChallengeRepository,
     private val gamificationRepository: GamificationRepository,
-    private val exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository,
+    private val billingManager: BillingManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -223,8 +229,8 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
 
-            // 1. Delete Firestore Data (Must happen while authenticated)
-            _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data...") }
+            // 1. Delete Firestore Data (And Storage images)
+            _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data and images...") }
             try {
                 firestoreRepository.deleteUserData(userId)
             } catch (e: Exception) {
@@ -243,35 +249,27 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
 
-            // 3. Clear Local Repositories (Excluding preferences)
-            _uiState.update { it.copy(deletionProgressMessage = "Clearing local data and cache...") }
+            // 3. Cancel background work
             try {
-                mealRepository.clearAllMeals()
-                dailyLogRepository.clearAllLogs()
-                fastingRepository.deleteAllSessions()
-                streakFreezeRepository.clearAllData()
-                weightHistoryRepository.deleteAll()
-                waterReminderRepository.clearAllData()
-                socialChallengeRepository.clearAllData()
-                gamificationRepository.clearAllData()
-                exerciseRepository.clearAllExercises()
+                WorkManager.getInstance(context).cancelAllWork()
             } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Failed to clear some local data", e)
+                Log.e("SettingsViewModel", "Failed to cancel background work", e)
             }
+
+            // 4. Clear Local Repositories and reset state
+            _uiState.update { it.copy(deletionProgressMessage = "Clearing local data and cache...") }
+            clearAllLocalData()
+            billingManager.reset()
+            
             kotlinx.coroutines.delay(1000)
 
-            // 4. Show final message before the (potential) activity restart
+            // 5. Show final message
             _uiState.update { it.copy(deletionProgressMessage = "Account deleted successfully. Redirecting...") }
             kotlinx.coroutines.delay(2000)
 
-            // 5. Clear Preferences (This triggers Activity restart!)
-            try {
-                userPreferencesRepository.clearAllData()
-            } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Failed to clear preferences", e)
-            }
-
-            // Final safety flag (navigation will likely be handled by Splash after restart)
+            // 6. Clear Preferences last (triggers restart)
+            userPreferencesRepository.clearAllData()
+            
             _uiState.update { it.copy(isDeletionComplete = true) }
         }
     }
@@ -280,35 +278,49 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isDeletingAccount = true, deletionProgressMessage = "Logging out...") }
             
-            // Sync preferences one last time
+            // 1. Sync preferences one last time
             userPreferencesRepository.syncToCloud()
             
-            // Clear all local data for privacy (Excluding preferences)
-            try {
-                mealRepository.clearAllMeals()
-                dailyLogRepository.clearAllLogs()
-                fastingRepository.deleteAllSessions()
-                streakFreezeRepository.clearAllData()
-                weightHistoryRepository.deleteAll()
-                waterReminderRepository.clearAllData()
-                socialChallengeRepository.clearAllData()
-                gamificationRepository.clearAllData()
-                exerciseRepository.clearAllExercises()
-            } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Failed to clear local data during logout", e)
-            }
+            // 2. Clear all local data
+            clearAllLocalData()
             
+            // 3. Cancel background work
+            try {
+                WorkManager.getInstance(context).cancelAllWork()
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to cancel background work", e)
+            }
+
+            // 4. Sign out
             authRepository.signOut()
+            billingManager.reset()
             kotlinx.coroutines.delay(1000)
 
-            // Clear Preferences last
-            try {
-                userPreferencesRepository.clearAllData()
-            } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Failed to clear preferences during logout", e)
-            }
+            // 4. Clear Preferences last
+            userPreferencesRepository.clearAllData()
             
             _uiState.update { it.copy(isDeletionComplete = true) }
+        }
+    }
+
+    private suspend fun clearAllLocalData() {
+        try {
+            // Cancel background workers
+            // We need a context for WorkManager, but ViewModel doesn't have it directly.
+            // However, Repositories usually have @ApplicationContext.
+            // For now, let's focus on repository clearing.
+
+            mealRepository.clearAllMeals()
+            dailyLogRepository.clearAllLogs()
+            fastingRepository.deleteAllSessions()
+            streakFreezeRepository.clearAllData()
+            weightHistoryRepository.deleteAll()
+            waterReminderRepository.clearAllData()
+            socialChallengeRepository.clearAllData()
+            gamificationRepository.clearAllData()
+            exerciseRepository.clearAllExercises()
+        } catch (e: Exception) {
+            Log.e("SettingsViewModel", "Error in clearAllLocalData", e)
         }
     }
 }

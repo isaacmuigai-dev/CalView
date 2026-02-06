@@ -90,42 +90,27 @@ fun NotificationsScreen(
                 .widthIn(max = AdaptiveLayoutUtils.getMaxContentWidth(windowSizeClass.widthSizeClass))
                 .fillMaxSize()
         ) {
-            OnboardingScreenLayout(
-                currentStep = currentStep,
-                totalSteps = totalSteps,
-                title = "",
-                subtitle = null,
-                onBack = onBack,
-                onContinue = onContinue,
-                continueEnabled = true
-            ) {
+    OnboardingScreenLayout(
+        currentStep = currentStep,
+        totalSteps = totalSteps,
+        title = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_title),
+        subtitle = null,
+        onBack = onBack,
+        onContinue = onContinue,
+        continueEnabled = true
+    ) {
         Spacer(modifier = Modifier.weight(0.3f))
         
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Title
-            // Title
-            Text(
-                text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_title),
-                                    fontFamily = InterFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-                lineHeight = 36.sp
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
             // Notification permission card
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -133,7 +118,7 @@ fun NotificationsScreen(
                 ) {
                     Text(
                         text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.notifications_permission_text),
-                                            fontFamily = InterFontFamily,
+                        fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -141,7 +126,7 @@ fun NotificationsScreen(
                         lineHeight = 24.sp
                     )
                     
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     
                     // Allow/Don't Allow buttons
                     Row(
@@ -154,6 +139,7 @@ fun NotificationsScreen(
                             shape = RoundedCornerShape(12.dp),
                             color = if (!notificationsEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
+                                .weight(1f)
                                 .height(48.dp)
                                 .semantics { role = Role.Button }
                         ) {
@@ -163,7 +149,7 @@ fun NotificationsScreen(
                             ) {
                                 Text(
                                     text = androidx.compose.ui.res.stringResource(com.example.calview.feature.onboarding.R.string.dont_allow),
-                                                        fontFamily = InterFontFamily,
+                                    fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -177,6 +163,7 @@ fun NotificationsScreen(
                             shape = RoundedCornerShape(12.dp),
                             color = if (notificationsEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier
+                                .weight(1f)
                                 .height(48.dp)
                                 .semantics { role = Role.Button }
                         ) {
@@ -197,12 +184,12 @@ fun NotificationsScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
             // Thumbs up emoji
             Text(
                 text = "👍",
-                fontSize = 40.sp
+                fontSize = 48.sp
             )
         }
         
