@@ -91,9 +91,9 @@ fun SplashScreen(
                 Image(
                     painter = painterResource(id = iconRes),
                     contentDescription = "CalViewAI Icon",
-                    modifier = Modifier.fillMaxWidth(0.16f)
-                        .size(90.dp),
-                    contentScale = ContentScale.Fit
+                    modifier = Modifier.fillMaxWidth(0.17f)
+                        .size(160.dp),
+                    contentScale = ContentScale.Crop
                 )
                 
                 // App Name

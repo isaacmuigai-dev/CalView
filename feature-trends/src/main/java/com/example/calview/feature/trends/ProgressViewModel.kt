@@ -58,6 +58,18 @@ private data class MacroGoals(
     val stepsGoal: Int
 )
 
+private data class ActivityUpdate(
+    val healthData: com.example.calview.core.data.health.HealthData,
+    val totalToday: Int,
+    val manualToday: Int,
+    val combinedWeekly: Double,
+    val sevenDayMax: Int,
+    val displayRecord: Int,
+    val persistentRecord: Int,
+    val manualWeeklySum: Int
+)
+
+
 data class ProgressUiState(
     // User metrics
     val currentWeight: Float = 0f,
@@ -93,6 +105,8 @@ data class ProgressUiState(
     val caloriesBurnedRecord: Double = 0.0,
     val stepsRecord: Long = 0,  // Best daily steps in past 7 days
     val weeklyCalories: List<DailyCalories> = emptyList(),
+
+
     val weeklyAverageCalories: Int = 0,
     val selectedWeekOffset: Int = 0,  // 0 = this week, 1 = last week, 2 = 2 weeks ago, 3 = 3 weeks ago
     
@@ -146,7 +160,7 @@ data class ChecklistItem(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ProgressViewModel @Inject constructor(
+open class ProgressViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val mealRepository: MealRepository,
     private val healthConnectManager: HealthConnectManager,
@@ -162,10 +176,18 @@ class ProgressViewModel @Inject constructor(
     val uiState: StateFlow<ProgressUiState> = _uiState.asStateFlow()
     
     init {
-        loadProgressData()
+        observeBaseMetrics()
+        observeGamification()
+        observeChecklist()
+        observeActivityStats()
+        observeMealsAndStreaks()
+        observeWeightHistoryAndPrediction()
+        observeStreakFreeze()
         observeWalkthroughStatus()
         observeGoalMilestones()
+        observeDateChanges()
     }
+
 
     private fun observeGoalMilestones() {
         viewModelScope.launch {
@@ -281,7 +303,7 @@ class ProgressViewModel @Inject constructor(
         }
     }
 
-    private fun loadProgressData() {
+    private fun observeBaseMetrics() {
         viewModelScope.launch {
             // Combine user metrics flows (chaining to handle 5+ flows)
             combine(
@@ -300,7 +322,6 @@ class ProgressViewModel @Inject constructor(
                 metrics.copy(pace = pace)
             }.combine(weightHistoryRepository.getAllWeightHistory()) { metrics, history ->
                 // Fallback: If startWeight is same as current (default), try to find oldest historical weight
-                // to show actual progress made so far.
                 val effectiveStart = if (kotlin.math.abs(metrics.startWeight - metrics.weight) < 0.1f) {
                     history.minByOrNull { it.timestamp }?.weight ?: metrics.startWeight
                 } else {
@@ -337,19 +358,14 @@ class ProgressViewModel @Inject constructor(
                     "lose weight", "lose" -> {
                         val totalToLose = start - goal
                         val progress = if (totalToLose <= 0) 1f else ((start - current) / totalToLose).coerceIn(0f, 1f)
-                        android.util.Log.d("ProgressViewModel", "Weight Progress (Lose): Start=$start, Current=$current, Goal=$goal, Progress=$progress")
                         progress
                     }
                     "gain weight", "gain" -> {
                         val totalToGain = goal - start
                         val progress = if (totalToGain <= 0) 1f else ((current - start) / totalToGain).coerceIn(0f, 1f)
-                        android.util.Log.d("ProgressViewModel", "Weight Progress (Gain): Start=$start, Current=$current, Goal=$goal, Progress=$progress")
                         progress
                     }
-                    else -> {
-                        android.util.Log.d("ProgressViewModel", "Weight Progress (Other): Goal='${metrics.goal}', Start=$start, Current=$current, GoalWeight=$goal")
-                        1f
-                    }
+                    else -> 1f
                 }
 
                 // Goal Journey Calculations
@@ -359,53 +375,33 @@ class ProgressViewModel @Inject constructor(
                 val estimatedDate = LocalDate.now().plusWeeks(weeksToGoal.toLong())
                 val showJourney = metrics.goal != "Maintain" && goal > 0
                 
-                ProgressUiState(
-                    currentWeight = metrics.weight,
-                    goalWeight = metrics.goalWeight,
-                    height = metrics.height,
-                    bmi = bmi,
-                    bmiCategory = bmiCategory,
-                    weightProgress = weightProgress,
-                    calorieGoal = metrics.calories,
-                    proteinGoal = metrics.protein,
-                    carbsGoal = macros.carbs,
-                    fatsGoal = macros.fats,
-                    stepsGoal = macros.stepsGoal,
-                    userGoal = metrics.goal,
-                    weeklyPace = metrics.pace,
-                    weeksToGoal = weeksToGoal,
-                    weightDiff = weightDiff,
-                    estimatedGoalDate = estimatedDate,
-                    showGoalJourney = showJourney,
-                    isLoading = false
-                )
-            }.collect { state ->
                 _uiState.update { currentState ->
                     currentState.copy(
-                        currentWeight = state.currentWeight,
-                        goalWeight = state.goalWeight,
-                        height = state.height,
-                        bmi = state.bmi,
-                        bmiCategory = state.bmiCategory,
-                        weightProgress = state.weightProgress,
-                        calorieGoal = state.calorieGoal,
-                        proteinGoal = state.proteinGoal,
-                        carbsGoal = state.carbsGoal,
-                        fatsGoal = state.fatsGoal,
-                        stepsGoal = state.stepsGoal,
-                        userGoal = state.userGoal,
-                        weeklyPace = state.weeklyPace,
-                        weeksToGoal = state.weeksToGoal,
-                        weightDiff = state.weightDiff,
-                        estimatedGoalDate = state.estimatedGoalDate,
-                        showGoalJourney = state.showGoalJourney,
+                        currentWeight = metrics.weight,
+                        goalWeight = metrics.goalWeight,
+                        height = metrics.height,
+                        bmi = bmi,
+                        bmiCategory = bmiCategory,
+                        weightProgress = weightProgress,
+                        calorieGoal = metrics.calories,
+                        proteinGoal = metrics.protein,
+                        carbsGoal = macros.carbs,
+                        fatsGoal = macros.fats,
+                        stepsGoal = macros.stepsGoal,
+                        userGoal = metrics.goal,
+                        weeklyPace = metrics.pace,
+                        weeksToGoal = weeksToGoal,
+                        weightDiff = weightDiff,
+                        estimatedGoalDate = estimatedDate,
+                        showGoalJourney = showJourney,
                         isLoading = false
                     )
                 }
-            }
+            }.collect { }
         }
+    }
 
-        // Collect Gamification data
+    private fun observeGamification() {
         viewModelScope.launch {
             userPreferencesRepository.userLevel.collect { level ->
                 _uiState.update { it.copy(userLevel = level, xpRequired = level * 1000) }
@@ -416,8 +412,9 @@ class ProgressViewModel @Inject constructor(
                 _uiState.update { it.copy(userXp = xp) }
             }
         }
+    }
 
-        // Monitor checklist items reactively
+    private fun observeChecklist() {
         viewModelScope.launch {
             combine(
                 uiState.map { it.todayProtein to it.proteinGoal }.distinctUntilChanged(),
@@ -455,80 +452,82 @@ class ProgressViewModel @Inject constructor(
                 _uiState.update { it.copy(checklistItems = items) }
             }
         }
+    }
 
-        // Collect Health Connect data and combine with manual exercise calories
+    private fun observeActivityStats() {
+        // Unified Activity Stats Collector (Source Flow based to avoid loops)
         viewModelScope.launch {
             combine(
                 healthConnectManager.healthData,
                 selectedDateHolder.selectedDate.flatMapLatest { date ->
                     val dateString = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date)
                     exerciseRepository.getTotalCaloriesBurnedForDate(dateString)
+                }.distinctUntilChanged(),
+                exerciseRepository.getLastSevenDaysCalories().distinctUntilChanged(),
+                userPreferencesRepository.recordBurn.distinctUntilChanged()
+            ) { healthData, manualToday, manualSevenDays, persistentRecord ->
+
+                // 1. Today's Combined Total
+                val totalBurnedToday = healthData.caloriesBurned.toInt() + manualToday
+                
+                // 2. Weekly Combined Total
+                val hcDaily = healthData.lastSevenDaysCalories
+                val combinedWeekly = if (hcDaily.isNotEmpty() && hcDaily.size == manualSevenDays.size) {
+                     (hcDaily.indices).sumOf { i -> hcDaily[i] + manualSevenDays[i] }
+                } else {
+                     healthData.weeklyCaloriesBurned + manualSevenDays.sum()
                 }
-            ) { healthData, manualExerciseCals ->
-                Pair(healthData, manualExerciseCals)
-            }.collect { (healthData, manualExerciseCals) ->
-                val totalBurned = healthData.caloriesBurned.toInt() + manualExerciseCals
+
+                // 3. 7-Day Max
+                val sevenDayMax = if (hcDaily.isNotEmpty() && hcDaily.size == manualSevenDays.size) {
+                    (hcDaily.indices).maxOf { i -> hcDaily[i] + manualSevenDays[i] }.toInt()
+                } else {
+                    maxOf(healthData.maxCaloriesBurnedRecord.toInt(), manualSevenDays.maxOrNull()?.toInt() ?: 0)
+                }
                 
-                // Sync to widget with combined totals
-                userPreferencesRepository.setActivityStats(
-                    caloriesBurned = totalBurned,
-                    weeklyBurn = healthData.weeklyCaloriesBurned.toInt(),
-                    recordBurn = healthData.maxCaloriesBurnedRecord.toInt()
+                // 4. Record calculation (max of everything)
+                val overallRecord = maxOf(persistentRecord, totalBurnedToday, sevenDayMax)
+                
+                ActivityUpdate(
+                    healthData = healthData,
+                    totalToday = totalBurnedToday,
+                    manualToday = manualToday,
+                    combinedWeekly = combinedWeekly,
+                    sevenDayMax = sevenDayMax,
+                    displayRecord = overallRecord,
+                    persistentRecord = persistentRecord,
+                    manualWeeklySum = manualSevenDays.sum().toInt()
                 )
-                
+            }.collect { update ->
+                // Update UI State
                 _uiState.update { 
                     it.copy(
-                        todaySteps = healthData.steps.toInt(),
-                        caloriesBurned = totalBurned,  // Combined total
-                        manualExerciseCalories = manualExerciseCals,
-                        weeklySteps = healthData.weeklySteps,
-                        weeklyCaloriesBurned = healthData.weeklyCaloriesBurned,
-                        caloriesBurnedRecord = healthData.maxCaloriesBurnedRecord,
-                        stepsRecord = healthData.maxStepsRecord
+                        todaySteps = update.healthData.steps.toInt(),
+                        caloriesBurned = update.totalToday,
+                        manualExerciseCalories = update.manualToday,
+                        weeklySteps = update.healthData.weeklySteps,
+                        stepsRecord = update.healthData.maxStepsRecord,
+                        weeklyExerciseCalories = update.manualWeeklySum,
+                        weeklyCaloriesBurned = update.combinedWeekly,
+                        caloriesBurnedRecord = update.displayRecord.toDouble()
+                    )
+                }
+                
+                // Sync to Repository/Widget if record broken or stats different from persistent
+                // We only update if something actually changed to avoid redundant syncs
+                val currentRecord = update.displayRecord
+                if (currentRecord > update.persistentRecord) {
+                    userPreferencesRepository.setActivityStats(
+                        caloriesBurned = update.totalToday,
+                        weeklyBurn = update.combinedWeekly.toInt(),
+                        recordBurn = currentRecord
                     )
                 }
             }
         }
+    }
         
-        // Collect 7-day manual exercise calories and combined 7-day stats
-        viewModelScope.launch {
-            val today = LocalDate.now()
-            val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            
-            // Collect exercise calories for each of the past 7 days
-            // Collect 7-day manual exercise calories and combined 7-day stats
-            exerciseRepository.getLastSevenDaysCalories()
-                .combine(healthConnectManager.healthData) { manualCaloriesList, healthData ->
-                    // Calculate Combined 7-day burn
-                    val hcDaily = healthData.lastSevenDaysCalories
-                    
-                    // Sum of daily (Health Connect + Manual)
-                    // Ensure lists are same size; if not, fallback to simple sum
-                    val combinedWeekly = if (hcDaily.isNotEmpty() && hcDaily.size == manualCaloriesList.size) {
-                         (hcDaily.indices).sumOf { i -> hcDaily[i] + manualCaloriesList[i] }
-                    } else {
-                         healthData.weeklyCaloriesBurned + manualCaloriesList.sum()
-                    }
-
-                    // Calculate Combined Record (Max single day sum of HC + Manual)
-                    val combinedRecord = if (hcDaily.isNotEmpty() && hcDaily.size == manualCaloriesList.size) {
-                        (hcDaily.indices).maxOf { i -> hcDaily[i] + manualCaloriesList[i] }
-                    } else {
-                        maxOf(healthData.maxCaloriesBurnedRecord, manualCaloriesList.maxOrNull() ?: 0.0)
-                    }
-                    
-                    Triple(manualCaloriesList.sum().toInt(), combinedWeekly, combinedRecord)
-                }.collect { (manualWeekly, combinedWeekly, combinedRecord) ->
-                _uiState.update { 
-                    it.copy(
-                        weeklyExerciseCalories = manualWeekly,
-                        weeklyCaloriesBurned = combinedWeekly, // Now includes manual
-                        caloriesBurnedRecord = combinedRecord  // Now includes manual
-                    ) 
-                }
-            }
-        }
-        
+    private fun observeDateChanges() {
         // Observe shared selected date and refresh health data
         viewModelScope.launch {
             selectedDateHolder.selectedDate.collect { date ->
@@ -541,7 +540,6 @@ class ProgressViewModel @Inject constructor(
                 }
             }
         }
-
         
         // Load meal data for selected date (reactive to date changes)
         viewModelScope.launch {
@@ -568,9 +566,15 @@ class ProgressViewModel @Inject constructor(
                 )}
             }
         }
+    }
+
+    private fun observeMealsAndStreaks() {
         // Load overall progress data (streaks, weekly trends)
         viewModelScope.launch {
-            mealRepository.getAllMeals().collect { meals ->
+            combine(
+                mealRepository.getAllMeals(),
+                uiState.map { it.selectedWeekOffset }.distinctUntilChanged()
+            ) { meals, weekOffset ->
                 val mealDates = meals.map { meal ->
                     java.time.Instant.ofEpochMilli(meal.timestamp).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                 }.distinct().sortedDescending()
@@ -584,8 +588,7 @@ class ProgressViewModel @Inject constructor(
                     mealDates.contains(checkDate)
                 }
                 
-                // Generate weekly calorie data based on selectedWeekOffset
-                val weekOffset = _uiState.value.selectedWeekOffset
+                // Generate weekly calorie data based on weekOffset
                 val targetWeekStart = weekStart.minusWeeks(weekOffset.toLong())
                 
                 val weeklyCalories = (0..6).map { dayOffset ->
@@ -608,6 +611,10 @@ class ProgressViewModel @Inject constructor(
                     .average()
                     .takeIf { !it.isNaN() }?.roundToInt() ?: 0
 
+                Triple(completedDays, weeklyCalories, weeklyAvg) to mealDates
+            }.collect { (weeklyData, mealDates) ->
+                val (completedDays, weeklyCalories, weeklyAvg) = weeklyData
+                
                 _uiState.update { it.copy(
                     completedDays = completedDays,
                     weeklyCalories = weeklyCalories,
@@ -627,9 +634,12 @@ class ProgressViewModel @Inject constructor(
                 }
             }
         }
-        
+    }
+
+    private fun observeWeightHistoryAndPrediction() {
         // Load real weight history and generate prediction
         viewModelScope.launch {
+
             // Combine history and goal weight to generate prediction
             combine(
                 weightHistoryRepository.getAllWeightHistory(),
@@ -669,9 +679,12 @@ class ProgressViewModel @Inject constructor(
                 }
             }
         }
+    }
         
+    private fun observeStreakFreeze() {
         // Load streak freeze data
         viewModelScope.launch {
+
             streakFreezeRepository.ensureStreakFreezeInitialized()
             streakFreezeRepository.observeCurrentMonthFreezes().collect { freeze ->
                 val remaining = freeze?.let { (it.maxFreezes - it.freezesUsed).coerceAtLeast(0) } ?: 2
@@ -704,14 +717,18 @@ class ProgressViewModel @Inject constructor(
     
     fun refreshData() {
         _uiState.update { it.copy(isLoading = true) }
-        loadProgressData()
         // Refresh health data when manually refreshing
         viewModelScope.launch {
-            if (healthConnectManager.isAvailable()) {
-                healthConnectManager.readTodayData()
+            try {
+                if (healthConnectManager.isAvailable()) {
+                    healthConnectManager.readTodayData()
+                }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
+
     
     fun useStreakFreeze() {
         viewModelScope.launch {
@@ -728,7 +745,6 @@ class ProgressViewModel @Inject constructor(
 
     fun setWeekOffset(offset: Int) {
         _uiState.update { it.copy(selectedWeekOffset = offset.coerceIn(0, 3)) }
-        // Trigger data reload to recalculate weekly calories for the new offset
-        loadProgressData()
     }
+
 }

@@ -215,18 +215,6 @@ class HealthConnectManager @Inject constructor(
                 estimatedFromSteps
             }
             
-            val weeklyCaloriesBurned = if (activeCaloriesWeek > 0) {
-                maxOf(activeCaloriesWeek, estimatedFromWeeklySteps)
-            } else if (totalCaloriesWeekFromRecord > estimatedDailyBMR * 7) {
-                val estimatedFromTotal = (totalCaloriesWeekFromRecord - estimatedDailyBMR * 7).coerceAtLeast(0.0)
-                maxOf(estimatedFromTotal, estimatedFromWeeklySteps)
-            } else {
-                estimatedFromWeeklySteps
-            }
-            android.util.Log.d("HealthConnect", "=== FINAL CALORIES (with fallback) ===")
-            android.util.Log.d("HealthConnect", "Activity calories for date: $caloriesBurnedForDate")
-            android.util.Log.d("HealthConnect", "Activity calories for week: $weeklyCaloriesBurned")
-            
             // Calculate Daily Record (Max ACTIVE calories burned in a single day within the last 7 days)
             // We must calculate the best value for EACH day individually using the same fallback logic as today
             val historicalDailyCalories = (0..6).map { daysAgo ->
@@ -258,6 +246,13 @@ class HealthConnectManager @Inject constructor(
                      dailyEstimatedFromSteps
                 }
             }
+
+            val weeklyCaloriesBurned = historicalDailyCalories.sum()
+            android.util.Log.d("HealthConnect", "=== FINAL CALORIES (with fallback) ===")
+
+            android.util.Log.d("HealthConnect", "Activity calories for date: $caloriesBurnedForDate")
+            android.util.Log.d("HealthConnect", "Activity calories for week: $weeklyCaloriesBurned")
+
             
             // Ensure the record includes TODAY's fully calculated value
             val historicalMaxCalories = historicalDailyCalories.maxOrNull() ?: 0.0

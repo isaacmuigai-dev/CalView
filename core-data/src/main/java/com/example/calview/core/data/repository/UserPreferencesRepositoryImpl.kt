@@ -372,6 +372,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] ?: 0L
     }
 
+    override val recordBurn: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.RECORD_BURN] ?: 0
+    }
+
+
     override val waterServingSize: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.WATER_SERVING_SIZE] ?: 250
     }

@@ -5,6 +5,7 @@ import com.example.calview.core.data.local.SocialChallengeType
 import com.example.calview.core.data.repository.SocialChallengeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
 import org.junit.After
@@ -26,6 +27,9 @@ class SocialChallengesViewModelTest {
     @Mock
     private lateinit var socialChallengeRepository: SocialChallengeRepository
     
+    @Mock
+    private lateinit var notificationHandler: com.example.calview.core.data.notification.NotificationHandler
+
     private lateinit var viewModel: SocialChallengesViewModel
     private val testDispatcher = StandardTestDispatcher()
     
@@ -38,8 +42,9 @@ class SocialChallengesViewModelTest {
         whenever(socialChallengeRepository.getCurrentUserId()).thenReturn("test_user_id")
         whenever(socialChallengeRepository.observeUserChallenges()).thenReturn(flowOf(emptyList()))
         whenever(socialChallengeRepository.observeLeaderboard(any())).thenReturn(flowOf(emptyList()))
-        
-        viewModel = SocialChallengesViewModel(socialChallengeRepository)
+        runBlocking { whenever(socialChallengeRepository.getAllActiveUserChallengesSync()).thenReturn(emptyList()) }
+
+        viewModel = SocialChallengesViewModel(socialChallengeRepository, notificationHandler)
     }
     
     @After
@@ -81,7 +86,7 @@ class SocialChallengesViewModelTest {
         whenever(socialChallengeRepository.observeLeaderboard("challenge1")).thenReturn(flowOf(emptyList()))
         
         // Re-create viewmodel to pick up new mock
-        viewModel = SocialChallengesViewModel(socialChallengeRepository)
+        viewModel = SocialChallengesViewModel(socialChallengeRepository, notificationHandler)
         advanceUntilIdle()
         
         // When
@@ -202,7 +207,7 @@ class SocialChallengesViewModelTest {
         whenever(socialChallengeRepository.getCurrentUserId()).thenReturn("custom_user_123")
         
         // Re-create with new mock
-        viewModel = SocialChallengesViewModel(socialChallengeRepository)
+        viewModel = SocialChallengesViewModel(socialChallengeRepository, notificationHandler)
         advanceUntilIdle()
         
         // Then

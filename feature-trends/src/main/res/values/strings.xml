@@ -85,6 +85,8 @@
     <string name="weekly_steps_label">7d Steps</string>
     <string name="weekly_burn_label">7d Burn</string>
     <string name="record_label">Record</string>
+    <string name="day_singular">day</string>
+    <string name="days_plural">days</string>
 
     <!-- BMI Card -->
     <string name="bmi_title">BMI</string>

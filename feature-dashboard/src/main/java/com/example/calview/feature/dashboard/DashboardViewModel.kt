@@ -216,6 +216,10 @@ class DashboardViewModel @Inject constructor(
         .map { list -> list.map { it.toInt() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Persistent record from DataStore
+    private val persistentRecord = userPreferencesRepository.recordBurn
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // Use typed combine (5 flows max with explicit type parameters)
     private val coreState = combine(
         meals, dailyGoal, selectedDate, waterConsumed, healthData
@@ -236,7 +240,8 @@ class DashboardViewModel @Inject constructor(
         userPreferencesRepository.waterServingSize,
         manualExerciseCalories,
         exercises,
-        weeklyExerciseCalories
+        weeklyExerciseCalories,
+        persistentRecord
     ) { flows ->
         val core = flows[0] as CoreState
         val recent = flows[1] as List<MealEntity>
@@ -251,16 +256,25 @@ class DashboardViewModel @Inject constructor(
         val weeklyManualCalsList = flows[8] as List<Double>
         
         // Calculate weekly total
-        val weeklyManualSum = weeklyManualCalsList.sum().toInt()
-        val weeklyTotalBurned = (core.health.weeklyCaloriesBurned + weeklyManualSum).toInt()
-
-        // Calculate Record (Max of daily sums)
         val hcDaily = core.health.lastSevenDaysCalories
-        val combinedRecord = if (hcDaily.isNotEmpty() && hcDaily.size == weeklyManualCalsList.size) {
+        val weeklyManualSum = weeklyManualCalsList.sum().toInt()
+        val weeklyTotalBurned = if (hcDaily.isNotEmpty() && hcDaily.size == weeklyManualCalsList.size) {
+            (hcDaily.indices).sumOf { hcDaily[it] + weeklyManualCalsList[it] }.toInt()
+        } else {
+            (core.health.weeklyCaloriesBurned + weeklyManualSum).toInt()
+        }
+        val currentPersistentRecord = flows[9] as Int
+
+        // Calculate Record (Max of daily sums vs persistent)
+        val totalToday = core.health.caloriesBurned.toInt() + exerciseCals
+        
+        val calculatedRecord = if (hcDaily.isNotEmpty() && hcDaily.size == weeklyManualCalsList.size) {
             (hcDaily.indices).maxOf { (hcDaily[it] + weeklyManualCalsList[it]).toInt() }
         } else {
              maxOf(core.health.maxCaloriesBurnedRecord.toInt(), weeklyManualCalsList.maxOrNull()?.toInt() ?: 0)
         }
+        
+        val finalRecord = maxOf(calculatedRecord, totalToday, currentPersistentRecord)
         
         // Only count completed meals for calorie totals
         val completedMeals = core.meals.filter { 
@@ -297,7 +311,7 @@ class DashboardViewModel @Inject constructor(
             weeklySteps = core.health.weeklySteps,
             weeklyCaloriesBurned = weeklyTotalBurned,
             weeklyExerciseCalories = weeklyManualSum,
-            caloriesBurnedRecord = combinedRecord
+            caloriesBurnedRecord = finalRecord
         )
     }.combine(waterReminderRepository.observeSettings()) { intermediate, waterSettings ->
          Pair(intermediate, waterSettings)
@@ -506,6 +520,17 @@ class DashboardViewModel @Inject constructor(
             state.copy(coachTip = smartTip)
         } else {
             state
+        }
+    }.onEach { state ->
+        // Sync to Repository if record broken
+        if (state.caloriesBurnedRecord > persistentRecord.value) {
+            viewModelScope.launch {
+                userPreferencesRepository.setActivityStats(
+                    caloriesBurned = state.caloriesBurned,
+                    weeklyBurn = state.weeklyCaloriesBurned,
+                    recordBurn = state.caloriesBurnedRecord
+                )
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardState())
 

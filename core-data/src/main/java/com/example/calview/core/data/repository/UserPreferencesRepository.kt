@@ -65,6 +65,8 @@ interface UserPreferencesRepository {
     
     // Activity tracking
     val lastActivityTimestamp: Flow<Long>
+    val recordBurn: Flow<Int>
+
     
     // Smart Coach tracking
     val coachLastMessageTime: Flow<Long>

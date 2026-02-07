@@ -43,6 +43,9 @@ class DashboardViewModelTest {
     private val selectedDateHolder: com.example.calview.core.data.state.SelectedDateHolder = mockk(relaxed = true)
     private val waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository = mockk(relaxed = true)
     private val streakFreezeRepository: com.example.calview.core.data.repository.StreakFreezeRepository = mockk(relaxed = true)
+    private val dailyLogRepository: com.example.calview.core.data.repository.DailyLogRepository = mockk(relaxed = true)
+    private val exerciseRepository: com.example.calview.core.data.repository.ExerciseRepository = mockk(relaxed = true)
+    private val smartCoachService: com.example.calview.core.data.coach.SmartCoachService = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true)
     
     // Use UnconfinedTestDispatcher for immediate execution
@@ -58,6 +61,16 @@ class DashboardViewModelTest {
         coEvery { mealRepository.getAllMeals() } returns flowOf(emptyList())
         coEvery { mealRepository.getMealsForDate(any()) } returns flowOf(emptyList())
         
+        // Selected Date
+        every { selectedDateHolder.selectedDate } returns MutableStateFlow(java.time.LocalDate.now())
+        
+        // Daily Log
+        coEvery { dailyLogRepository.getLogForDate(any()) } returns flowOf(null)
+        coEvery { dailyLogRepository.getLogForDateSync(any()) } returns null
+        
+        // Streak Freeze
+        coEvery { streakFreezeRepository.getStreakData(any()) } returns flowOf(0)
+        
         // User preferences - calorie and macro goals
         coEvery { userPreferencesRepository.recommendedCalories } returns flowOf(2000)
         coEvery { userPreferencesRepository.recommendedProtein } returns flowOf(125)
@@ -69,6 +82,13 @@ class DashboardViewModelTest {
         coEvery { userPreferencesRepository.rolloverExtraCalories } returns flowOf(false)
         coEvery { userPreferencesRepository.rolloverCaloriesAmount } returns flowOf(0)
         coEvery { userPreferencesRepository.addCaloriesBack } returns flowOf(false)
+        coEvery { userPreferencesRepository.recordBurn } returns flowOf(0)
+        coEvery { userPreferencesRepository.lastKnownSteps } returns flowOf(0)
+        coEvery { userPreferencesRepository.lastActivityTimestamp } returns flowOf(0L)
+        coEvery { userPreferencesRepository.lastRolloverDate } returns flowOf(0L)
+        coEvery { userPreferencesRepository.waterServingSize } returns flowOf(250)
+        coEvery { userPreferencesRepository.hasSeenDashboardWalkthrough } returns flowOf(true)
+        coEvery { userPreferencesRepository.setHasSeenDashboardWalkthrough(any()) } returns Unit
         
         // Water consumption preferences
         coEvery { userPreferencesRepository.waterConsumed } returns flowOf(0)
@@ -76,12 +96,21 @@ class DashboardViewModelTest {
         coEvery { userPreferencesRepository.setWaterConsumed(any(), any()) } returns Unit
         coEvery { userPreferencesRepository.syncWidgetData() } returns Unit
         coEvery { userPreferencesRepository.setLastKnownSteps(any()) } returns Unit
+        coEvery { userPreferencesRepository.setLastActivityTimestamp(any()) } returns Unit
+        coEvery { userPreferencesRepository.setActivityStats(any(), any(), any()) } returns Unit
+        coEvery { userPreferencesRepository.setRolloverCaloriesAmount(any()) } returns Unit
+        coEvery { userPreferencesRepository.setLastRolloverDate(any()) } returns Unit
         
         // Water Reminder
         val defaultWaterSettings = com.example.calview.core.data.local.WaterReminderSettingsEntity(
             id = 1, enabled = false, intervalHours = 2, startHour = 8, endHour = 22, dailyGoalMl = 2000
         )
         coEvery { waterReminderRepository.observeSettings() } returns flowOf(defaultWaterSettings)
+        
+        // Exercise
+        coEvery { exerciseRepository.getLastSevenDaysCalories() } returns flowOf(emptyList())
+        coEvery { exerciseRepository.getTotalCaloriesBurnedForDate(any()) } returns flowOf(0)
+        coEvery { exerciseRepository.getExercisesForDate(any()) } returns flowOf(emptyList())
         
         // Health Connect
         every { healthConnectManager.healthData } returns MutableStateFlow(HealthData())
@@ -101,9 +130,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         
@@ -147,9 +179,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         
@@ -205,9 +240,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         
@@ -246,9 +284,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         
@@ -270,9 +311,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         
@@ -299,9 +343,12 @@ class DashboardViewModelTest {
             healthConnectManager, 
             foodAnalysisService, 
             coachMessageGenerator,
+            smartCoachService,
             selectedDateHolder,
             waterReminderRepository,
             streakFreezeRepository,
+            dailyLogRepository,
+            exerciseRepository,
             context
         )
         

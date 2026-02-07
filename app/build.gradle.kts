@@ -17,8 +17,8 @@ android {
         applicationId = "com.calviewai.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 26
-        versionName = "2.1.0"
+        versionCode = 27
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true

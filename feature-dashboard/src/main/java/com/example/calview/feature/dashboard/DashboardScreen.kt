@@ -108,6 +108,8 @@ import com.example.calview.core.ui.walkthrough.*
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import com.example.calview.core.ui.util.rememberHapticsManager
 import com.example.calview.core.ui.theme.CalViewTheme
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
@@ -512,14 +514,12 @@ fun DashboardContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
         item {
-            HeaderSection(streakDays = state.currentStreak)
-            
-            Spacer(modifier = Modifier.height(4.dp))
             DateSelector(
                 modifier = Modifier.onPositionedRect { calendarRect = it },
                 selectedDate = state.selectedDate, 
                 onDateSelected = onDateSelected,
-                allMealDates = state.allMealDates
+                allMealDates = state.allMealDates,
+                streakDays = state.currentStreak
             )
         }
 
@@ -639,7 +639,9 @@ fun DashboardContent(
                                         iconTint = Color(0xFF9575CD),
                                         showEaten = showEaten,
                                         onToggle = { showEaten = !showEaten },
-                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
                                     )
                                     MacroCardRedesigned(
                                         label = "Sugar",
@@ -651,7 +653,9 @@ fun DashboardContent(
                                         iconTint = Color(0xFFF06292),
                                         showEaten = showEaten,
                                         onToggle = { showEaten = !showEaten },
-                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
                                     )
                                     MacroCardRedesigned(
                                         label = "Sodium",
@@ -663,7 +667,9 @@ fun DashboardContent(
                                         iconTint = Color(0xFFFFB74D),
                                         showEaten = showEaten,
                                         onToggle = { showEaten = !showEaten },
-                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
                                     )
                                 }
                                 
@@ -738,7 +744,7 @@ fun DashboardContent(
                                 // Weekly Activity Summary Card (full width)
                                 WeeklyActivitySummaryCard(
                                     weeklySteps = state.weeklySteps,
-                                    weeklyCaloriesBurned = state.weeklyCaloriesBurned + state.weeklyExerciseCalories,
+                                    weeklyCaloriesBurned = state.weeklyCaloriesBurned,
                                     caloriesRecord = state.caloriesBurnedRecord,
                                     exerciseCalories = state.manualExerciseCalories,
                                     isVisible = pagerState.currentPage == 2,
@@ -815,9 +821,9 @@ fun DashboardContent(
                                 .padding(horizontal = 4.dp)
                                 .size(if (isSelected) 8.dp else 6.dp)
                                 .background(
-                                    color = if (isSelected) 
-                                        MaterialTheme.colorScheme.onSurface 
-                                    else 
+                                    color = if (isSelected)
+                                        MaterialTheme.colorScheme.onSurface
+                                    else
                                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                                     shape = CircleShape
                                 )
@@ -829,7 +835,9 @@ fun DashboardContent(
         
         // AI Coach Card (standalone, above Weekly Review)
         item {
-            Box(modifier = Modifier.fillMaxWidth().onPositionedRect { aiCoachRect = it }) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .onPositionedRect { aiCoachRect = it }) {
                 AICoachCard(
                     coachTip = state.coachTip
                 )
@@ -1037,7 +1045,10 @@ fun HealthScoreCard(score: Int) {
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
                 progress = { score / 10f },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(androidx.compose.foundation.shape.CircleShape),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape),
                 color = Color(0xFFE8F5E9),
                 trackColor = Color(0xFFF3F3F3)
             )
@@ -1057,88 +1068,14 @@ val RecentMealIcon: ImageVector
     @Composable
     get() = Icons.Filled.Restaurant // Fallback
 
-@Composable
-fun HeaderSection(streakDays: Int = 0) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 0.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            // New Vector Icon - theme aware
-            // New Vector Icon - theme aware (checks background luminance to determine theme)
-            // If background is dark (luminance < 0.5), use white icon (tint = White). Else use black tint.
-            // Theme-aware logo without tinting
-            val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-            // Light Mode -> Black Logo, Dark Mode -> White Logo
-            val iconRes = if (isDarkTheme) {
-                com.example.calview.core.ui.R.drawable.app_logo_white
-            } else {
-                com.example.calview.core.ui.R.drawable.app_logo_black
-            }
-
-            Image(
-                painter = painterResource(id = iconRes),
-                contentDescription = "CalViewAI Icon",
-                modifier = Modifier.fillMaxWidth(0.10f)
-                    .size(60.dp),
-                contentScale = ContentScale.Fit
-            )
-            Column(
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    stringResource(R.string.dashboard_title),
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-1).sp,
-                    fontFamily = com.example.calview.core.ui.theme.BrandingFontFamily,
-                    color = if (isDarkTheme) Color.White else Color(0xFF000000)
-                )
-            }
-        }
-        
-        // Streak badge
-        if (streakDays > 0) {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.semantics(mergeDescendants = true) {
-                    contentDescription = "$streakDays day streak"
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "🔥",
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = "$streakDays",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun DateSelector(
     modifier: Modifier = Modifier,
     selectedDate: Calendar, 
     onDateSelected: (Calendar) -> Unit,
-    allMealDates: List<Long> = emptyList()
+    allMealDates: List<Long> = emptyList(),
+    streakDays: Int = 0
 ) {
     val today = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
@@ -1200,27 +1137,77 @@ fun DateSelector(
     }
     
     Column(modifier = modifier.fillMaxWidth()) {
-        // Month and Year Header with week indicator
-        Row(
+        // Month and Year Header with Logo and Streak
+        Box(
             modifier = Modifier
+                .height(40.dp)
                 .fillMaxWidth()
-                .padding(bottom = 1.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(bottom = 4.dp)
         ) {
-            AnimatedContent(
-                targetState = dateFormat.format(selectedDate.time),
-                transitionSpec = {
-                    (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
-                },
-                label = "month_animation"
-            ) { dateText ->
-                Text(
-                    text = dateText,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+            // Date (Left)
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AnimatedContent(
+                    targetState = dateFormat.format(selectedDate.time),
+                    transitionSpec = {
+                        (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                    },
+                    label = "month_animation"
+                ) { dateText ->
+                    Text(
+                        text = dateText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+            
+            // Logo (Center)
+            val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val iconRes = if (isDarkTheme) {
+                com.example.calview.core.ui.R.drawable.app_logo_white
+            } else {
+                com.example.calview.core.ui.R.drawable.app_logo_black
+            }
+
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = "CalViewAI Icon",
+                modifier = Modifier
+                    .size(100.dp)
+                    .align(Alignment.Center),
+                contentScale = ContentScale.Crop
+            )
+            
+            // Streak badge (Right)
+            if (streakDays > 0) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.align(Alignment.CenterEnd).semantics(mergeDescendants = true) {
+                        contentDescription = "$streakDays day streak"
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "🔥",
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = "$streakDays",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
         
@@ -1312,6 +1299,7 @@ private fun DateItemCompact(
                                 )
                             }
                     }
+
                     isFuture -> {
                         // Future dates: very light gray solid circle border
                         Modifier.drawBehind {
@@ -1321,6 +1309,7 @@ private fun DateItemCompact(
                             )
                         }
                     }
+
                     hasMeals -> {
                         // Meals logged: solid coral/salmon circle border
                         Modifier.drawBehind {
@@ -1330,6 +1319,7 @@ private fun DateItemCompact(
                             )
                         }
                     }
+
                     isToday && !hasMeals -> {
                         // Today (no meals): solid gray circle border
                         Modifier.drawBehind {
@@ -1339,6 +1329,7 @@ private fun DateItemCompact(
                             )
                         }
                     }
+
                     else -> {
                         // Past dates with no meals: dashed gray circle border
                         Modifier.drawBehind {
@@ -1347,7 +1338,7 @@ private fun DateItemCompact(
                                 style = Stroke(
                                     width = 1.5.dp.toPx(),
                                     pathEffect = PathEffect.dashPathEffect(
-                                        floatArrayOf(10f, 10f), 
+                                        floatArrayOf(10f, 10f),
                                         0f
                                     )
                                 )
@@ -1356,9 +1347,9 @@ private fun DateItemCompact(
                     }
                 }
             )
-            .clickable { 
+            .clickable {
                 haptics.tick()
-                onClick() 
+                onClick()
             },
         contentAlignment = Alignment.Center
     ) {
@@ -2598,7 +2589,9 @@ fun WaterCardPremium(
             }
             
             // Water info
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+            Column(modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)) {
                 Text(
                     text = "Water",
                     fontSize = 16.sp,
@@ -3043,9 +3036,9 @@ fun StepsTodayCardRedesigned(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { 
+                        .clickable {
                             android.util.Log.d("StepsTodayCard", "Health Connect CTA clicked!")
-                            onConnectClick() 
+                            onConnectClick()
                         },
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
@@ -3394,7 +3387,7 @@ fun WeeklyActivitySummaryCard(
                 // Exercise (Workouts)
                 WeeklyStatItemText(
                     value = animatedExercise,
-                    label = "Workouts",
+                    label = "Workout",
                     color = Color(0xFF4CAF50),
                     suffix = " kcal"
                 )
@@ -3779,7 +3772,7 @@ fun RecentMealCard(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(18.dp)
-                                .graphicsLayer { 
+                                .graphicsLayer {
                                     rotationZ = rotationAngle * 0.5f
                                     alpha = pulseAlpha
                                 },
@@ -3864,8 +3857,14 @@ fun RecentMealCard(
                                     modifier = Modifier
                                         .background(
                                             color = when {
-                                                meal.confidenceScore >= 80f -> Color(0xFF4CAF50).copy(alpha = 0.15f)
-                                                meal.confidenceScore >= 60f -> Color(0xFFFFC107).copy(alpha = 0.15f)
+                                                meal.confidenceScore >= 80f -> Color(0xFF4CAF50).copy(
+                                                    alpha = 0.15f
+                                                )
+
+                                                meal.confidenceScore >= 60f -> Color(0xFFFFC107).copy(
+                                                    alpha = 0.15f
+                                                )
+
                                                 else -> Color(0xFFFF5722).copy(alpha = 0.15f)
                                             },
                                             shape = RoundedCornerShape(6.dp)
@@ -4119,7 +4118,7 @@ fun WaterSettingsDialog(
                                         if (size == selectedSize) Color(0xFFE0E0E0) else Color.Transparent,
                                         RoundedCornerShape(8.dp)
                                     )
-                                    .clickable { 
+                                    .clickable {
                                         selectedSize = size
                                         onServingSizeChange(size)
                                     }
@@ -4265,7 +4264,10 @@ fun HealthConnectOnboardingScreen(
                             Box(
                                 modifier = Modifier
                                     .size(5.dp)
-                                    .background(if (it < 2) Color(0xFFFFB74D) else Color(0xFFE8E8E8), CircleShape)
+                                    .background(
+                                        if (it < 2) Color(0xFFFFB74D) else Color(0xFFE8E8E8),
+                                        CircleShape
+                                    )
                             )
                         }
                     }
@@ -4285,7 +4287,11 @@ fun HealthConnectOnboardingScreen(
                     modifier = Modifier
                         .size(70.dp)
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(16.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -4321,7 +4327,10 @@ fun HealthConnectOnboardingScreen(
                             Box(
                                 modifier = Modifier
                                     .size(5.dp)
-                                    .background(if (it >= 2) Color(0xFF81C784) else Color(0xFFE8E8E8), CircleShape)
+                                    .background(
+                                        if (it >= 2) Color(0xFF81C784) else Color(0xFFE8E8E8),
+                                        CircleShape
+                                    )
                             )
                         }
                     }
@@ -4607,7 +4616,8 @@ fun ExerciseSummaryCard(
         modifier = modifier
             .fillMaxWidth()
             .semantics {
-                contentDescription = "Today's exercise summary. ${exercises.size} ${if (exercises.size == 1) "exercise" else "exercises"} logged, $totalCalories calories burned"
+                contentDescription =
+                    "Today's exercise summary. ${exercises.size} ${if (exercises.size == 1) "exercise" else "exercises"} logged, $totalCalories calories burned"
             }
     ) {
         Column(
@@ -4674,7 +4684,8 @@ fun ExerciseSummaryCard(
                         .fillMaxWidth()
                         .padding(vertical = 6.dp)
                         .semantics {
-                            contentDescription = "${exercise.name}, ${exercise.durationMinutes} minutes, ${exercise.caloriesBurned} calories, $typeName exercise"
+                            contentDescription =
+                                "${exercise.name}, ${exercise.durationMinutes} minutes, ${exercise.caloriesBurned} calories, $typeName exercise"
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -4779,7 +4790,9 @@ fun ActivityOverviewCard(
     )
     
     Surface(
-        modifier = Modifier.fillMaxWidth().height(360.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(360.dp),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
