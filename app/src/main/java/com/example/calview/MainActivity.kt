@@ -98,7 +98,21 @@ import com.example.calview.feature.dashboard.FastingScreen
 import com.example.calview.feature.dashboard.ChallengesScreen
 
 import com.example.calview.feature.dashboard.SocialChallengesScreen
+import com.example.calview.feature.dashboard.GroupsIntroScreen
+import com.example.calview.feature.dashboard.GroupsNameSetupScreen
+import com.example.calview.feature.dashboard.GroupsUsernameSetupScreen
+import com.example.calview.feature.dashboard.GroupsPhotoSetupScreen
+import com.example.calview.feature.dashboard.GroupsPhotoConfirmScreen
+import com.example.calview.feature.dashboard.GroupsProfileViewModel
+import com.example.calview.feature.dashboard.AvatarGradients
+import com.example.calview.feature.dashboard.GroupsSetupFlow
+import com.example.calview.feature.dashboard.JoinGroupInvitationScreen
 import com.example.calview.feature.dashboard.SocialChallengesViewModel
+import com.example.calview.feature.dashboard.CreateGroupViewModel
+import com.example.calview.feature.dashboard.CreateGroupNameScreen
+import com.example.calview.feature.dashboard.CreateGroupPhotoScreen
+import com.example.calview.feature.dashboard.GroupDashboardScreen
+import com.example.calview.feature.dashboard.GroupSettingsScreen
 import com.example.calview.feature.dashboard.LogExerciseScreen
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -167,11 +181,23 @@ class MainActivity : AppCompatActivity() {
     lateinit var gamificationRepository: com.example.calview.core.data.repository.GamificationRepository
 
     @Inject
+    lateinit var groupsRepository: com.example.calview.core.data.repository.GroupsRepository
+
+    @Inject
     lateinit var billingManager: BillingManager
     
+    // State for pending deep link invite code
+    private val pendingInviteCode = mutableStateOf<String?>(null)
+    
+    // State for pending navigation from notification
+    private val pendingNavigationTarget = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Handle deep link from intent
+        handleIntent(intent)
         
         // Update widget when app opens to ensure it shows latest data
         com.example.calview.widget.CaloriesWidgetProvider.requestUpdate(this)
@@ -190,16 +216,6 @@ class MainActivity : AppCompatActivity() {
                         AppCompatDelegate.setApplicationLocales(appLocale)
                     }
                 }
-        }
-        
-        // Dummy reference to force keep BeginSignInRequest
-        // Dummy reference to force keep BeginSignInRequest
-        try {
-            // Force reference to CREATOR to ensure it's kept for Unmarshalling
-            val creator = com.google.android.gms.auth.api.identity.BeginSignInRequest.CREATOR
-            Log.d("KeptClass", "Class kept: ${com.google.android.gms.auth.api.identity.BeginSignInRequest::class.java.name}, Creator: $creator")
-        } catch (e: Throwable) {
-            // Ignore
         }
         
         setContent {
@@ -223,6 +239,10 @@ class MainActivity : AppCompatActivity() {
                         isSignedIn = currentUser != null,
                         isOnboardingComplete = isOnboardingComplete,
                         isPreferencesLoaded = isPreferencesLoaded,
+                        deepLinkInviteCode = pendingInviteCode, // Pass deep link state
+                        onDeepLinkHandled = { clearPendingInviteCode() }, // Reset callback
+                        navigationTarget = pendingNavigationTarget, // Pass navigation target
+                        onNavigationHandled = { clearPendingNavigationTarget() },
                         userPreferencesRepository = userPreferencesRepository,
                         authRepository = authRepository,
                         mealRepository = mealRepository,
@@ -234,12 +254,45 @@ class MainActivity : AppCompatActivity() {
                         waterReminderRepository = waterReminderRepository,
                         socialChallengeRepository = socialChallengeRepository,
                         gamificationRepository = gamificationRepository,
+                        groupsRepository = groupsRepository,
                         exerciseRepository = exerciseRepository,
                         billingManager = billingManager
                     )
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent == null) return
+
+        // Handle deep link
+        intent.data?.let { uri ->
+            if (uri.scheme == "calview" && uri.host == "join") {
+                val code = uri.getQueryParameter("code")
+                if (code != null) {
+                    pendingInviteCode.value = code
+                }
+            }
+        }
+
+        // Handle notification target
+        intent.getStringExtra("navigate_to")?.let { target ->
+            pendingNavigationTarget.value = target
+        }
+    }
+
+    fun clearPendingInviteCode() {
+        pendingInviteCode.value = null
+    }
+
+    fun clearPendingNavigationTarget() {
+        pendingNavigationTarget.value = null
     }
 }
 
@@ -259,6 +312,10 @@ fun AppNavigation(
     isSignedIn: Boolean = false,
     isOnboardingComplete: Boolean = true,
     isPreferencesLoaded: Boolean = true,  // Whether preferences have been loaded from DataStore
+    deepLinkInviteCode: State<String?> = mutableStateOf(null),
+    onDeepLinkHandled: () -> Unit = {},
+    navigationTarget: State<String?> = mutableStateOf(null),
+    onNavigationHandled: () -> Unit = {},
     userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
     authRepository: AuthRepository? = null,
     mealRepository: com.example.calview.core.data.repository.MealRepository? = null,
@@ -270,6 +327,7 @@ fun AppNavigation(
     waterReminderRepository: com.example.calview.core.data.repository.WaterReminderRepository? = null,
     socialChallengeRepository: com.example.calview.core.data.repository.SocialChallengeRepository? = null,
     gamificationRepository: com.example.calview.core.data.repository.GamificationRepository? = null,
+    groupsRepository: com.example.calview.core.data.repository.GroupsRepository? = null,
     exerciseRepository: com.example.calview.core.data.repository.ExerciseRepository? = null,
     billingManager: BillingManager? = null
 ) {
@@ -309,6 +367,7 @@ fun AppNavigation(
                         gamificationRepository?.restoreFromCloud()
                         fastingRepository?.restoreFromCloud()
                         waterReminderRepository?.restoreFromCloud()
+                        groupsRepository?.restoreUserGroups()
                         
                         Log.d("SilentRestore", "Silent restore sequence completed.")
                     }
@@ -335,6 +394,38 @@ fun AppNavigation(
                     popUpTo(0) { inclusive = true }
                 }
             }
+        }
+    }
+
+    // Handle deep link navigation
+    val deepLinkCode = deepLinkInviteCode.value
+    LaunchedEffect(deepLinkCode, isSignedIn, isOnboardingComplete) {
+        if (deepLinkCode != null && isSignedIn && isOnboardingComplete) {
+            Log.d("DeepLink", "Navigating to join invitation with code: $deepLinkCode")
+            navController.navigate("groups_join_invitation")
+            // Pass the code via savedStateHandle or a custom route if needed
+            // For now, we'll assume JoinGroupInvitationScreen can pick it up or we update the route
+            // Let's use a route with parameter for simplicity if possible
+            // But since JoinGroupInvitationScreen is already built, let's see if we can pass it there.
+            
+            // Actually, let's update JoinGroupInvitationScreen to accept an optional code
+            // Or just set it in the savedStateHandle
+            navController.currentBackStackEntry?.savedStateHandle?.set("inviteCode", deepLinkCode)
+            
+            // Reset the pending code so we don't navigate again
+            onDeepLinkHandled()
+        }
+    }
+
+    // Handle notification navigation target
+    val target = navigationTarget.value
+    LaunchedEffect(target, isSignedIn, isOnboardingComplete) {
+        if (target == "groups" && isSignedIn && isOnboardingComplete) {
+            Log.d("Navigation", "Navigating to Groups tab from notification")
+            navController.navigate("main?tab=2") {
+                popUpTo("main") { inclusive = true }
+            }
+            onNavigationHandled()
         }
     }
     
@@ -398,6 +489,7 @@ fun AppNavigation(
                             waterReminderRepository?.restoreFromCloud()
                             gamificationRepository?.restoreFromCloud()
                             exerciseRepository?.restoreFromCloud()
+                            groupsRepository?.restoreUserGroups()
                             
                             // If restored, were we complete?
                             val cloudOnboardingComplete = userPreferencesRepository?.isOnboardingComplete?.first() ?: false
@@ -587,6 +679,8 @@ fun AppNavigation(
             }
             
             MainTabs(
+                navController = navController,
+                userPreferencesRepository = userPreferencesRepository,
                 initialTab = initialTab,
                 scrollToRecentUploads = scrollToUploads,
                 scrollToMealId = scrollToMealId,
@@ -615,6 +709,7 @@ fun AppNavigation(
                 onChallengesClick = { navController.navigate("challenges") },
                 onAchievementsClick = { navController.navigate("achievements") },
                 onLogExerciseClick = { navController.navigate("log_exercise") },
+                onGroupsClick = { navController.navigate("groups_intro") },
                 onDeleteAccount = {
                     // Navigation is now triggered by SettingsViewModel's isDeletionComplete flag
                     // but we still provide this for cleanup/safety
@@ -1031,6 +1126,149 @@ fun AppNavigation(
                 }
             )
         }
+
+        // Groups Onboarding
+        composable("groups_intro") {
+            GroupsIntroScreen(
+                onBack = { navController.popBackStack() },
+                onCreateGroupClick = { navController.navigate("groups_setup_name?flow=CREATE") },
+                onJoinGroupClick = { navController.navigate("groups_setup_name?flow=JOIN") }
+            )
+        }
+
+        composable(
+            "groups_setup_name?flow={flow}",
+            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
+        ) { backStackEntry ->
+            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
+            val viewModel: GroupsProfileViewModel = hiltViewModel()
+            
+            // Sync flow to VM state
+            LaunchedEffect(flowValue) {
+                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
+            }
+
+            GroupsNameSetupScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onNext = { navController.navigate("groups_setup_username?flow=$flowValue") }
+            )
+        }
+
+        composable(
+            "groups_setup_username?flow={flow}",
+            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
+        ) { backStackEntry ->
+            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
+            val viewModel: GroupsProfileViewModel = hiltViewModel()
+            
+            LaunchedEffect(flowValue) {
+                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
+            }
+
+            GroupsUsernameSetupScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onNext = { navController.navigate("groups_setup_photo?flow=$flowValue") }
+            )
+        }
+
+        composable(
+            "groups_setup_photo?flow={flow}",
+            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
+        ) { backStackEntry ->
+            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
+            val viewModel: GroupsProfileViewModel = hiltViewModel()
+            
+            LaunchedEffect(flowValue) {
+                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
+            }
+
+            GroupsPhotoSetupScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onNext = { navController.navigate("groups_setup_photo_confirm?flow=$flowValue") }
+            )
+        }
+
+        composable(
+            "groups_setup_photo_confirm?flow={flow}",
+            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
+        ) { backStackEntry ->
+            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
+            val viewModel: GroupsProfileViewModel = hiltViewModel()
+            
+            LaunchedEffect(flowValue) {
+                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
+            }
+
+            GroupsPhotoConfirmScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onCreateProfile = {
+                    viewModel.saveProfile()
+                    if (flowValue == "JOIN") {
+                        navController.navigate("groups_join_invitation")
+                    } else {
+                        navController.navigate("create_group_name")
+                    }
+                }
+            )
+        }
+
+        composable("groups_join_invitation") {
+            JoinGroupInvitationScreen(
+                onBack = { navController.popBackStack() },
+                onDone = {
+                    navController.navigate("groups_intro") {
+                        popUpTo("groups_intro") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("create_group_name") {
+            val viewModel: CreateGroupViewModel = hiltViewModel()
+            CreateGroupNameScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onNext = { navController.navigate("create_group_photo") }
+            )
+        }
+
+        composable("create_group_photo") {
+            val viewModel: CreateGroupViewModel = hiltViewModel()
+            val scope = rememberCoroutineScope()
+            CreateGroupPhotoScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onCreateGroup = {
+                    viewModel.createGroup {
+                        scope.launch {
+                            userPreferencesRepository?.setGroupCreated(true)
+                            navController.navigate("main") {
+                                popUpTo("main") { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        composable("group_dashboard") {
+            GroupDashboardScreen(
+                onGroupSettingsClick = { navController.navigate("group_settings") },
+                onJoinGroupClick = { navController.navigate("groups_join_invitation") },
+                onCreateGroupClick = { navController.navigate("create_group_name") }
+            )
+        }
+
+        composable("group_settings") {
+            GroupSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -1085,6 +1323,8 @@ private fun handleSignInResult(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainTabs(
+    navController: androidx.navigation.NavHostController,
+    userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
     initialTab: Int = 0,
     scrollToRecentUploads: Boolean = false,
     scrollToMealId: Long = -1L,
@@ -1110,6 +1350,7 @@ fun MainTabs(
     onChallengesClick: () -> Unit = {},
     onAchievementsClick: () -> Unit = {},
     onLogExerciseClick: () -> Unit = {},
+    onGroupsClick: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -1251,9 +1492,30 @@ fun MainTabs(
     val navigationItems = listOf(
         Triple(Icons.Filled.Home, "Home", 0),
         Triple(Icons.Filled.BarChart, "Progress", 1),
-        Triple(Icons.Filled.Settings, "Settings", 2)
+        Triple(Icons.Filled.Groups, "Groups", 2),
+        Triple(Icons.Filled.Person, "Profile", 3)
     )
+
+    // Collect profile data for the Profile icon
+    val userName by (userPreferencesRepository?.userName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
+    val groupsFirstName by (userPreferencesRepository?.groupsFirstName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
+    val groupsLastName by (userPreferencesRepository?.groupsLastName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
     
+    val profileInitials = remember(userName, groupsFirstName, groupsLastName) {
+        if (groupsFirstName.isNotEmpty() || groupsLastName.isNotEmpty()) {
+            (groupsFirstName.take(1) + groupsLastName.take(1)).uppercase()
+        } else if (userName.isNotEmpty()) {
+            userName.split(" ").filter { it.isNotEmpty() }.let {
+                if (it.size >= 2) (it[0].take(1) + it[1].take(1)).uppercase()
+                else it[0].take(1).uppercase()
+            }
+        } else {
+            "U"
+        }
+    }
+
+    val isGroupsComplete by (userPreferencesRepository?.isGroupsProfileComplete?.collectAsState(initial = false) ?: remember { mutableStateOf(false) })
+
     if (useNavigationRail) {
         // Medium/Expanded: Use Navigation Rail on the side
         Row(
@@ -1316,6 +1578,8 @@ fun MainTabs(
                         shouldScrollToUploads = false 
                         currentScrollToMealId = -1L
                     },
+                    userPreferencesRepository = userPreferencesRepository,
+                    navController = navController,
                     settingsScrollState = settingsScrollState,
                     dashboardLazyListState = dashboardLazyListState,
                     onEditNameClick = onEditNameClick,
@@ -1331,6 +1595,10 @@ fun MainTabs(
                     onLicensesClick = onLicensesClick,
                     onFastingClick = onFastingClick,
                     onChallengesClick = onChallengesClick,
+                    onGroupsClick = onGroupsClick,
+                    onGroupSettingsClick = { navController.navigate("group_settings") },
+                    onJoinGroupClick = { navController.navigate("groups_join_invitation") },
+                    onCreateGroupClick = { navController.navigate("create_group_name") },
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -1338,19 +1606,73 @@ fun MainTabs(
         }
     } else {
         // Compact: Use Bottom Navigation Bar with aligned FAB
-        Scaffold(
-            bottomBar = {
+        // Use Box instead of Scaffold to allow content to extend behind the floating nav bar
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            // Main content - extends full screen behind the nav bar
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 120.dp) // Leave space for floating nav bar
+            ) {
+                MainTabsContent(
+                    selectedTab = selectedTab,
+                    scrollToRecentUploads = shouldScrollToUploads,
+                    scrollToMealId = currentScrollToMealId,
+                    onScrollHandled = { 
+                        shouldScrollToUploads = false 
+                        currentScrollToMealId = -1L
+                    },
+                    userPreferencesRepository = userPreferencesRepository,
+                    navController = navController,
+                    settingsScrollState = settingsScrollState,
+                    dashboardLazyListState = dashboardLazyListState,
+                    onEditNameClick = onEditNameClick,
+                    onReferFriendClick = onReferFriendClick,
+                    onPersonalDetailsClick = onPersonalDetailsClick,
+                    onEditMacrosClick = onEditMacrosClick,
+                    onWeightHistoryClick = onWeightHistoryClick,
+                    onLanguageClick = onLanguageClick,
+                    onHowToAddWidgetClick = onHowToAddWidgetClick,
+                    onTermsClick = onTermsClick,
+                    onPrivacyClick = onPrivacyClick,
+                    onFeatureRequestClick = onFeatureRequestClick,
+                    onLicensesClick = onLicensesClick,
+                    onFastingClick = onFastingClick,
+                    onChallengesClick = onChallengesClick,
+                    onGroupsClick = onGroupsClick,
+                    onGroupSettingsClick = { navController.navigate("group_settings") },
+                    onJoinGroupClick = { navController.navigate("groups_join_invitation") },
+                    onCreateGroupClick = { navController.navigate("create_group_name") },
+                    onDeleteAccount = onDeleteAccount,
+                    onLogout = onLogout
+                )
+            }
+            
+            // Floating Navigation Bar - positioned at bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
+                    .navigationBarsPadding()
+            ) {
                 Surface(
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.navigationBarsPadding()
+                    tonalElevation = 12.dp,
+                    shadowElevation = 8.dp,
+                    shape = RoundedCornerShape(32.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(70.dp)
+                            .height(72.dp)
                             .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Home
@@ -1360,7 +1682,6 @@ fun MainTabs(
                             isSelected = selectedTab == 0,
                             onClick = { 
                                 if (selectedTab == 0) {
-                                    // Already on Home, scroll to top
                                     scope.launch {
                                         dashboardLazyListState.animateScrollToItem(0)
                                     }
@@ -1378,60 +1699,73 @@ fun MainTabs(
                             onClick = { selectedTab = 1 }
                         )
                         
-                        // Settings
+                        // Groups
                         NavigationItemButton(
-                            icon = Icons.Filled.Settings,
-                            label = "Settings",
+                            icon = Icons.Filled.Groups,
+                            label = "Groups",
                             isSelected = selectedTab == 2,
-                            onClick = { selectedTab = 2 }
+                            onClick = {
+                                // Always switch to Groups tab - the tab content handles both states
+                                selectedTab = 2
+                            }
                         )
-                        
-                        // Camera FAB at the end
-                        FloatingActionButton(
-                            onClick = onFabClick,
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            shape = CircleShape,
-                            modifier = Modifier.size(52.dp)
+
+                        // Profile (with Initials)
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { selectedTab = 3 }
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                Icons.Filled.Add, 
-                                contentDescription = "Log Food", 
-                                modifier = Modifier.size(26.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (selectedTab == 3) 
+                                            AvatarGradients[0] // Use first gradient for selected profile tab
+                                        else 
+                                            Brush.linearGradient(listOf(Color(0xFFEEEEEE), Color(0xFFDDDDDD)))
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = profileInitials,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (selectedTab == 3) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Profile",
+                                fontSize = 11.sp,
+                                fontWeight = if (selectedTab == 3) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (selectedTab == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
+                        }
+                        
+                        // Action FAB (Quick Actions)
+                        Surface(
+                            onClick = onFabClick,
+                            color = Color.Black,
+                            shape = CircleShape,
+                            modifier = Modifier.size(52.dp),
+                            shadowElevation = 4.dp
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Filled.Add, 
+                                    contentDescription = "Quick Actions", 
+                                    tint = Color.White,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
                 }
-            }
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                MainTabsContent(
-                    selectedTab = selectedTab,
-                    scrollToRecentUploads = shouldScrollToUploads,
-                    scrollToMealId = currentScrollToMealId,
-                    onScrollHandled = { 
-                        shouldScrollToUploads = false 
-                        currentScrollToMealId = -1L
-                    },
-                    settingsScrollState = settingsScrollState,
-                    dashboardLazyListState = dashboardLazyListState,
-                    onEditNameClick = onEditNameClick,
-                    onReferFriendClick = onReferFriendClick,
-                    onPersonalDetailsClick = onPersonalDetailsClick,
-                    onEditMacrosClick = onEditMacrosClick,
-                    onWeightHistoryClick = onWeightHistoryClick,
-                    onLanguageClick = onLanguageClick,
-                    onHowToAddWidgetClick = onHowToAddWidgetClick,
-                    onTermsClick = onTermsClick,
-                    onPrivacyClick = onPrivacyClick,
-                    onFeatureRequestClick = onFeatureRequestClick,
-                    onLicensesClick = onLicensesClick,
-
-                    onFastingClick = onFastingClick,
-                    onChallengesClick = onChallengesClick,
-                    onDeleteAccount = onDeleteAccount,
-                    onLogout = onLogout
-                )
             }
         }
     }
@@ -1446,6 +1780,8 @@ private fun MainTabsContent(
     scrollToRecentUploads: Boolean = false,
     scrollToMealId: Long = -1L,
     onScrollHandled: () -> Unit = {},
+    userPreferencesRepository: com.example.calview.core.data.repository.UserPreferencesRepository? = null,
+    navController: androidx.navigation.NavHostController,
     settingsScrollState: androidx.compose.foundation.ScrollState,
     dashboardLazyListState: androidx.compose.foundation.lazy.LazyListState,
     onEditNameClick: (String) -> Unit,
@@ -1461,6 +1797,10 @@ private fun MainTabsContent(
     onLicensesClick: () -> Unit,
     onFastingClick: () -> Unit,
     onChallengesClick: () -> Unit,
+    onGroupsClick: () -> Unit,
+    onGroupSettingsClick: () -> Unit,
+    onJoinGroupClick: () -> Unit,
+    onCreateGroupClick: () -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -1473,13 +1813,36 @@ private fun MainTabsContent(
                 scrollToRecentUploads = scrollToRecentUploads,
                 scrollToMealId = scrollToMealId,
                 onScrollHandled = onScrollHandled,
-
                 onFastingClick = onFastingClick,
                 onChallengesClick = onChallengesClick
             )
         }
         1 -> ProgressScreen()
         2 -> {
+            val isGroupCreated by (userPreferencesRepository?.isGroupCreated?.collectAsState(initial = false) ?: remember { mutableStateOf(false) })
+            val isGroupsProfileComplete by (userPreferencesRepository?.isGroupsProfileComplete?.collectAsState(initial = false) ?: remember { mutableStateOf(false) })
+            
+            if (isGroupCreated) {
+                // User has created/joined a group - show the dashboard
+                GroupDashboardScreen(
+                    onGroupSettingsClick = onGroupSettingsClick,
+                    onJoinGroupClick = onJoinGroupClick,
+                    onCreateGroupClick = onCreateGroupClick
+                )
+            } else {
+                // User hasn't set up groups - show intro screen
+                GroupsIntroScreen(
+                    onBack = { },
+                    onCreateGroupClick = {
+                        if (isGroupsProfileComplete) onCreateGroupClick() else onGroupsClick()
+                    },
+                    onJoinGroupClick = {
+                        if (isGroupsProfileComplete) onJoinGroupClick() else onGroupsClick()
+                    }
+                )
+            }
+        }
+        3 -> {
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
             val dashboardState by dashboardViewModel.dashboardState.collectAsState()
             SettingsScreen(

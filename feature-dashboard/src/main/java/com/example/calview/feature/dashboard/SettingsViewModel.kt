@@ -3,6 +3,7 @@ package com.example.calview.feature.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.*
+import com.example.calview.core.data.repository.GroupsRepository
 import com.example.calview.core.data.local.WaterReminderSettingsEntity
 import com.example.calview.core.data.local.StreakFreezeEntity
 import java.time.LocalDate
@@ -61,6 +62,7 @@ class SettingsViewModel @Inject constructor(
     private val socialChallengeRepository: SocialChallengeRepository,
     private val gamificationRepository: GamificationRepository,
     private val exerciseRepository: ExerciseRepository,
+    private val groupsRepository: GroupsRepository,
     private val billingManager: BillingManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -157,6 +159,8 @@ class SettingsViewModel @Inject constructor(
     fun updateUserName(name: String) {
         viewModelScope.launch {
             userPreferencesRepository.setUserName(name)
+            // Sync to groups if groups feature is used
+            groupsRepository.syncProfileToGroups()
         }
     }
 

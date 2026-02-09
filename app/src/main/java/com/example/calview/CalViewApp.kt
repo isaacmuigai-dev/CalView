@@ -11,6 +11,7 @@ import com.example.calview.worker.DailySyncWorker
 import com.example.calview.worker.FastingNotificationWorker
 import com.example.calview.worker.InactivityWorker
 import com.example.calview.worker.SocialChallengeNotificationWorker
+import com.example.calview.worker.GroupNotificationWorker
 import com.example.calview.worker.StreakReminderWorker
 import com.example.calview.worker.WaterReminderWorker
 import com.example.calview.worker.WeeklySummaryWorker
@@ -59,15 +60,6 @@ class CalViewApp : Application(), Configuration.Provider {
         } else {
             Log.d("CalViewApp", "🛡️ Installing PlayIntegrityAppCheckProviderFactory")
             appCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
-        }
-
-        // Force load BeginSignInRequest to prevent ClassNotFoundException during unmarshalling
-        // This ensures the class is available early to all processes (including Firebase Analytics)
-        try {
-            Class.forName("com.google.android.gms.auth.api.identity.BeginSignInRequest")
-            Log.d("CalViewApp", "✅ Successfully pre-loaded BeginSignInRequest")
-        } catch (e: Exception) {
-            Log.e("CalViewApp", "⚠️ Failed to pre-load BeginSignInRequest", e)
         }
 
         // Schedule daily sync
@@ -288,6 +280,24 @@ class CalViewApp : Application(), Configuration.Provider {
             SocialChallengeNotificationWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             socialRequest
+        )
+        
+        // 3. Group Notification Worker - checks every 15 mins for new messages/likes/members
+        val groupRequest = PeriodicWorkRequestBuilder<GroupNotificationWorker>(
+            15, TimeUnit.MINUTES
+        )
+            .setInitialDelay(5, TimeUnit.MINUTES)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            GroupNotificationWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            groupRequest
         )
         
         Log.d("CalViewApp", "🎮 Scheduled social and gamification workers")

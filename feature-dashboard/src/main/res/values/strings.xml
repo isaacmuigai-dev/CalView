@@ -347,4 +347,84 @@
     <string name="email_platform">Platform: Android</string>
     <string name="email_android_version">Android Version: %s</string>
     <string name="email_device">Device: %s</string>
+    <!-- Groups UI -->
+    <string name="groups_intro_title">Weight loss is easier\ntogether 🤝</string>
+    <string name="groups_intro_subtitle">Join a group and see what your friends\nare eating.</string>
+    <string name="create_new_group_action">Create New Group</string>
+    <string name="join_existing_group_action">Join Existing Group</string>
+    
+    <string name="confirm_name_title">Confirm your name</string>
+    <string name="confirm_name_subtitle">This is the name others will see in groups.</string>
+    <string name="first_name_label">First Name</string>
+    <string name="first_name_placeholder">Enter your first name</string>
+    <string name="last_name_label">Last Name</string>
+    <string name="last_name_placeholder">Enter your last name</string>
+    
+    <string name="create_username_title">Create a username</string>
+    <string name="create_username_subtitle">This helps others find you in groups.</string>
+    <string name="username_label">Username</string>
+    <string name="username_placeholder">Choose a username</string>
+    <string name="username_available">Username is available</string>
+    
+    <string name="add_profile_photo_title">Add a profile photo</string>
+    <string name="add_profile_photo_subtitle">Your profile photo helps others recognize you\nin groups.</string>
+    <string name="swipe_to_select">Swipe to select</string>
+    <string name="or_separator">OR</string>
+    <string name="upload_photo_action">Upload a photo</string>
+    <string name="confirm_photo_title">Confirm your photo</string>
+    <string name="confirm_photo_subtitle">This will be your profile picture.</string>
+    <string name="create_profile_action">Create Profile</string>
+    <string name="choose_different_photo_action">Choose different photo</string>
+    
+    <string name="ask_leader_invite_title">To join a group, ask the\nleader to invite you</string>
+    <string name="ask_leader_invite_subtitle">Have the group leader follow these steps</string>
+    <string name="continue_action">Continue</string>
+    <string name="invitation_step_1_title">Step 1</string>
+    <string name="invitation_step_1_desc">To add members, tell your group\nadmin to go to their group\nsettings.</string>
+    <string name="invitation_step_2_title">Step 2</string>
+    <string name="invitation_step_2_desc">They should then tap on the\n\"Invite Members\" button to\ngenerate a unique link.</string>
+    <string name="invitation_step_3_title">Step 3</string>
+    <string name="invitation_step_3_desc">Then they can share the group\ninvite link with you.</string>
+    <string name="instruction_graphic_desc">Instruction Graphic</string>
+    
+    <string name="create_group_name_title">Create group name</string>
+    <string name="create_group_name_subtitle">Pick something fun or goal-focused. Your\ngroup name helps set the vibe.</string>
+    <string name="group_name_label">Group Name</string>
+    <string name="group_name_placeholder">Enter group name</string>
+    <string name="group_description_label">Description (optional)</string>
+    <string name="group_description_placeholder">Tell members what this group is about</string>
+    <string name="choose_group_photo_title">Choose a group photo</string>
+    <string name="choose_group_photo_subtitle">Select one of our pre-made photos or upload\nyour own.</string>
+    <string name="create_group_final_action">Create Group</string>
+    
+    <string name="no_posts_yet_title">No Posts Yet</string>
+    <string name="be_first_share_desc">Be the first to share what\nyou\'re eating with your group!</string>
+    <string name="member_count_format">%1$d member</string>
+    <string name="members_count_format">%1$d members</string>
+    <string name="join_group_menu">Join Group</string>
+    <string name="create_group_menu">Create Group</string>
+    
+    <string name="group_settings_header">Group Settings</string>
+    <string name="invite_friends_to_group_title">Invite your friends to the group</string>
+    <string name="copy_link_action">Copy Link</string>
+    <string name="share_action_label">Share</string>
+    <string name="members_list_header">Members</string>
+    <string name="owner_label">Owner</string>
+    
+    <string name="type_something_placeholder">Type something…</string>
+    <string name="loading_text">Loading…</string>
+    <string name="enter_code_action">Enter Invite Code</string>
+    <string name="invalid_code_error">Invalid invite code. Please try again.</string>
+    <string name="joining_group_status">Joining group…</string>
+    <string name="successfully_joined">Successfully joined the group!</string>
+    <string name="join_btn">Join Now</string>
+    <string name="enter_code_placeholder">6-digit code</string>
+    <string name="attach_photo_desc">Attach photo</string>
+    <string name="send_message_desc">Send message</string>
+    <string name="remove_attachment_desc">Remove attachment</string>
+    <string name="invite_code_length_error">Code must be 6 characters</string>
+    <string name="join_generic_error">Invalid code or already a member</string>
+    <string name="leave_group">Leave Group</string>
+    <string name="active_member">Active member</string>
+    <string name="online_status">Online</string>
 </resources>
