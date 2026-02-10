@@ -31,6 +31,16 @@ interface StorageRepository {
     suspend fun deleteMealImage(imageUrl: String)
 
     /**
+     * Upload a group photo to Firebase Storage.
+     */
+    suspend fun uploadGroupPhoto(localPath: String, groupId: String): String?
+
+    /**
+     * Upload a user's group profile photo.
+     */
+    suspend fun uploadProfilePhoto(localPath: String, userId: String): String?
+
+    /**
      * Delete all images for a specific user.
      * @param userId The ID of the user whose images should be deleted.
      */

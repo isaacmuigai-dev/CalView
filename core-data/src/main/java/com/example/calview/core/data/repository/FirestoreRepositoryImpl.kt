@@ -631,6 +631,51 @@ class FirestoreRepositoryImpl @Inject constructor(
                 .await()
             Log.d(TAG, "Deleted user document")
             
+            // Delete group memberships for this user
+            val membershipsQuery = firestore.collection("group_members")
+                .whereEqualTo("userId", userId)
+            val membershipsSnapshot = membershipsQuery.get().await()
+            for (mDoc in membershipsSnapshot.documents) {
+                mDoc.reference.delete().await()
+            }
+            
+            // Delete group message sent by this user
+            val userMessagesQuery = firestore.collection("group_messages")
+                .whereEqualTo("senderId", userId)
+            val userMessagesSnapshot = userMessagesQuery.get().await()
+            for (mDoc in userMessagesSnapshot.documents) {
+                mDoc.reference.delete().await()
+                Log.d(TAG, "Deleted user message: ${mDoc.id}")
+            }
+
+            // Delete groups created by this user, their members, and their messages
+            val userGroupsQuery = firestore.collection("groups")
+                .whereEqualTo("creatorId", userId)
+            val userGroupsSnapshot = userGroupsQuery.get().await()
+            for (gDoc in userGroupsSnapshot.documents) {
+                val groupId = gDoc.id
+                
+                // 1. Delete all members of this group
+                val groupMembersQuery = firestore.collection("group_members")
+                    .whereEqualTo("groupId", groupId)
+                val groupMembersSnapshot = groupMembersQuery.get().await()
+                for (gmDoc in groupMembersSnapshot.documents) {
+                    gmDoc.reference.delete().await()
+                }
+
+                // 2. Delete all messages of this group
+                val groupMessagesQuery = firestore.collection("group_messages")
+                    .whereEqualTo("groupId", groupId)
+                val groupMessagesSnapshot = groupMessagesQuery.get().await()
+                for (msgDoc in groupMessagesSnapshot.documents) {
+                    msgDoc.reference.delete().await()
+                }
+
+                // 3. Delete the group itself
+                gDoc.reference.delete().await()
+                Log.d(TAG, "Deleted group and all its sub-data: $groupId")
+            }
+
             Log.d(TAG, "Successfully deleted all Firestore data for user: $userId")
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting user data from Firestore", e)

@@ -3,9 +3,6 @@ package com.example.calview.feature.dashboard
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -33,57 +31,70 @@ fun GroupsIntroScreen(
     onCreateGroupClick: () -> Unit,
     onJoinGroupClick: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            // No back button needed - navigation is handled by the floating nav bar
-            Spacer(modifier = Modifier.statusBarsPadding().height(8.dp))
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            Column(modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp)) {
-                Button(
-                    onClick = onCreateGroupClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.create_new_group_action),
-                            fontFamily = InterFontFamily,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+    // Safe fallback gradient
+    val safeGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFE0F7FA), // Light Cyan
+            Color(0xFFE8EAF6)  // Light Indigo
+        )
+    )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(
-                    onClick = onJoinGroupClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                ) {
-                    Text(
-                        text = stringResource(R.string.join_existing_group_action),
-                        fontFamily = InterFontFamily,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(safeGradient) // Use safe gradient instead of theme property
+    ) {
+        Scaffold(
+            topBar = {
+                // No back button needed - navigation is handled by the floating nav bar
+                Spacer(modifier = Modifier.statusBarsPadding().height(8.dp))
+            },
+            containerColor = Color.Transparent,
+//            bottomBar = {
+//            Column(modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp)) {
+//                Button(
+//                    onClick = onCreateGroupClick,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(56.dp),
+//                    shape = RoundedCornerShape(28.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = MaterialTheme.colorScheme.primary,
+//                        contentColor = MaterialTheme.colorScheme.onPrimary
+//                    )
+//                ) {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(Icons.Default.Add, contentDescription = null)
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                        Text(
+//                            text = stringResource(R.string.create_new_group_action),
+//                            fontFamily = InterFontFamily,
+//                            fontSize = 18.sp,
+//                            fontWeight = FontWeight.Bold
+//                        )
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                OutlinedButton(
+//                    onClick = onJoinGroupClick,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(56.dp),
+//                    shape = RoundedCornerShape(28.dp),
+//                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+//                ) {
+//                    Text(
+//                        text = stringResource(R.string.join_existing_group_action),
+//                        fontFamily = InterFontFamily,
+//                        fontSize = 18.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = MaterialTheme.colorScheme.onSurface
+//                    )
+//                }
+//            }
+//        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -124,7 +135,52 @@ fun GroupsIntroScreen(
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onCreateGroupClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.create_new_group_action),
+                        fontFamily = InterFontFamily,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onJoinGroupClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
+                Text(
+                    text = stringResource(R.string.join_existing_group_action),
+                    fontFamily = InterFontFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.height(130.dp))
+        }
         }
     }
 }

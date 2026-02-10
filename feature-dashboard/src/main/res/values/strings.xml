@@ -374,7 +374,13 @@
     <string name="confirm_photo_title">Confirm your photo</string>
     <string name="confirm_photo_subtitle">This will be your profile picture.</string>
     <string name="create_profile_action">Create Profile</string>
-    <string name="choose_different_photo_action">Choose different photo</string>
+    <string name="choose_different_photo_action">Remove photo</string>
+    <string name="profile_setup_title">Set up your profile</string>
+    <string name="profile_setup_subtitle">Add your details to get started</string>
+    <string name="username_checking">Checking availability…</string>
+    <string name="username_taken">Username is already taken</string>
+    <string name="save_profile_error">Failed to save profile. Please try again.</string>
+    <string name="username_placeholder_at">@username</string>
     
     <string name="ask_leader_invite_title">To join a group, ask the\nleader to invite you</string>
     <string name="ask_leader_invite_subtitle">Have the group leader follow these steps</string>
@@ -427,4 +433,6 @@
     <string name="leave_group">Leave Group</string>
     <string name="active_member">Active member</string>
     <string name="online_status">Online</string>
+    <string name="leave_group_confirm_title">Leave Group?</string>
+    <string name="leave_group_confirm_desc">Are you sure you want to leave this group? You will need a new invite code to re-join.</string>
 </resources>

@@ -1,0 +1,141 @@
+rules_version = '2';
+
+/**
+ * CalView Firestore Security Rules
+ * --------------------------------
+ * This file contains the combined security logic for:
+ * 1. User Profiles & Daily Logs
+ * 2. Feature Requests & Comments
+ * 3. Social Challenges & Leaderboards
+ * 4. Production-Scale Groups & Social Interactions (Likes, Replies, Presence)
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==========================================
+    // 🛠️ HELPER FUNCTIONS
+    // ==========================================
+    
+    // Check if the request is from a logged-in user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if the current user is a member of the specified group
+    function isMember(groupId) {
+      return exists(/databases/$(database)/documents/group_members/$(groupId + "_" + request.auth.uid));
+    }
+
+    // ==========================================
+    // 👤 USER DATA & LOGS
+    // ==========================================
+
+    // Users collection - Users can only access their own data
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // All sub-collections (meals, dailyLogs, fasting_sessions, etc.)
+      match /{allSubcollections=**} {
+        allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      }
+    }
+
+    // ==========================================
+    // 💡 FEEDBACK & IMPROVEMENTS
+    // ==========================================
+
+    // Feature Requests - Authenticated users can interact
+    match /feature_requests/{requestId} {
+      allow read, create, update: if isAuthenticated();
+      
+      // Comments under feature requests
+      match /comments/{commentId} {
+        allow read, create, update: if isAuthenticated();
+      }
+    }
+
+    // ==========================================
+    // 🏆 SOCIAL CHALLENGES
+    // ==========================================
+
+    // Social Challenges - Read/Post for all, Update for creators
+    match /social_challenges/{challengeId} {
+      allow read, create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+    }
+    
+    // Challenge Participants - Participant-specific access
+    match /challenge_participants/{participantId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == participantId.split('_')[1];
+    }
+
+    // ==========================================
+    // 🤝 GROUPS & CHAT (HYPERSCALE)
+    // ==========================================
+
+    // 5. Groups - Metadata and group-wide settings
+    match /groups/{groupId} {
+      allow read, create: if isAuthenticated();
+      
+      // Only group owners can modify core settings
+      // EXCEPTION: Any authenticated user can update 'memberCount' (for Join/Leave operations)
+      allow update: if isAuthenticated() && (
+        get(/databases/$(database)/documents/group_members/$(groupId + "_" + request.auth.uid)).data.role == "owner" ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount'])
+      );
+      
+      allow delete: if isAuthenticated() && (
+        get(/databases/$(database)/documents/group_members/$(groupId + "_" + request.auth.uid)).data.role == "owner" ||
+        resource.data.creatorId == request.auth.uid
+      );
+    }
+
+    // 6. Group Memberships
+    match /group_members/{memberId} {
+      allow read: if isAuthenticated();
+      
+      // Users create their own membership (Join Group)
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Users can leave, or owners can remove members
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        get(/databases/$(database)/documents/group_members/$(resource.data.groupId + "_" + request.auth.uid)).data.role == "owner"
+      );
+    }
+
+    // 7. Group Messages & Social Interaction
+    match /group_messages/{messageId} {
+      
+      // Access controlled by group membership
+      allow read: if isAuthenticated() && isMember(resource.data.groupId);
+      
+      // Members can send messages
+      allow create: if isAuthenticated() && 
+        isMember(request.resource.data.groupId) &&
+        request.resource.data.senderId == request.auth.uid;
+
+      // Updating: Allowing likes (likeCount increment) or sender edits
+      allow update: if isAuthenticated() && (
+        (isMember(resource.data.groupId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount'])) ||
+        (resource.data.senderId == request.auth.uid)
+      );
+
+      // 🛑 SCALABLE LIKES (Sub-collection Pattern)
+      // Path: group_messages/{msgId}/likes/{userId}
+      // Uses embedded groupId for efficient rule evaluation
+      match /likes/{likeUserId} {
+        allow read: if isAuthenticated() && isMember(resource.data.groupId);
+        allow write: if isAuthenticated() && request.auth.uid == likeUserId && 
+          isMember(request.resource.data.groupId);
+      }
+    }
+
+    // 8. Presence & Typing Indicators
+    match /typing_status/{groupId} {
+      allow read, write: if isAuthenticated() && isMember(groupId);
+    }
+  }
+}

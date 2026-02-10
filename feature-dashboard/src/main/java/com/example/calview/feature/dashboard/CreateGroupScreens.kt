@@ -264,93 +264,99 @@ fun GroupSetupScaffold(
     isLoading: Boolean = false, // Added isLoading
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { 
-                    Text(
-                        stringResource(R.string.create_group_final_action), 
-                        fontFamily = SpaceGroteskFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_desc))
-                    }
-                },
-                modifier = Modifier.statusBarsPadding(),
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
-        },
-        bottomBar = {
-            Column(modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp, vertical = 24.dp)) {
-                Button(
-                    onClick = onNext,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                    ),
-                    enabled = nextEnabled && !isLoading // Disable when loading
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+    ) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { 
                         Text(
-                            text = nextLabel,
-                            fontFamily = InterFontFamily,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                            stringResource(R.string.create_group_final_action), 
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ) 
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_desc))
+                        }
+                    },
+                    modifier = Modifier.statusBarsPadding(),
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            },
+            bottomBar = {
+                Column(modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp, vertical = 24.dp)) {
+                    Button(
+                        onClick = onNext,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                        ),
+                        enabled = nextEnabled && !isLoading // Disable when loading
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = nextLabel,
+                                fontFamily = InterFontFamily,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = title,
-                fontFamily = SpaceGroteskFontFamily,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = subtitle,
-                fontFamily = InterFontFamily,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                lineHeight = 22.sp
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            content()
+            },
+            containerColor = Color.Transparent
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = title,
+                    fontFamily = SpaceGroteskFontFamily,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = subtitle,
+                    fontFamily = InterFontFamily,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                content()
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 }

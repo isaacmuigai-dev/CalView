@@ -1,6 +1,7 @@
 package com.example.calview.feature.dashboard
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,8 @@ import com.example.calview.core.data.model.GroupMessageDto
 import com.example.calview.core.ui.theme.InterFontFamily
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.feature.dashboard.R
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -49,6 +52,15 @@ fun GroupDashboardScreen(
     var showGroupSwitcher by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle error snackbars
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     // Auto-scroll to bottom on new messages ONLY if we are already at the bottom
     LaunchedEffect(uiState.messages.size) {
@@ -71,26 +83,17 @@ fun GroupDashboardScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Subtle background gradient
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.Transparent
+    ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-        )
-
-        Column(modifier = Modifier.fillMaxSize()) {
+                .padding(padding)
+                .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
             // Header
             Row(
                 modifier = Modifier
@@ -102,38 +105,47 @@ fun GroupDashboardScreen(
                 // Group Selector
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 2.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f), // More vibrant/visible in both modes
+                    tonalElevation = 4.dp, // Increased elevation for pop
                     modifier = Modifier
-                        .height(44.dp)
                         .clickable { showGroupSwitcher = !showGroupSwitcher }
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), // Added vertical padding and increased horizontal
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(36.dp) // Slightly larger icon
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = uiState.currentGroup?.name?.firstOrNull()?.toString() ?: "G",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            val photoUrl = uiState.currentGroup?.photoUrl
+                            if (!photoUrl.isNullOrEmpty()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(photoUrl),
+                                    contentDescription = "Group Icon",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = uiState.currentGroup?.name?.firstOrNull()?.toString() ?: "G",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
                                 text = uiState.currentGroup?.name ?: stringResource(R.string.loading_text),
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = SpaceGroteskFontFamily,
                                 fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
@@ -146,15 +158,15 @@ fun GroupDashboardScreen(
                                 Text(
                                     text = "${uiState.memberCount} members • ${uiState.onlineCount} online",
                                     fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
+                            contentDescription = "Expand group list",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -191,7 +203,7 @@ fun GroupDashboardScreen(
                     ) {
                         val grouped = uiState.messages.groupBy { 
                             java.text.SimpleDateFormat("MMMM dd, yyyy", java.util.Locale.getDefault())
-                                .format(java.util.Date(it.timestamp)) 
+                                .format(it.timestamp) 
                         }
 
                         grouped.forEach { (date, messages) ->
@@ -224,12 +236,13 @@ fun GroupDashboardScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Surface(
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                                        shape = RoundedCornerShape(16.dp),
+                                        shadowElevation = 2.dp
                                     ) {
                                         Text(
                                             text = date,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -283,8 +296,10 @@ fun GroupDashboardScreen(
                 onImageClick = { /* TODO: Launch Image Picker */ },
                 onRemoveImage = { viewModel.onImageAttached(null) },
                 replyMessage = uiState.selectedReplyMessage,
-                onCancelReply = viewModel::cancelReply
+                onCancelReply = viewModel::cancelReply,
+                isSending = uiState.isSending
             )
+            Spacer(modifier = Modifier.height(130.dp))
         }
 
         // Group Switcher
@@ -298,6 +313,7 @@ fun GroupDashboardScreen(
                 onCreateClick = onCreateGroupClick
             )
         }
+    }
     }
 }
 
@@ -334,12 +350,21 @@ fun MessageCard(
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = message.senderName.take(1).uppercase(),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                if (!message.senderPhotoUrl.isNullOrEmpty()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(message.senderPhotoUrl),
+                        contentDescription = "Sender Avatar",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        text = message.senderName.take(1).uppercase(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
         }
@@ -361,13 +386,14 @@ fun MessageCard(
             Surface(
                 color = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                 shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (isMe) 16.dp else 4.dp,
-                    bottomEnd = if (isMe) 4.dp else 16.dp
-                )
+                    topStart = 18.dp,
+                    topEnd = 18.dp,
+                    bottomStart = if (isMe) 18.dp else 4.dp,
+                    bottomEnd = if (isMe) 4.dp else 18.dp
+                ),
+                shadowElevation = 2.dp // Added shadow for premium feel
             ) {
-                Column(modifier = Modifier.padding(8.dp)) {
+                Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)) {
                     // Reply Quote Bubble
                     if (message.replyToId != null) {
                         Surface(
@@ -410,7 +436,7 @@ fun MessageCard(
                     }
 
                     if (message.imageUrl != null) {
-                        Icon(Icons.Default.Image, contentDescription = null, tint = if (isMe) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Default.Image, contentDescription = "Attached image", tint = if (isMe) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(4.dp))
                     }
                     Text(
@@ -435,7 +461,8 @@ fun MessageInputBar(
     onImageClick: () -> Unit,
     onRemoveImage: () -> Unit,
     replyMessage: GroupMessageDto?,
-    onCancelReply: () -> Unit
+    onCancelReply: () -> Unit,
+    isSending: Boolean = false
 ) {
     Column {
         // Reply Preview
@@ -568,6 +595,9 @@ fun MessageInputBar(
                         disabledContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     ),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         fontFamily = InterFontFamily,
@@ -577,21 +607,29 @@ fun MessageInputBar(
                 )
 
                 FloatingActionButton(
-                    onClick = onSend,
-                    modifier = Modifier.size(48.dp), // Slightly larger
+                    onClick = { if (!isSending) onSend() },
+                    modifier = Modifier.size(48.dp),
                     shape = CircleShape,
-                    containerColor = if (text.isNotBlank() || attachedImage != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (text.isNotBlank() || attachedImage != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), // Dimmed icon when disabled
+                    containerColor = if ((text.isNotBlank() || attachedImage != null) && !isSending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if ((text.isNotBlank() || attachedImage != null) && !isSending) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = if (text.isNotBlank() || attachedImage != null) 4.dp else 0.dp,
-                        pressedElevation = if (text.isNotBlank() || attachedImage != null) 8.dp else 0.dp
+                        defaultElevation = if ((text.isNotBlank() || attachedImage != null) && !isSending) 4.dp else 0.dp,
+                        pressedElevation = if ((text.isNotBlank() || attachedImage != null) && !isSending) 8.dp else 0.dp
                     )
                 ) {
-                    Icon(
-                        Icons.Default.Send, 
-                        contentDescription = stringResource(R.string.send_message_desc), 
-                        modifier = Modifier.size(20.dp)
-                    )
+                    if (isSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Send, 
+                            contentDescription = stringResource(R.string.send_message_desc), 
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
@@ -614,7 +652,7 @@ fun EmptyFeedState() {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Default.Forum,
-                    contentDescription = null,
+                    contentDescription = "Empty conversation",
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -685,12 +723,21 @@ fun GroupSwitcherOverlay(
                                     .background(MaterialTheme.colorScheme.primaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = group.name.take(1).uppercase(),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                                if (!group.photoUrl.isNullOrEmpty()) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(group.photoUrl),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(
+                                        text = group.name.take(1).uppercase(),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(

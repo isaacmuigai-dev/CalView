@@ -1,0 +1,68 @@
+﻿Reusing configuration cache.
+> Task :core-data:preBuild UP-TO-DATE
+> Task :core-data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-data:preDebugBuild UP-TO-DATE
+> Task :core-data:generateDebugResValues UP-TO-DATE
+> Task :core-data:generateDebugResources UP-TO-DATE
+> Task :core-data:processDebugNavigationResources UP-TO-DATE
+> Task :core-data:javaPreCompileDebug UP-TO-DATE
+> Task :core-data:packageDebugResources UP-TO-DATE
+> Task :feature-trends:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature-trends:preBuild UP-TO-DATE
+> Task :feature-trends:preDebugBuild UP-TO-DATE
+> Task :feature-trends:generateDebugResValues UP-TO-DATE
+> Task :feature-trends:generateDebugResources UP-TO-DATE
+> Task :core-data:parseDebugLocalResources UP-TO-DATE
+> Task :feature-trends:packageDebugResources UP-TO-DATE
+> Task :core-data:generateDebugRFile UP-TO-DATE
+> Task :feature-trends:processDebugNavigationResources UP-TO-DATE
+> Task :core-ui:preBuild UP-TO-DATE
+> Task :feature-trends:parseDebugLocalResources UP-TO-DATE
+> Task :core-ui:preDebugBuild UP-TO-DATE
+> Task :core-ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-ui:generateDebugResValues UP-TO-DATE
+> Task :core-ui:generateDebugResources UP-TO-DATE
+> Task :core-ui:processDebugNavigationResources UP-TO-DATE
+> Task :core-ui:javaPreCompileDebug UP-TO-DATE
+> Task :core-ui:packageDebugResources UP-TO-DATE
+> Task :core-ui:parseDebugLocalResources UP-TO-DATE
+> Task :core-ui:generateDebugRFile UP-TO-DATE
+> Task :feature-trends:generateDebugRFile UP-TO-DATE
+> Task :core-data:kspDebugKotlin UP-TO-DATE
+> Task :core-ui:compileDebugKotlin UP-TO-DATE
+> Task :core-ui:compileDebugJavaWithJavac NO-SOURCE
+> Task :core-ui:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core-data:compileDebugKotlin UP-TO-DATE
+> Task :core-data:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core-data:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core-data:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature-trends:kspDebugKotlin UP-TO-DATE
+
+> Task :feature-trends:compileDebugKotlin FAILED
+./gradlew : e: file:///C:/Users/isaac/AndroidStudioProjects/CalView/feature-trends/src/main/java/com/example/calview/fe
+ature/trends/ProgressViewModel.kt:464:49 'fun <T> StateFlow<T>.distinctUntilChanged(): Flow<T>' is deprecated. 
+Applying 'distinctUntilChanged' to StateFlow has no effect. See the StateFlow documentation on Operator Fusion.
+At line:1 char:63
++ ... tudio\jbr"; ./gradlew :feature-trends:compileDebugKotlin 2>&1 | out-f ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (e: file:///C:/U...perator Fusion.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':feature-trends:compileDebugKotlin'.
+> A failure occurred while executing 
+org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 10s
+29 actionable tasks: 1 executed, 28 up-to-date
+Configuration cache entry reused.

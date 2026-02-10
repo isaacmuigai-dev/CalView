@@ -15,6 +15,8 @@ class StorageRepositoryImpl @Inject constructor(
     companion object {
         private const val TAG = "StorageRepo"
         private const val MEALS_FOLDER = "meal_images"
+        private const val GROUPS_FOLDER = "group_photos"
+        private const val PROFILES_FOLDER = "profile_photos"
     }
     
     override suspend fun uploadMealImage(localPath: String, userId: String, firestoreId: String): String? {
@@ -64,6 +66,45 @@ class StorageRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun uploadGroupPhoto(localPath: String, groupId: String): String? {
+        if (localPath.isEmpty()) return null
+        val file = File(localPath)
+        if (!file.exists()) return null
+
+        return try {
+            val storageRef = storage.reference
+                .child(GROUPS_FOLDER)
+                .child("$groupId.jpg")
+            
+            storageRef.putFile(android.net.Uri.fromFile(file)).await()
+            storageRef.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error uploading group photo", e)
+            null
+        }
+    }
+
+    override suspend fun uploadProfilePhoto(localPath: String, userId: String): String? {
+        if (localPath.isEmpty()) return null
+        val file = File(localPath)
+        if (!file.exists()) return null
+
+        return try {
+            val storageRef = storage.reference
+                .child(PROFILES_FOLDER)
+                .child("$userId.jpg")
+            
+            storageRef.putFile(android.net.Uri.fromFile(file)).await()
+            storageRef.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error uploading profile photo to $PROFILES_FOLDER/$userId.jpg", e)
+            if (e is com.google.firebase.storage.StorageException) {
+                Log.e(TAG, "Storage Error Code: ${e.errorCode}, Http Result: ${e.httpResultCode}")
+            }
+            null
+        }
+    }
+
     override suspend fun deleteMealImage(imageUrl: String) {
         if (imageUrl.isEmpty()) return
         

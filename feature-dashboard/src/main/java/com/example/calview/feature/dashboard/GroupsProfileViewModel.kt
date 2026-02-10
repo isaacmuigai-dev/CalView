@@ -22,7 +22,8 @@ data class GroupsProfileUiState(
     val isCheckingUsername: Boolean = false,
     val selectedInitialColorIndex: Int = 0,
     val setupFlow: GroupsSetupFlow = GroupsSetupFlow.CREATE,
-    val isSaving: Boolean = false // Added isSaving
+    val isSaving: Boolean = false,
+    val errorMessage: String? = null
 )
 
 @HiltViewModel
@@ -125,7 +126,7 @@ class GroupsProfileViewModel @Inject constructor(
     fun saveProfile(onSuccess: () -> Unit = {}) {
         val state = _uiState.value
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true) }
+            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             
             var finalPhotoUrl = state.profilePhotoUrl
             var tempFilePath: String? = null
@@ -133,7 +134,7 @@ class GroupsProfileViewModel @Inject constructor(
             try {
                 // Upload custom photo if exists
                 state.customPhotoUri?.let { uri ->
-                    tempFilePath = copyUriToInternalStorage(uri)
+                    tempFilePath = com.example.calview.core.ui.util.ImageUtils.compressImage(context, uri)
                     tempFilePath?.let { path ->
                         val userId = groupsRepository.getCurrentUserId() ?: "unknown_user"
                         val uploadedUrl = storageRepository.uploadProfilePhoto(path, userId)
@@ -155,6 +156,7 @@ class GroupsProfileViewModel @Inject constructor(
                 onSuccess()
             } catch (e: Exception) {
                 android.util.Log.e("GroupsProfileVM", "Error saving profile", e)
+                _uiState.update { it.copy(errorMessage = "Failed to save profile. Please try again.") }
             } finally {
                 // Cleanup temp file
                 tempFilePath?.let { java.io.File(it).delete() }
@@ -163,19 +165,4 @@ class GroupsProfileViewModel @Inject constructor(
         }
     }
 
-    private fun copyUriToInternalStorage(uri: android.net.Uri): String? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val file = java.io.File(context.cacheDir, "temp_profile_${System.currentTimeMillis()}.jpg")
-            inputStream.use { input ->
-                java.io.FileOutputStream(file).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            file.absolutePath
-        } catch (e: Exception) {
-            android.util.Log.e("GroupsProfileVM", "Error copying URI to storage", e)
-            null
-        }
-    }
 }

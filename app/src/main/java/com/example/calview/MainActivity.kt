@@ -48,6 +48,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.credentials.CredentialManager
@@ -58,6 +59,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.calview.core.data.repository.AuthRepository
 import com.example.calview.core.ui.theme.CalViewTheme
@@ -67,6 +69,7 @@ import com.example.calview.feature.dashboard.EditNameScreen
 import com.example.calview.feature.dashboard.ReferYourFriendScreen
 import com.example.calview.feature.dashboard.SettingsScreen
 import com.example.calview.feature.dashboard.SettingsViewModel
+import com.example.calview.feature.dashboard.GroupsUnifiedProfileSetupScreen
 import com.example.calview.feature.onboarding.OnboardingNavHost
 import com.example.calview.feature.onboarding.SignInBottomSheet
 import com.example.calview.feature.scanner.MyMealsScreen
@@ -99,10 +102,8 @@ import com.example.calview.feature.dashboard.ChallengesScreen
 
 import com.example.calview.feature.dashboard.SocialChallengesScreen
 import com.example.calview.feature.dashboard.GroupsIntroScreen
-import com.example.calview.feature.dashboard.GroupsNameSetupScreen
-import com.example.calview.feature.dashboard.GroupsUsernameSetupScreen
-import com.example.calview.feature.dashboard.GroupsPhotoSetupScreen
-import com.example.calview.feature.dashboard.GroupsPhotoConfirmScreen
+
+
 import com.example.calview.feature.dashboard.GroupsProfileViewModel
 import com.example.calview.feature.dashboard.AvatarGradients
 import com.example.calview.feature.dashboard.GroupsSetupFlow
@@ -1131,136 +1132,103 @@ fun AppNavigation(
         composable("groups_intro") {
             GroupsIntroScreen(
                 onBack = { navController.popBackStack() },
-                onCreateGroupClick = { navController.navigate("groups_setup_name?flow=CREATE") },
-                onJoinGroupClick = { navController.navigate("groups_setup_name?flow=JOIN") }
+                onCreateGroupClick = { navController.navigate("groups_creation_flow?flow=CREATE") },
+                onJoinGroupClick = { navController.navigate("groups_creation_flow?flow=JOIN") }
             )
         }
 
-        composable(
-            "groups_setup_name?flow={flow}",
+        navigation(
+            startDestination = "groups_unified_setup",
+            route = "groups_creation_flow?flow={flow}",
             arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
-        ) { backStackEntry ->
-            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
-            val viewModel: GroupsProfileViewModel = hiltViewModel()
-            
-            // Sync flow to VM state
-            LaunchedEffect(flowValue) {
-                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
-            }
-
-            GroupsNameSetupScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onNext = { navController.navigate("groups_setup_username?flow=$flowValue") }
-            )
-        }
-
-        composable(
-            "groups_setup_username?flow={flow}",
-            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
-        ) { backStackEntry ->
-            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
-            val viewModel: GroupsProfileViewModel = hiltViewModel()
-            
-            LaunchedEffect(flowValue) {
-                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
-            }
-
-            GroupsUsernameSetupScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onNext = { navController.navigate("groups_setup_photo?flow=$flowValue") }
-            )
-        }
-
-        composable(
-            "groups_setup_photo?flow={flow}",
-            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
-        ) { backStackEntry ->
-            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
-            val viewModel: GroupsProfileViewModel = hiltViewModel()
-            
-            LaunchedEffect(flowValue) {
-                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
-            }
-
-            GroupsPhotoSetupScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onNext = { navController.navigate("groups_setup_photo_confirm?flow=$flowValue") }
-            )
-        }
-
-        composable(
-            "groups_setup_photo_confirm?flow={flow}",
-            arguments = listOf(androidx.navigation.navArgument("flow") { defaultValue = "CREATE" })
-        ) { backStackEntry ->
-            val flowValue = backStackEntry.arguments?.getString("flow") ?: "CREATE"
-            val viewModel: GroupsProfileViewModel = hiltViewModel()
-            
-            LaunchedEffect(flowValue) {
-                viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
-            }
-
-            GroupsPhotoConfirmScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onCreateProfile = {
-                    viewModel.saveProfile()
-                    if (flowValue == "JOIN") {
-                        navController.navigate("groups_join_invitation")
-                    } else {
-                        navController.navigate("create_group_name")
-                    }
+        ) {
+            composable("groups_unified_setup") { backStackEntry ->
+                // Scope ViewModel to the navigation graph
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("groups_creation_flow?flow=${backStackEntry.arguments?.getString("flow")}")
                 }
-            )
+                val flowValue = parentEntry.arguments?.getString("flow") ?: "CREATE"
+                val viewModel: GroupsProfileViewModel = hiltViewModel(parentEntry)
+                
+                LaunchedEffect(flowValue) {
+                    viewModel.setSetupFlow(if (flowValue == "JOIN") GroupsSetupFlow.JOIN else GroupsSetupFlow.CREATE)
+                }
+
+                GroupsUnifiedProfileSetupScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onProfileCreated = {
+                        // Navigate based on flow
+                        if (flowValue == "JOIN") {
+                            navController.navigate("groups_join_invitation") {
+                                popUpTo("groups_creation_flow?flow=$flowValue") { inclusive = true }
+                            }
+                        } else {
+                            navController.navigate("group_creation_process") {
+                                popUpTo("groups_creation_flow?flow=$flowValue") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
         }
 
         composable("groups_join_invitation") {
             JoinGroupInvitationScreen(
                 onBack = { navController.popBackStack() },
                 onDone = {
-                    navController.navigate("groups_intro") {
-                        popUpTo("groups_intro") { inclusive = true }
+                    navController.navigate("main?tab=2") {
+                        popUpTo("main") { inclusive = true }
                     }
                 }
             )
         }
 
-        composable("create_group_name") {
-            val viewModel: CreateGroupViewModel = hiltViewModel()
-            CreateGroupNameScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onNext = { navController.navigate("create_group_photo") }
-            )
-        }
+        navigation(
+            startDestination = "create_group_name",
+            route = "group_creation_process"
+        ) {
+            composable("create_group_name") { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("group_creation_process")
+                }
+                val viewModel: CreateGroupViewModel = hiltViewModel(parentEntry)
+                CreateGroupNameScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onNext = { navController.navigate("create_group_photo") }
+                )
+            }
 
-        composable("create_group_photo") {
-            val viewModel: CreateGroupViewModel = hiltViewModel()
-            val scope = rememberCoroutineScope()
-            CreateGroupPhotoScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() },
-                onCreateGroup = {
-                    viewModel.createGroup {
-                        scope.launch {
-                            userPreferencesRepository?.setGroupCreated(true)
-                            navController.navigate("main") {
-                                popUpTo("main") { inclusive = true }
-                                launchSingleTop = true
+            composable("create_group_photo") { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("group_creation_process")
+                }
+                val viewModel: CreateGroupViewModel = hiltViewModel(parentEntry)
+                val scope = rememberCoroutineScope()
+                CreateGroupPhotoScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onCreateGroup = {
+                        viewModel.createGroup {
+                            scope.launch {
+                                userPreferencesRepository?.setGroupCreated(true)
+                                navController.navigate("main?tab=2") {
+                                    popUpTo("main") { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
         }
 
         composable("group_dashboard") {
             GroupDashboardScreen(
                 onGroupSettingsClick = { navController.navigate("group_settings") },
                 onJoinGroupClick = { navController.navigate("groups_join_invitation") },
-                onCreateGroupClick = { navController.navigate("create_group_name") }
+                onCreateGroupClick = { navController.navigate("group_creation_process") }
             )
         }
 
@@ -1597,8 +1565,8 @@ fun MainTabs(
                     onChallengesClick = onChallengesClick,
                     onGroupsClick = onGroupsClick,
                     onGroupSettingsClick = { navController.navigate("group_settings") },
-                    onJoinGroupClick = { navController.navigate("groups_join_invitation") },
-                    onCreateGroupClick = { navController.navigate("create_group_name") },
+                    onJoinGroupClick = { navController.navigate("groups_creation_flow?flow=JOIN") },
+                    onCreateGroupClick = { navController.navigate("groups_creation_flow?flow=CREATE") },
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
@@ -1616,7 +1584,6 @@ fun MainTabs(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 120.dp) // Leave space for floating nav bar
             ) {
                 MainTabsContent(
                     selectedTab = selectedTab,
@@ -1645,32 +1612,71 @@ fun MainTabs(
                     onChallengesClick = onChallengesClick,
                     onGroupsClick = onGroupsClick,
                     onGroupSettingsClick = { navController.navigate("group_settings") },
-                    onJoinGroupClick = { navController.navigate("groups_join_invitation") },
-                    onCreateGroupClick = { navController.navigate("create_group_name") },
+                    onJoinGroupClick = { navController.navigate("groups_creation_flow?flow=JOIN") },
+                    onCreateGroupClick = { navController.navigate("groups_creation_flow?flow=CREATE") },
                     onDeleteAccount = onDeleteAccount,
                     onLogout = onLogout
                 )
             }
             
             // Floating Navigation Bar - positioned at bottom
+            // Floating Navigation Bar - positioned at bottom
+            val infiniteTransition = rememberInfiniteTransition(label = "navEdgeLighting")
+            val phase by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(4000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "lightingPhase"
+            )
+
+            val isDark = isSystemInDarkTheme()
+            val lightingColors = if (isDark) {
+                listOf(Color(0xFFBB86FC), Color(0xFF03DAC6), Color(0xFF6200EE), Color(0xFFBB86FC))
+            } else {
+                // Dark colors for light theme as requested
+                listOf(Color(0xFF2C3E50), Color(0xFF000000), Color(0xFF34495E), Color(0xFF2C3E50))
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
                     .navigationBarsPadding()
+                    .height(76.dp) // Slightly taller to accommodate border
+                    .clip(RoundedCornerShape(32.dp)) // Clip the entire box to the shape
             ) {
+                // 1. Rotating Gradient Background (The Edge Lighting)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawBehind {
+                            rotate(phase) {
+                                drawCircle(
+                                    brush = Brush.sweepGradient(lightingColors),
+                                    radius = size.maxDimension,
+                                    center = center
+                                )
+                            }
+                        }
+                )
+
+                // 2. Solid White Content (The actual bar)
                 Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                    tonalElevation = 12.dp,
-                    shadowElevation = 8.dp,
-                    shape = RoundedCornerShape(32.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(2.dp), // 2dp padding reveals the rotating gradient behind
+                    color = if (isDark) Color.Black else Color.White,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 4.dp,
+                    shape = RoundedCornerShape(30.dp) // Slightly smaller radius for inner content
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp)
+                            .fillMaxSize()
                             .padding(horizontal = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -1819,10 +1825,13 @@ private fun MainTabsContent(
         }
         1 -> ProgressScreen()
         2 -> {
-            val isGroupCreated by (userPreferencesRepository?.isGroupCreated?.collectAsState(initial = false) ?: remember { mutableStateOf(false) })
-            val isGroupsProfileComplete by (userPreferencesRepository?.isGroupsProfileComplete?.collectAsState(initial = false) ?: remember { mutableStateOf(false) })
+            val isGroupCreated by (userPreferencesRepository?.isGroupCreated?.map<Boolean, Boolean?> { it }?.collectAsState(initial = null) ?: remember { mutableStateOf(null) })
+            val isGroupsProfileComplete by (userPreferencesRepository?.isGroupsProfileComplete?.map<Boolean, Boolean?> { it }?.collectAsState(initial = null) ?: remember { mutableStateOf(null) })
             
-            if (isGroupCreated) {
+            if (isGroupCreated == null || isGroupsProfileComplete == null) {
+                // Loading state - show nothing or a subtle spinner to prevent flashing wrong screen
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+            } else if (isGroupCreated == true) {
                 // User has created/joined a group - show the dashboard
                 GroupDashboardScreen(
                     onGroupSettingsClick = onGroupSettingsClick,
@@ -1834,10 +1843,18 @@ private fun MainTabsContent(
                 GroupsIntroScreen(
                     onBack = { },
                     onCreateGroupClick = {
-                        if (isGroupsProfileComplete) onCreateGroupClick() else onGroupsClick()
+                        if (isGroupsProfileComplete == true) {
+                            onCreateGroupClick() 
+                        } else {
+                            navController.navigate("groups_creation_flow?flow=CREATE")
+                        }
                     },
                     onJoinGroupClick = {
-                        if (isGroupsProfileComplete) onJoinGroupClick() else onGroupsClick()
+                        if (isGroupsProfileComplete == true) {
+                            onJoinGroupClick()
+                        } else {
+                            navController.navigate("groups_creation_flow?flow=JOIN")
+                        }
                     }
                 )
             }
@@ -1944,11 +1961,12 @@ private fun NavigationItemButton(
     onClick: () -> Unit
 ) {
     // Animated icon/text color
+    val isDark = isSystemInDarkTheme()
     val contentColor by animateColorAsState(
         targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primary
         } else {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            if (isDark) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         },
         animationSpec = tween(durationMillis = 200),
         label = "navContentColor"

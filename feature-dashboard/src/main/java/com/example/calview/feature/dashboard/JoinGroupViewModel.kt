@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calview.core.data.repository.GroupsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.calview.core.data.model.GroupDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,7 +15,10 @@ data class JoinGroupUiState(
     val inviteCode: String = "",
     val isJoining: Boolean = false,
     val errorResId: Int? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val groupPreview: GroupDto? = null,
+    val isLoadingPreview: Boolean = false,
+    val previewError: String? = null
 )
 
 @HiltViewModel
@@ -36,8 +40,29 @@ class JoinGroupViewModel @Inject constructor(
     fun onInviteCodeChanged(code: String) {
         if (code.length <= 6) {
             val capitalizedCode = code.uppercase()
-            _uiState.update { it.copy(inviteCode = capitalizedCode, errorResId = null) }
+            _uiState.update { it.copy(
+                inviteCode = capitalizedCode, 
+                errorResId = null,
+                previewError = null,
+                groupPreview = if (capitalizedCode.length < 6) null else it.groupPreview
+            ) }
             savedStateHandle["inviteCode"] = capitalizedCode
+            
+            if (capitalizedCode.length == 6) {
+                fetchGroupPreview(capitalizedCode)
+            }
+        }
+    }
+
+    private fun fetchGroupPreview(code: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingPreview = true, previewError = null, groupPreview = null) }
+            val group = groupsRepository.getGroupDetailsByInviteCode(code)
+            _uiState.update { it.copy(
+                isLoadingPreview = false,
+                groupPreview = group,
+                previewError = if (group == null) "Group not found. Please check the code." else null
+            ) }
         }
     }
 

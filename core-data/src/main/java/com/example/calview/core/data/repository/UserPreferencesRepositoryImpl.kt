@@ -107,6 +107,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val LAST_NOTIFIED_GOAL_WEIGHT = floatPreferencesKey("last_notified_goal_weight")
         val LAST_NOTIFIED_DAILY_GOAL_DATE = stringPreferencesKey("last_notified_daily_goal_date")
         val NOTIFIED_DAILY_GOAL_FLAGS = stringPreferencesKey("notified_daily_goal_flags")
+        
+        // Groups Profile
+        val IS_GROUPS_PROFILE_COMPLETE = booleanPreferencesKey("is_groups_profile_complete")
+        val GROUPS_FIRST_NAME = stringPreferencesKey("groups_first_name")
+        val GROUPS_LAST_NAME = stringPreferencesKey("groups_last_name")
+        val GROUPS_USERNAME = stringPreferencesKey("groups_username")
+        val GROUPS_PROFILE_PHOTO_URL = stringPreferencesKey("groups_profile_photo_url")
+        val IS_GROUP_CREATED = booleanPreferencesKey("is_group_created")
     }
     
     // Coroutine scope for background sync operations
@@ -159,7 +167,13 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             weightChangePerWeek = preferences[PreferencesKeys.WEIGHT_CHANGE_PER_WEEK] ?: 0.5f,
             userXp = preferences[PreferencesKeys.USER_XP] ?: 0,
             userLevel = preferences[PreferencesKeys.USER_LEVEL] ?: 1,
-            lastActivityTimestamp = preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] ?: 0L
+            lastActivityTimestamp = preferences[PreferencesKeys.LAST_ACTIVITY_TIMESTAMP] ?: 0L,
+            isGroupsProfileComplete = preferences[PreferencesKeys.IS_GROUPS_PROFILE_COMPLETE] ?: false,
+            groupsFirstName = preferences[PreferencesKeys.GROUPS_FIRST_NAME] ?: "",
+            groupsLastName = preferences[PreferencesKeys.GROUPS_LAST_NAME] ?: "",
+            groupsUsername = preferences[PreferencesKeys.GROUPS_USERNAME] ?: "",
+            groupsProfilePhotoUrl = preferences[PreferencesKeys.GROUPS_PROFILE_PHOTO_URL] ?: "",
+            isGroupCreated = preferences[PreferencesKeys.IS_GROUP_CREATED] ?: false
         )
     }
     
@@ -404,6 +418,30 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override val notifiedDailyGoalFlags: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS] ?: ""
+    }
+
+    override val isGroupsProfileComplete: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.IS_GROUPS_PROFILE_COMPLETE] ?: false
+    }
+
+    override val groupsFirstName: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GROUPS_FIRST_NAME] ?: ""
+    }
+
+    override val groupsLastName: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GROUPS_LAST_NAME] ?: ""
+    }
+
+    override val groupsUsername: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GROUPS_USERNAME] ?: ""
+    }
+
+    override val groupsProfilePhotoUrl: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GROUPS_PROFILE_PHOTO_URL] ?: ""
+    }
+
+    override val isGroupCreated: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.IS_GROUP_CREATED] ?: false
     }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
@@ -741,6 +779,48 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences.remove(PreferencesKeys.NOTIFIED_DAILY_GOAL_FLAGS)
         }
     }
+
+    override suspend fun setGroupsProfileComplete(complete: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GROUPS_PROFILE_COMPLETE] = complete
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setGroupsFirstName(name: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GROUPS_FIRST_NAME] = name
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setGroupsLastName(name: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GROUPS_LAST_NAME] = name
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setGroupsUsername(username: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GROUPS_USERNAME] = username
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setGroupsProfilePhotoUrl(url: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GROUPS_PROFILE_PHOTO_URL] = url
+        }
+        syncToFirestore()
+    }
+
+    override suspend fun setGroupCreated(created: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GROUP_CREATED] = created
+        }
+        syncToFirestore()
+    }
     
     override suspend fun setWidgetDarkTheme(isDark: Boolean) {
         context.dataStore.edit { preferences ->
@@ -798,6 +878,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
                     preferences[PreferencesKeys.LANGUAGE] = userData.language
                     preferences[PreferencesKeys.LAST_ROLLOVER_DATE] = userData.lastRolloverDate
                     preferences[PreferencesKeys.HAS_SEEN_DASHBOARD_WALKTHROUGH] = userData.hasSeenDashboardWalkthrough
+                    preferences[PreferencesKeys.IS_GROUPS_PROFILE_COMPLETE] = userData.isGroupsProfileComplete
+                    preferences[PreferencesKeys.GROUPS_FIRST_NAME] = userData.groupsFirstName
+                    preferences[PreferencesKeys.GROUPS_LAST_NAME] = userData.groupsLastName
+                    preferences[PreferencesKeys.GROUPS_USERNAME] = userData.groupsUsername
+                    preferences[PreferencesKeys.GROUPS_PROFILE_PHOTO_URL] = userData.groupsProfilePhotoUrl
+                    preferences[PreferencesKeys.IS_GROUP_CREATED] = userData.isGroupCreated
                     preferences[PreferencesKeys.HAS_SEEN_PROGRESS_WALKTHROUGH] = userData.hasSeenProgressWalkthrough
                     preferences[PreferencesKeys.HAS_SEEN_FEATURE_INTRO] = userData.hasSeenFeatureIntro
                     preferences[PreferencesKeys.WATER_CONSUMED] = userData.waterConsumed

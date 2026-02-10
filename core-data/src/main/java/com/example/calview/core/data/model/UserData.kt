@@ -69,5 +69,13 @@ data class UserData(
     val userLevel: Int = 1,
     
     // Activity tracking
-    val lastActivityTimestamp: Long = 0L
+    val lastActivityTimestamp: Long = 0L,
+
+    // Groups Profile
+    val isGroupsProfileComplete: Boolean = false,
+    val groupsFirstName: String = "",
+    val groupsLastName: String = "",
+    val groupsUsername: String = "",
+    val groupsProfilePhotoUrl: String = "",
+    val isGroupCreated: Boolean = false
 )

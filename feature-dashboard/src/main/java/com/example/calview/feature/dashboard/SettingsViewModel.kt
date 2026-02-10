@@ -110,9 +110,21 @@ class SettingsViewModel @Inject constructor(
                     intermediate.referralCode
                 }
                 
+                val finalUserName = if (intermediate.userName.isBlank()) {
+                    authRepository.getCurrentUser()?.displayName ?: "User"
+                } else {
+                    intermediate.userName
+                }
+
+                val finalPhotoUrl = if (intermediate.photoUrl.isBlank()) {
+                    authRepository.getCurrentUser()?.photoUrl?.toString() ?: ""
+                } else {
+                    intermediate.photoUrl
+                }
+                
                 SettingsUiState(
-                    userName = intermediate.userName,
-                    photoUrl = intermediate.photoUrl,
+                    userName = finalUserName,
+                    photoUrl = finalPhotoUrl,
                     age = intermediate.age,
                     referralCode = code,
                     userEmail = authRepository.getUserEmail(),
@@ -236,6 +248,8 @@ class SettingsViewModel @Inject constructor(
             // 1. Delete Firestore Data (And Storage images)
             _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data and images...") }
             try {
+                // Remove from all groups first (while we still have auth)
+                groupsRepository.removeUserFromAllGroups()
                 firestoreRepository.deleteUserData(userId)
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to delete Firestore data", e)
@@ -300,7 +314,7 @@ class SettingsViewModel @Inject constructor(
             billingManager.reset()
             kotlinx.coroutines.delay(1000)
 
-            // 4. Clear Preferences last
+            // 5. Clear Preferences last
             userPreferencesRepository.clearAllData()
             
             _uiState.update { it.copy(isDeletionComplete = true) }
@@ -314,6 +328,7 @@ class SettingsViewModel @Inject constructor(
             // However, Repositories usually have @ApplicationContext.
             // For now, let's focus on repository clearing.
 
+            groupsRepository.clearLocalData() // Clear local groups data
             mealRepository.clearAllMeals()
             dailyLogRepository.clearAllLogs()
             fastingRepository.deleteAllSessions()

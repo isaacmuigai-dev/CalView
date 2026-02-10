@@ -27,6 +27,11 @@ import com.example.calview.core.data.model.GroupDto
 import com.example.calview.core.data.model.GroupMemberDto
 import com.example.calview.core.ui.theme.SpaceGroteskFontFamily
 import com.example.calview.feature.dashboard.R
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +46,7 @@ fun GroupSettingsScreen(
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showMenu by remember { mutableStateOf(false) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
     
     // Observe leave success and navigate
     LaunchedEffect(uiState.leaveSuccess) {
@@ -51,56 +57,85 @@ fun GroupSettingsScreen(
 
     val inviteLink = "https://www.calai.app/groups/${uiState.group?.inviteCode}"
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        stringResource(R.string.group_settings_header), 
-                        fontFamily = SpaceGroteskFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 20.sp
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_desc))
-                    }
-                },
-                actions = {
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.options_menu))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(com.example.calview.core.ui.theme.CalViewTheme.gradient)
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            stringResource(R.string.group_settings_header), 
+                            fontFamily = SpaceGroteskFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 20.sp
+                        ) 
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_desc))
                         }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.leave_group), color = MaterialTheme.colorScheme.error) },
-                                onClick = {
-                                    showMenu = false
-                                    viewModel.leaveGroup()
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                                }
-                            )
+                    },
+                    actions = {
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.options_menu))
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.leave_group), color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        showMenu = false
+                                        showLeaveDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                    }
+                                )
+                            }
                         }
-                    }
-                },
-                modifier = Modifier.statusBarsPadding(),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                    },
+                    modifier = Modifier.statusBarsPadding(),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                        actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                    )
                 )
+            },
+            containerColor = Color.Transparent
+        ) { padding ->
+
+        if (showLeaveDialog) {
+            AlertDialog(
+                onDismissRequest = { showLeaveDialog = false },
+                title = { Text(stringResource(R.string.leave_group_confirm_title)) },
+                text = { Text(stringResource(R.string.leave_group_confirm_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLeaveDialog = false
+                            viewModel.leaveGroup()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text(stringResource(R.string.leave_group))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLeaveDialog = false }) {
+                        Text(stringResource(R.string.cancel_action))
+                    }
+                }
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
+        }
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -129,10 +164,20 @@ fun GroupSettingsScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = uiState.group?.name?.firstOrNull()?.toString() ?: "💪",
-                            fontSize = 64.sp
-                        )
+                        if (!uiState.group?.photoUrl.isNullOrEmpty()) {
+                            Image(
+                                painter = rememberAsyncImagePainter(uiState.group?.photoUrl),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                text = uiState.group?.name?.firstOrNull()?.toString() ?: "💪",
+                                fontSize = 64.sp,
+                                color = Color.White
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -262,7 +307,7 @@ fun GroupSettingsScreen(
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
                     TextButton(
-                        onClick = { viewModel.leaveGroup() },
+                        onClick = { showLeaveDialog = true },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text(stringResource(R.string.leave_group))
@@ -271,6 +316,7 @@ fun GroupSettingsScreen(
                 }
             }
         }
+    }
     }
 }
 
@@ -297,12 +343,21 @@ fun MemberListItem(member: GroupMemberDto) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = member.userName.take(2).uppercase(), 
-                color = Color.White, 
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            if (!member.userPhotoUrl.isNullOrEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(member.userPhotoUrl),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = member.userName.take(2).uppercase(), 
+                    color = Color.White, 
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
             
             // Online indicator dot on avatar
             if (member.isOnline) {
@@ -358,7 +413,8 @@ fun MemberListItem(member: GroupMemberDto) {
         if (member.isOnline) {
             Surface(
                 color = Color(0xFF22C55E).copy(alpha = 0.15f),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.semantics { contentDescription = "User is online" }
             ) {
                 Text(
                     text = stringResource(R.string.online_status),

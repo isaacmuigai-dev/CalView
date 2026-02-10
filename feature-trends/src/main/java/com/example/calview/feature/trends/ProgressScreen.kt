@@ -372,7 +372,7 @@ fun ProgressContent(
             animationTriggered = animationTriggered
         )
         
-        Spacer(modifier = Modifier.height(80.dp))
+        Spacer(modifier = Modifier.height(130.dp))
         } // Close Column
 
         // Walkthrough Overlay

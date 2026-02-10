@@ -881,7 +881,7 @@ fun DashboardContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(170.dp))
         }
         } // Close LazyColumn
     } // Close Box
@@ -1145,25 +1145,25 @@ fun DateSelector(
                 .padding(bottom = 4.dp)
         ) {
             // Date (Left)
-            Row(
-                modifier = Modifier.align(Alignment.CenterStart),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AnimatedContent(
-                    targetState = dateFormat.format(selectedDate.time),
-                    transitionSpec = {
-                        (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
-                    },
-                    label = "month_animation"
-                ) { dateText ->
-                    Text(
-                        text = dateText,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
+//                Row(
+//                    modifier = Modifier.align(Alignment.CenterStart),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    AnimatedContent(
+//                        targetState = dateFormat.format(selectedDate.time),
+//                        transitionSpec = {
+//                            (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+//                        },
+//                        label = "month_animation"
+//                    ) { dateText ->
+//                        Text(
+//                            text = dateText,
+//                            fontSize = 18.sp,
+//                            fontWeight = FontWeight.SemiBold,
+//                            color = MaterialTheme.colorScheme.onBackground
+//                        )
+//                    }
+//                }
             
             // Logo (Center)
             val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
@@ -1183,32 +1183,32 @@ fun DateSelector(
             )
             
             // Streak badge (Right)
-            if (streakDays > 0) {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.align(Alignment.CenterEnd).semantics(mergeDescendants = true) {
-                        contentDescription = "$streakDays day streak"
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "🔥",
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = "$streakDays",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-            }
+//            if (streakDays > 0) {
+//                Surface(
+//                    shape = RoundedCornerShape(20.dp),
+//                    color = MaterialTheme.colorScheme.primaryContainer,
+//                    modifier = Modifier.align(Alignment.CenterEnd).semantics(mergeDescendants = true) {
+//                        contentDescription = "$streakDays day streak"
+//                    }
+//                ) {
+//                    Row(
+//                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+//                    ) {
+//                        Text(
+//                            text = "🔥",
+//                            fontSize = 14.sp
+//                        )
+//                        Text(
+//                            text = "$streakDays",
+//                            fontSize = 14.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            color = MaterialTheme.colorScheme.onPrimaryContainer
+//                        )
+//                    }
+//                }
+//            }
         }
         
         // Day name headers (Mon - Sun) - fixed at top, matching reference image

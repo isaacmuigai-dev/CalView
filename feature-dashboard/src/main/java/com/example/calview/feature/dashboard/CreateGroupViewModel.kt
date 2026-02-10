@@ -89,7 +89,7 @@ class CreateGroupViewModel @Inject constructor(
 
                 // Upload custom photo if exists
                 state.customPhotoUri?.let { uri ->
-                    tempFilePath = copyUriToInternalStorage(uri)
+                    tempFilePath = com.example.calview.core.ui.util.ImageUtils.compressImage(context, uri)
                     tempFilePath?.let { path ->
                         val uploadedUrl = storageRepository.uploadGroupPhoto(path, tempGroupId)
                         if (uploadedUrl != null) {
@@ -119,19 +119,4 @@ class CreateGroupViewModel @Inject constructor(
         }
     }
 
-    private fun copyUriToInternalStorage(uri: android.net.Uri): String? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val file = java.io.File(context.cacheDir, "temp_group_${System.currentTimeMillis()}.jpg")
-            inputStream.use { input ->
-                java.io.FileOutputStream(file).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            file.absolutePath
-        } catch (e: Exception) {
-            android.util.Log.e("CreateGroupVM", "Error copying URI to storage", e)
-            null
-        }
-    }
 }

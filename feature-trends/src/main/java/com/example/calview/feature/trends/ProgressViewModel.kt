@@ -175,6 +175,9 @@ open class ProgressViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProgressUiState())
     val uiState: StateFlow<ProgressUiState> = _uiState.asStateFlow()
     
+    // Separate state flow for meal dates to avoid blocking nested collect in streak calculation
+    private val _mealDatesForStreak = MutableStateFlow<List<LocalDate>>(emptyList())
+    
     init {
         observeBaseMetrics()
         observeGamification()
@@ -462,9 +465,9 @@ open class ProgressViewModel @Inject constructor(
                 selectedDateHolder.selectedDate.flatMapLatest { date ->
                     val dateString = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date)
                     exerciseRepository.getTotalCaloriesBurnedForDate(dateString)
-                }.distinctUntilChanged(),
-                exerciseRepository.getLastSevenDaysCalories().distinctUntilChanged(),
-                userPreferencesRepository.recordBurn.distinctUntilChanged()
+                },
+                exerciseRepository.getLastSevenDaysCalories(),
+                userPreferencesRepository.recordBurn
             ) { healthData, manualToday, manualSevenDays, persistentRecord ->
 
                 // 1. Today's Combined Total
@@ -621,7 +624,16 @@ open class ProgressViewModel @Inject constructor(
                     weeklyAverageCalories = weeklyAvg
                 )}
 
-                // Centralized streak logic
+                // Update mealDates for streak calculation in a non-blocking way
+                _mealDatesForStreak.value = mealDates
+            }
+        }
+        
+        // Separate coroutine for streak calculation to avoid blocking the weekly calories flow
+        viewModelScope.launch {
+            _mealDatesForStreak.collect { mealDates ->
+                if (mealDates.isEmpty()) return@collect
+                
                 streakFreezeRepository.getStreakData(mealDates).flatMapLatest { streak ->
                     streakFreezeRepository.calculateBestStreak(mealDates, streak).map { best ->
                         Pair(streak, best)

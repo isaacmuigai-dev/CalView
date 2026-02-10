@@ -53,6 +53,7 @@ dependencies {
     // Window Size Class for adaptive layouts
     api(libs.androidx.compose.material3.window.size)
     
+    implementation(libs.androidx.exifinterface)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 

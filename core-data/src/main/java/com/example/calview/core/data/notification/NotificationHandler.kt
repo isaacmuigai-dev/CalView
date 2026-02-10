@@ -25,5 +25,11 @@ interface NotificationHandler {
         const val ID_PREMIUM = 1007
         const val ID_REMINDER = 1008
         const val ID_FEATURE_REQUEST = 1009
+        
+        // Groups notifications
+        const val ID_GROUP_MESSAGE = 2001
+        const val ID_GROUP_REPLY = 2002
+        const val ID_GROUP_LIKE = 2003
+        const val ID_GROUP_MEMBER = 2004
     }
 }

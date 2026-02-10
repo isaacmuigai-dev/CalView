@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.util.Date
 
 data class GroupDashboardUiState(
     val currentGroup: GroupDto? = null,
@@ -25,7 +26,9 @@ data class GroupDashboardUiState(
     val memberCount: Int = 0,
     val onlineCount: Int = 0,
     val userInitials: String = "",
-    val likedMessageIds: Set<String> = emptySet()
+    val likedMessageIds: Set<String> = emptySet(),
+    val isSending: Boolean = false,
+    val errorMessage: String? = null
 )
 
 @HiltViewModel
@@ -126,7 +129,7 @@ class GroupDashboardViewModel @Inject constructor(
                     current.copy(
                         messages = mergedMessages,
                         typingUsers = typing,
-                        memberCount = members.size,
+                        memberCount = group.memberCount, // Use real count from database
                         onlineCount = members.count { it.isOnline },
                         likedMessageIds = likes,
                         hasMoreMessages = messages.size >= messageLimit
@@ -160,17 +163,28 @@ class GroupDashboardViewModel @Inject constructor(
         val likes: Set<String>
     )
 
+    private var lastTypingUpdateTime = 0L
+
     fun onInputTextChanged(text: String) {
         _uiState.update { it.copy(inputText = text) }
         savedStateHandle["inputText"] = text
         
-        // Handle typing indicator with debounce
+        val currentTime = System.currentTimeMillis()
+        val groupId = _uiState.value.currentGroup?.id ?: return
+
+        // Handle typing indicator with throttling and timeout
         typingJob?.cancel()
         typingJob = viewModelScope.launch {
-            val groupId = _uiState.value.currentGroup?.id ?: return@launch
-            groupsRepository.setTypingStatus(groupId, true)
-            kotlinx.coroutines.delay(3000) // 3 seconds timeout
+            // Only update server if it's been > 5 seconds since last update
+            if (currentTime - lastTypingUpdateTime > 5000) {
+                groupsRepository.setTypingStatus(groupId, true)
+                lastTypingUpdateTime = currentTime
+            }
+            
+            // Local timeout: If no more typing happens for 10 seconds, clear status
+            kotlinx.coroutines.delay(10000) 
             groupsRepository.setTypingStatus(groupId, false)
+            lastTypingUpdateTime = 0L
         }
     }
 
@@ -199,6 +213,10 @@ class GroupDashboardViewModel @Inject constructor(
         savedStateHandle["attachedImageUrl"] = url
     }
 
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
     fun onReplySelected(message: GroupMessageDto) {
         _uiState.update { it.copy(selectedReplyMessage = message) }
     }
@@ -222,24 +240,38 @@ class GroupDashboardViewModel @Inject constructor(
         if (state.inputText.isBlank() && state.attachedImageUrl == null) return
 
         viewModelScope.launch {
-            // Stop typing status immediately when sending
-            typingJob?.cancel()
-            groupsRepository.setTypingStatus(groupId, false)
+            _uiState.update { it.copy(isSending = true, errorMessage = null) }
+            
+            try {
+                // Stop typing status immediately when sending
+                typingJob?.cancel()
+                try {
+                    groupsRepository.setTypingStatus(groupId, false)
+                } catch (e: Exception) {
+                    // Ignore typing status errors
+                }
 
-            val messageId = groupsRepository.sendMessage(
-                groupId = groupId,
-                text = state.inputText,
-                imageUrl = state.attachedImageUrl,
-                replyToId = state.selectedReplyMessage?.id
-            )
-            if (messageId != null) {
-                _uiState.update { it.copy(
-                    inputText = "", 
-                    attachedImageUrl = null,
-                    selectedReplyMessage = null
-                ) }
-                savedStateHandle["inputText"] = ""
-                savedStateHandle["attachedImageUrl"] = null
+                val messageId = groupsRepository.sendMessage(
+                    groupId = groupId,
+                    text = state.inputText,
+                    imageUrl = state.attachedImageUrl,
+                    replyToId = state.selectedReplyMessage?.id
+                )
+                
+                if (messageId != null) {
+                    _uiState.update { it.copy(
+                        inputText = "", 
+                        attachedImageUrl = null,
+                        selectedReplyMessage = null,
+                        isSending = false
+                    ) }
+                    savedStateHandle["inputText"] = ""
+                    savedStateHandle["attachedImageUrl"] = null
+                } else {
+                    _uiState.update { it.copy(isSending = false, errorMessage = "Failed to send message") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSending = false, errorMessage = "An error occurred: ${e.message}") }
             }
         }
     }
