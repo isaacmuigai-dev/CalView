@@ -22,7 +22,8 @@ import kotlin.random.Random
 class GroupsRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val streakFreezeRepository: StreakFreezeRepository
 ) : GroupsRepository {
 
     private val groupsCollection = firestore.collection("groups")
@@ -223,7 +224,7 @@ class GroupsRepositoryImpl @Inject constructor(
 
     override fun observeGroupMembers(groupId: String): Flow<List<GroupMemberDto>> = callbackFlow {
         val listener = membersCollection.whereEqualTo("groupId", groupId)
-            .orderBy("joinedAt", Query.Direction.DESCENDING)
+            // .orderBy("joinedAt", Query.Direction.DESCENDING) // Removed to avoid composite index requirement involving joinedAt
             .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -434,9 +435,13 @@ class GroupsRepositoryImpl @Inject constructor(
         }
 
         // Use Collection Group query for hyperscale "my likes" discovery
+        // Use Collection Group query for hyperscale "my likes" discovery
+        // Note: We removed .whereEqualTo("groupId", groupId) to avoid requiring a composite index
+        // on (userId + groupId) for collection group queries. We filter by groupId client-side instead.
+        // This relies on the single-field index for 'userId' on 'likes' collection group, which is easier to support.
         val listener = firestore.collectionGroup("likes")
             .whereEqualTo("userId", userId)
-            .whereEqualTo("groupId", groupId)
+            // .whereEqualTo("groupId", groupId) // Removed to reduce index complexity and potential permission issues
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e(TAG, "Error observing user likes group", error)
@@ -444,10 +449,14 @@ class GroupsRepositoryImpl @Inject constructor(
                     return@addSnapshotListener
                 }
                 
-                // The parent's document ID is the message ID
-                val likedMessageIds = snapshot?.documents?.map { it.reference.parent.parent?.id ?: "" }
-                    ?.filter { it.isNotEmpty() }
-                    ?.toSet() ?: emptySet()
+                // Client-side filter: Only include likes where the 'groupId' field matches the current group
+                val likedMessageIds = snapshot?.documents?.mapNotNull { doc ->
+                    // The like document itself contains "groupId" (set in toggleLikeMessage)
+                    if (doc.getString("groupId") == groupId) {
+                         // The parent's parent is the message document
+                         doc.reference.parent.parent?.id
+                    } else null
+                }?.toSet() ?: emptySet()
                     
                 trySend(likedMessageIds)
             }
@@ -505,6 +514,21 @@ class GroupsRepositoryImpl @Inject constructor(
             val profilePhotoUrl = userPreferencesRepository.groupsProfilePhotoUrl.first()
             val fullName = "$firstName $lastName".trim()
 
+            // Fetch current streak
+            val currentMeals = firestore.collection("meals")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("analysisStatus", "COMPLETED")
+                .get().await()
+                .toObjects(com.example.calview.core.data.local.MealEntity::class.java)
+            
+            val mealDates = currentMeals.map { 
+                java.time.Instant.ofEpochMilli(it.timestamp)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate() 
+            }.distinct()
+            
+            val streak = streakFreezeRepository.getStreakData(mealDates).first()
+
             // 1. Find all memberships for this user
             val memberships = membersCollection.whereEqualTo("userId", userId).get().await()
             if (memberships.isEmpty) return true
@@ -518,7 +542,8 @@ class GroupsRepositoryImpl @Inject constructor(
                 for (doc in chunk) {
                     batch.update(doc.reference, mapOf(
                         "userName" to fullName,
-                        "userPhotoUrl" to profilePhotoUrl
+                        "userPhotoUrl" to profilePhotoUrl,
+                        "streak" to streak
                     ))
                 }
                 batch.commit().await()
@@ -784,6 +809,20 @@ class GroupsRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Error removing user from all groups", e)
             return false
+        }
+    }
+
+    override suspend fun updateGroup(groupId: String, name: String, description: String, photoUrl: String): Boolean {
+        return try {
+            groupsCollection.document(groupId).update(mapOf(
+                "name" to name,
+                "description" to description,
+                "photoUrl" to photoUrl
+            )).await()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating group $groupId", e)
+            false
         }
     }
 

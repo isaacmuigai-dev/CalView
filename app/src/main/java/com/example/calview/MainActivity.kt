@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -99,6 +100,7 @@ import com.example.calview.core.ui.theme.Typography
 import com.example.calview.feature.dashboard.NutritionGoals
 import com.example.calview.feature.dashboard.FastingScreen
 import com.example.calview.feature.dashboard.ChallengesScreen
+import coil.compose.rememberAsyncImagePainter
 
 import com.example.calview.feature.dashboard.SocialChallengesScreen
 import com.example.calview.feature.dashboard.GroupsIntroScreen
@@ -114,6 +116,7 @@ import com.example.calview.feature.dashboard.CreateGroupNameScreen
 import com.example.calview.feature.dashboard.CreateGroupPhotoScreen
 import com.example.calview.feature.dashboard.GroupDashboardScreen
 import com.example.calview.feature.dashboard.GroupSettingsScreen
+import com.example.calview.feature.dashboard.EditGroupScreen
 import com.example.calview.feature.dashboard.LogExerciseScreen
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -711,6 +714,7 @@ fun AppNavigation(
                 onAchievementsClick = { navController.navigate("achievements") },
                 onLogExerciseClick = { navController.navigate("log_exercise") },
                 onGroupsClick = { navController.navigate("groups_intro") },
+                onEditGroupClick = { groupId -> navController.navigate("edit_group/$groupId") },
                 onDeleteAccount = {
                     // Navigation is now triggered by SettingsViewModel's isDeletionComplete flag
                     // but we still provide this for cleanup/safety
@@ -1237,6 +1241,12 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable("edit_group/{groupId}") {
+            EditGroupScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -1319,6 +1329,7 @@ fun MainTabs(
     onAchievementsClick: () -> Unit = {},
     onLogExerciseClick: () -> Unit = {},
     onGroupsClick: () -> Unit = {},
+    onEditGroupClick: (String) -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -1468,7 +1479,13 @@ fun MainTabs(
     val userName by (userPreferencesRepository?.userName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
     val groupsFirstName by (userPreferencesRepository?.groupsFirstName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
     val groupsLastName by (userPreferencesRepository?.groupsLastName?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
+    val photoUrl by (userPreferencesRepository?.photoUrl?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
+    val groupsPhotoUrl by (userPreferencesRepository?.groupsProfilePhotoUrl?.collectAsState(initial = "") ?: remember { mutableStateOf("") })
     
+    val profilePhotoUrl = remember(photoUrl, groupsPhotoUrl) {
+        if (groupsPhotoUrl.isNotEmpty()) groupsPhotoUrl else photoUrl
+    }
+
     val profileInitials = remember(userName, groupsFirstName, groupsLastName) {
         if (groupsFirstName.isNotEmpty() || groupsLastName.isNotEmpty()) {
             (groupsFirstName.take(1) + groupsLastName.take(1)).uppercase()
@@ -1522,14 +1539,42 @@ fun MainTabs(
                             }
                             selectedTab = index 
                         },
-                        icon = { Icon(icon, contentDescription = label) },
+                        icon = { 
+                            if (index == 3) {
+                                // Specialized Profile Icon for Rail
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(AvatarGradients[0]),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (profilePhotoUrl.isNotEmpty()) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(profilePhotoUrl),
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Text(
+                                            text = profileInitials,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            } else {
+                                Icon(icon, contentDescription = label)
+                            }
+                        },
                         label = { Text(label) },
                         colors = NavigationRailItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                            indicatorColor = if (index == 3) Color.Transparent else MaterialTheme.colorScheme.primaryContainer
                         )
                     )
                 }
@@ -1564,6 +1609,7 @@ fun MainTabs(
                     onFastingClick = onFastingClick,
                     onChallengesClick = onChallengesClick,
                     onGroupsClick = onGroupsClick,
+                    onEditGroupClick = onEditGroupClick,
                     onGroupSettingsClick = { navController.navigate("group_settings") },
                     onJoinGroupClick = { navController.navigate("groups_creation_flow?flow=JOIN") },
                     onCreateGroupClick = { navController.navigate("groups_creation_flow?flow=CREATE") },
@@ -1611,6 +1657,7 @@ fun MainTabs(
                     onFastingClick = onFastingClick,
                     onChallengesClick = onChallengesClick,
                     onGroupsClick = onGroupsClick,
+                    onEditGroupClick = onEditGroupClick,
                     onGroupSettingsClick = { navController.navigate("group_settings") },
                     onJoinGroupClick = { navController.navigate("groups_creation_flow?flow=JOIN") },
                     onCreateGroupClick = { navController.navigate("groups_creation_flow?flow=CREATE") },
@@ -1632,22 +1679,27 @@ fun MainTabs(
                 label = "lightingPhase"
             )
 
-            val isDark = isSystemInDarkTheme()
+            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
             val lightingColors = if (isDark) {
                 listOf(Color(0xFFBB86FC), Color(0xFF03DAC6), Color(0xFF6200EE), Color(0xFFBB86FC))
             } else {
-                // Dark colors for light theme as requested
-                listOf(Color(0xFF2C3E50), Color(0xFF000000), Color(0xFF34495E), Color(0xFF2C3E50))
+                // Vibrant colors for light theme (Indigo/Violet/Coral)
+                listOf(
+                    com.example.calview.core.ui.theme.IndigoPrimary, 
+                    com.example.calview.core.ui.theme.VioletAccent, 
+                    com.example.calview.core.ui.theme.ModernCoral,
+                    com.example.calview.core.ui.theme.IndigoPrimary
+                )
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp) // Reduced padding
                     .navigationBarsPadding()
-                    .height(76.dp) // Slightly taller to accommodate border
-                    .clip(RoundedCornerShape(32.dp)) // Clip the entire box to the shape
+                    .height(64.dp) // Reduced height
+                    .clip(RoundedCornerShape(32.dp))
             ) {
                 // 1. Rotating Gradient Background (The Edge Lighting)
                 Box(
@@ -1668,11 +1720,11 @@ fun MainTabs(
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(2.dp), // 2dp padding reveals the rotating gradient behind
+                        .padding(2.dp),
                     color = if (isDark) Color.Black else Color.White,
-                    tonalElevation = 8.dp,
+                    tonalElevation = 0.dp, // Removed for pure white
                     shadowElevation = 4.dp,
-                    shape = RoundedCornerShape(30.dp) // Slightly smaller radius for inner content
+                    shape = RoundedCornerShape(30.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -1727,27 +1779,30 @@ fun MainTabs(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(28.dp)
+                                    .size(24.dp) // Reduced size
                                     .clip(CircleShape)
-                                    .background(
-                                        if (selectedTab == 3) 
-                                            AvatarGradients[0] // Use first gradient for selected profile tab
-                                        else 
-                                            Brush.linearGradient(listOf(Color(0xFFEEEEEE), Color(0xFFDDDDDD)))
-                                    ),
+                                    .background(AvatarGradients[0]),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = profileInitials,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (selectedTab == 3) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                )
+                                if (profilePhotoUrl.isNotEmpty()) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(profilePhotoUrl),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Text(
+                                        text = profileInitials,
+                                        fontSize = 10.sp, // Reduced font size
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "Profile",
-                                fontSize = 11.sp,
+                                fontSize = 10.sp, // Reduced font size
                                 fontWeight = if (selectedTab == 3) FontWeight.SemiBold else FontWeight.Normal,
                                 color = if (selectedTab == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -1756,17 +1811,17 @@ fun MainTabs(
                         // Action FAB (Quick Actions)
                         Surface(
                             onClick = onFabClick,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.primary,
                             shape = CircleShape,
-                            modifier = Modifier.size(52.dp),
+                            modifier = Modifier.size(44.dp), // Reduced size
                             shadowElevation = 4.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     Icons.Filled.Add, 
                                     contentDescription = "Quick Actions", 
-                                    tint = Color.White,
-                                    modifier = Modifier.size(28.dp)
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(24.dp) // Reduced size
                                 )
                             }
                         }
@@ -1807,6 +1862,7 @@ private fun MainTabsContent(
     onGroupSettingsClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
+    onEditGroupClick: (String) -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -1836,7 +1892,8 @@ private fun MainTabsContent(
                 GroupDashboardScreen(
                     onGroupSettingsClick = onGroupSettingsClick,
                     onJoinGroupClick = onJoinGroupClick,
-                    onCreateGroupClick = onCreateGroupClick
+                    onCreateGroupClick = onCreateGroupClick,
+                    onEditGroupClick = onEditGroupClick
                 )
             } else {
                 // User hasn't set up groups - show intro screen
@@ -1894,9 +1951,9 @@ private fun ActionMenuItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val bgColor = if (isDark) Color(0xFF1C1C1E) else Color(0xFFF2F2F7) // iOS system grouped background
-    val contentColor = if (isDark) Color.White else Color.Black
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val bgColor = if (isDark) Color(0xFF1C1C1E) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    val contentColor = MaterialTheme.colorScheme.onSurface
     
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -1961,12 +2018,12 @@ private fun NavigationItemButton(
     onClick: () -> Unit
 ) {
     // Animated icon/text color
-    val isDark = isSystemInDarkTheme()
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val contentColor by animateColorAsState(
         targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primary
         } else {
-            if (isDark) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         },
         animationSpec = tween(durationMillis = 200),
         label = "navContentColor"
@@ -1982,12 +2039,12 @@ private fun NavigationItemButton(
             imageVector = icon,
             contentDescription = label,
             tint = contentColor,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp) // Reduced size
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = 10.sp, // Reduced size
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = contentColor
         )

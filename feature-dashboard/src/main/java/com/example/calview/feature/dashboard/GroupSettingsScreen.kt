@@ -104,9 +104,9 @@ fun GroupSettingsScreen(
                     modifier = Modifier.statusBarsPadding(),
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                        actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
                     )
                 )
             },
@@ -159,21 +159,22 @@ fun GroupSettingsScreen(
                             .clip(CircleShape)
                             .background(
                                 brush = Brush.verticalGradient(
-                                    colors = listOf(Color(0xFFF44336), Color(0xFFFF8A80))
+                                    colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
                                 )
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (!uiState.group?.photoUrl.isNullOrEmpty()) {
+                        val photoUrl = uiState.group?.photoUrl
+                        if (!photoUrl.isNullOrEmpty() && (photoUrl.startsWith("http") || photoUrl.startsWith("/"))) {
                             Image(
-                                painter = rememberAsyncImagePainter(uiState.group?.photoUrl),
+                                painter = rememberAsyncImagePainter(photoUrl),
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
                             Text(
-                                text = uiState.group?.name?.firstOrNull()?.toString() ?: "💪",
+                                text = photoUrl ?: uiState.group?.name?.firstOrNull()?.toString() ?: "💪",
                                 fontSize = 64.sp,
                                 color = Color.White
                             )
@@ -218,13 +219,15 @@ fun GroupSettingsScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp),
                         shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        color = Color.White,
+                        shadowElevation = 8.dp,
+                        tonalElevation = 4.dp
                     ) {
                         Text(
                             text = "https://www.calai.app/groups/${uiState.group?.inviteCode}",
                             modifier = Modifier.padding(16.dp),
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.Black,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -248,9 +251,10 @@ fun GroupSettingsScreen(
                             modifier = Modifier.weight(0.5f),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant, 
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                containerColor = Color.White, 
+                                contentColor = Color.Black
                             ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
                             contentPadding = PaddingValues(16.dp)
                         ) {
                             Text(stringResource(R.string.copy_link_action), fontWeight = FontWeight.SemiBold)
@@ -269,9 +273,10 @@ fun GroupSettingsScreen(
                             modifier = Modifier.weight(0.5f),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant, 
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                containerColor = Color.White, 
+                                contentColor = Color.Black
                             ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
                             contentPadding = PaddingValues(16.dp)
                         ) {
                             Text(stringResource(R.string.share_action_label), fontWeight = FontWeight.SemiBold)
@@ -300,8 +305,16 @@ fun GroupSettingsScreen(
                 }
                 
                 items(uiState.members) { member ->
-                    MemberListItem(member)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp
+                    ) {
+                        MemberListItem(member)
+                    }
                 }
 
                 item {
@@ -325,7 +338,7 @@ fun MemberListItem(member: GroupMemberDto) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Avatar
@@ -336,9 +349,9 @@ fun MemberListItem(member: GroupMemberDto) {
                 .background(
                     brush = Brush.linearGradient(
                         colors = if (member.role == "owner") 
-                            listOf(Color(0xFFF44336), Color(0xFFFF8A80))
+                            listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
                         else 
-                            listOf(Color(0xFF3D5AFE), Color(0xFF8E24AA))
+                            listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)
                     )
                 ),
             contentAlignment = Alignment.Center
@@ -384,29 +397,35 @@ fun MemberListItem(member: GroupMemberDto) {
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     fontFamily = SpaceGroteskFontFamily,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.Black
                 )
                 if (member.role == "owner") {
                     Spacer(modifier = Modifier.width(8.dp))
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = Color.Black.copy(alpha = 0.05f),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = stringResource(R.string.owner_label),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.Black.copy(alpha = 0.6f)
                         )
                     }
                 }
             }
-            Text(
-                text = stringResource(R.string.active_member),
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontFamily = SpaceGroteskFontFamily
-            )
+            if (member.streak > 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🔥", fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = member.streak.toString(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF9800)
+                    )
+                }
+            }
         }
         
         // Online Status Indicator
