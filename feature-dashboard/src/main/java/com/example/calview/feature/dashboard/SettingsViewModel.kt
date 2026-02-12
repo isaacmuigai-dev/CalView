@@ -1,20 +1,38 @@
+
 package com.example.calview.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calview.core.data.repository.*
-import com.example.calview.core.data.repository.GroupsRepository
+import com.example.calview.core.data.repository.AuthRepository
+import com.example.calview.core.data.repository.FirestoreRepository
+import com.example.calview.core.data.repository.UserPreferencesRepository
+import com.example.calview.core.data.repository.MealRepository
+import com.example.calview.core.data.repository.DailyLogRepository
+import com.example.calview.core.data.repository.WaterReminderRepository
+import com.example.calview.core.data.repository.WeightHistoryRepository
+import com.example.calview.core.data.repository.ExerciseRepository
+import com.example.calview.core.data.repository.FastingRepository
+import com.example.calview.core.data.repository.StreakFreezeRepository
+import com.example.calview.core.data.repository.SocialChallengeRepository
+import com.example.calview.core.data.repository.GamificationRepository
+
 import com.example.calview.core.data.local.WaterReminderSettingsEntity
 import com.example.calview.core.data.local.StreakFreezeEntity
 import java.time.LocalDate
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 import android.content.Context
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.example.calview.core.data.billing.BillingManager
 
 data class SettingsUiState(
@@ -62,7 +80,7 @@ class SettingsViewModel @Inject constructor(
     private val socialChallengeRepository: SocialChallengeRepository,
     private val gamificationRepository: GamificationRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val groupsRepository: GroupsRepository,
+
     private val billingManager: BillingManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -103,7 +121,7 @@ class SettingsViewModel @Inject constructor(
                 
                 // Generate referral code if not exists
                 val code = if (intermediate.referralCode.isEmpty()) {
-                    val newCode = UserPreferencesRepositoryImpl.generateReferralCode()
+                    val newCode = generateReferralCode()
                     userPreferencesRepository.setReferralCode(newCode)
                     newCode
                 } else {
@@ -171,8 +189,14 @@ class SettingsViewModel @Inject constructor(
     fun updateUserName(name: String) {
         viewModelScope.launch {
             userPreferencesRepository.setUserName(name)
-            // Sync to groups if groups feature is used
-            groupsRepository.syncProfileToGroups()
+
+        }
+    }
+
+    fun updatePhotoUrl(url: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPhotoUrl(url)
+
         }
     }
 
@@ -235,12 +259,16 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun deleteAccount() {
+        android.util.Log.d("SettingsViewModel", "deleteAccount called")
         viewModelScope.launch {
             _uiState.update { it.copy(isDeletingAccount = true, deletionProgressMessage = "Preparing to delete account...") }
             kotlinx.coroutines.delay(1000)
             
             val userId = authRepository.getUserId()
+            android.util.Log.d("SettingsViewModel", "Deleting account for userId: $userId")
+            
             if (userId.isEmpty()) {
+                android.util.Log.e("SettingsViewModel", "User ID not found")
                 _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Error: User ID not found.") }
                 return@launch
             }
@@ -248,24 +276,38 @@ class SettingsViewModel @Inject constructor(
             // 1. Delete Firestore Data (And Storage images)
             _uiState.update { it.copy(deletionProgressMessage = "Deleting cloud data and images...") }
             try {
-                // Remove from all groups first (while we still have auth)
-                groupsRepository.removeUserFromAllGroups()
+
+                android.util.Log.d("SettingsViewModel", "Deleting user data from Firestore...")
                 firestoreRepository.deleteUserData(userId)
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Failed to delete Firestore data", e)
+                // Continue anyway to ensure account is deleted
             }
             kotlinx.coroutines.delay(1000)
 
             // 2. Delete Firebase Auth Account (Crucial for sign-out)
             _uiState.update { it.copy(deletionProgressMessage = "Finalizing account deletion...") }
             kotlinx.coroutines.delay(500)
+            
+            android.util.Log.d("SettingsViewModel", "Deleting Firebase Auth account...")
             val result = authRepository.deleteAccount()
             
             if (!result.isSuccess) {
                 val exception = result.exceptionOrNull()
-                _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Failed to delete account: ${exception?.message}") }
+                android.util.Log.e("SettingsViewModel", "Failed to delete auth account", exception)
+                
+                if (exception is com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException) {
+                    _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Security Check: Please log in again to delete your account.") }
+                    android.util.Log.w("SettingsViewModel", "Recent login required. Prompting user.")
+                    // Ideally, we should trigger a re-auth flow here. 
+                    // For now, we inform the user they need to re-login.
+                    // A better UX would be to emit a side-effect to launch the Google Sign-In intent.
+                } else {
+                    _uiState.update { it.copy(isDeletingAccount = false, deletionProgressMessage = "Failed to delete account: ${exception?.message}") }
+                }
                 return@launch
             }
+            android.util.Log.d("SettingsViewModel", "Auth account deleted successfully")
 
             // 3. Cancel background work
             try {
@@ -276,6 +318,7 @@ class SettingsViewModel @Inject constructor(
 
             // 4. Clear Local Repositories and reset state
             _uiState.update { it.copy(deletionProgressMessage = "Clearing local data and cache...") }
+            android.util.Log.d("SettingsViewModel", "Clearing local data...")
             clearAllLocalData()
             billingManager.reset()
             
@@ -288,6 +331,7 @@ class SettingsViewModel @Inject constructor(
             // 6. Clear Preferences last (triggers restart)
             userPreferencesRepository.clearAllData()
             
+            android.util.Log.d("SettingsViewModel", "Deletion complete. Signaling navigation.")
             _uiState.update { it.copy(isDeletionComplete = true) }
         }
     }
@@ -328,7 +372,7 @@ class SettingsViewModel @Inject constructor(
             // However, Repositories usually have @ApplicationContext.
             // For now, let's focus on repository clearing.
 
-            groupsRepository.clearLocalData() // Clear local groups data
+
             mealRepository.clearAllMeals()
             dailyLogRepository.clearAllLogs()
             fastingRepository.deleteAllSessions()
@@ -341,6 +385,11 @@ class SettingsViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("SettingsViewModel", "Error in clearAllLocalData", e)
         }
+    }
+
+    private fun generateReferralCode(): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return (1..6).map { chars[kotlin.random.Random.nextInt(chars.length)] }.joinToString("")
     }
 }
 

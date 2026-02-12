@@ -94,14 +94,9 @@ fun OnboardingNavHost(
         
         // ============ STEP 1: WELCOME ============
         composable("welcome") {
-            // Auto-navigate to profile setup if already signed in AND not currently checking/redirecting
-            // This handles the case where a new user signs in on the Welcome screen
-            LaunchedEffect(isSignedIn, isSigningIn, isRedirecting, isOnboardingComplete) {
-                if (isSignedIn && !isSigningIn && !isRedirecting && !isOnboardingComplete) {
-                    Log.d("OnboardingNav", "Navigating to profile_setup: signed in and checks complete")
-                    navController.navigate("profile_setup")
-                }
-            }
+            // Auto-navigation removed to prevent race condition with MainActivity restoration logic.
+            // Returning users will be redirected to Main by MainActivity.
+            // New users will stay on Welcome until they click "Get Started".
 
             WelcomeScreen(
                 onGetStarted = { navController.navigate("profile_setup") },

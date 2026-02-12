@@ -53,18 +53,23 @@ class AuthRepositoryImpl @Inject constructor(
     }
     
     override suspend fun deleteAccount(): Result<Unit> {
+        android.util.Log.d("AuthRepository", "Attempting to delete account under getCurrentUser: ${firebaseAuth.currentUser?.uid}")
         return try {
             val user = firebaseAuth.currentUser
             if (user != null) {
                 user.delete().await()
+                android.util.Log.d("AuthRepository", "Account deleted successfully")
                 Result.success(Unit)
             } else {
+                android.util.Log.e("AuthRepository", "No user signed in during delete attempt")
                 Result.failure(Exception("No user signed in"))
             }
         } catch (e: FirebaseAuthRecentLoginRequiredException) {
-            // User needs to re-authenticate before deleting
-            Result.failure(ReAuthenticationRequiredException())
+            android.util.Log.w("AuthRepository", "Recent login required for deletion", e)
+            // Rethrow or return custom exception so ViewModel knows
+            Result.failure(e) 
         } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Error deleting account", e)
             Result.failure(e)
         }
     }

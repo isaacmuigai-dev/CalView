@@ -76,13 +76,7 @@ interface UserPreferencesRepository {
     val lastNotifiedDailyGoalDate: Flow<String> // ISO_LOCAL_DATE of last notification
     val notifiedDailyGoalFlags: Flow<String>   // Comma-separated flags like "calories,protein,carbs,fats,steps,burned"
 
-    // Groups Profile
-    val isGroupsProfileComplete: Flow<Boolean>
-    val groupsFirstName: Flow<String>
-    val groupsLastName: Flow<String>
-    val groupsUsername: Flow<String>
-    val groupsProfilePhotoUrl: Flow<String>
-    val isGroupCreated: Flow<Boolean>
+
 
     suspend fun setOnboardingComplete(complete: Boolean)
     suspend fun saveUserProfile(
@@ -155,13 +149,7 @@ interface UserPreferencesRepository {
     suspend fun setDailyGoalNotified(date: String, flag: String)
     suspend fun clearDailyGoalNotifications()
     
-    // Groups methods
-    suspend fun setGroupsProfileComplete(complete: Boolean)
-    suspend fun setGroupsFirstName(name: String)
-    suspend fun setGroupsLastName(name: String)
-    suspend fun setGroupsUsername(username: String)
-    suspend fun setGroupsProfilePhotoUrl(url: String)
-    suspend fun setGroupCreated(created: Boolean)
+
     
     /**
      * Restore user data from Firestore cloud storage

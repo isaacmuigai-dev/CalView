@@ -10,8 +10,7 @@ import com.example.calview.core.data.repository.MealRepository
 import com.example.calview.core.data.repository.MealRepositoryImpl
 import com.example.calview.core.data.repository.UserPreferencesRepository
 import com.example.calview.core.data.repository.UserPreferencesRepositoryImpl
-import com.example.calview.core.data.repository.GroupsRepository
-import com.example.calview.core.data.repository.GroupsRepositoryImpl
+
 import com.example.calview.core.data.repository.WeightHistoryRepository
 import com.example.calview.core.data.repository.WeightHistoryRepositoryImpl
 import dagger.Binds
@@ -60,9 +59,5 @@ abstract class RepositoryModule {
         exerciseRepositoryImpl: ExerciseRepositoryImpl
     ): ExerciseRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindGroupsRepository(
-        groupsRepositoryImpl: GroupsRepositoryImpl
-    ): GroupsRepository
+
 }

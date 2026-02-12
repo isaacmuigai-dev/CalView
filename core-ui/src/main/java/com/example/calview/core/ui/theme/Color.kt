@@ -106,10 +106,10 @@ val LightGradientStart = Color(0xFFFFFFFF)
 val LightGradientMid = Color(0xFFFFF0EB)
 val LightGradientEnd = Color(0xFFF5EEF8)
 
-// Dark Theme Gradient (Pure Black for AMOLED)
+// Dark Theme Gradient (Premium Deep Space)
 val DarkGradientStart = AmoledBlack   // Top: Pure Black
-val DarkGradientMid = AmoledBlack     // Middle: Pure Black
-val DarkGradientEnd = AmoledBlack     // Bottom: Pure Black
+val DarkGradientMid = Color(0xFF06060A)     // Middle: Deep Shadow
+val DarkGradientEnd = Color(0xFF0F0F1A)     // Bottom: Sophisticated Depth
 
 // Primary accent colors for new theme - Modern Indigo/Violet
 val IndigoPrimary = Color(0xFF6366F1)       // Deep indigo (primary)
@@ -124,6 +124,15 @@ val TealPrimaryLight = IndigoPrimaryLight
 val TealPrimaryDark = IndigoPrimaryDark
 val MintAccent = VioletAccent               // Map to violet
 val AquaGlow = Color(0xFF06B6D4)            // Keep cyan for specific uses
+
+// ============================================
+// AVATAR GRADIENTS - For profile placeholders
+// ============================================
+val AvatarGradients = listOf(
+    androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))), // Indigo to Violet
+    androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFB8E6A), Color(0xFFE8927C))), // Coral to Warm Coral
+    androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF4A7C59), Color(0xFF6B9B7A)))  // Sage to Light Sage
+)
 
 // ============================================
 // LIGHT THEME DARK ACCENT COLORS

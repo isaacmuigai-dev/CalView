@@ -169,5 +169,8 @@ dependencies {
     // MultiDex
     implementation("androidx.multidex:multidex:2.0.1")
     
+    // Image loading
+    implementation(libs.coil.compose)
+    
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

@@ -11,7 +11,7 @@ import com.example.calview.worker.DailySyncWorker
 import com.example.calview.worker.FastingNotificationWorker
 import com.example.calview.worker.InactivityWorker
 import com.example.calview.worker.SocialChallengeNotificationWorker
-import com.example.calview.worker.GroupNotificationWorker
+
 import com.example.calview.worker.StreakReminderWorker
 import com.example.calview.worker.WaterReminderWorker
 import com.example.calview.worker.WeeklySummaryWorker
@@ -282,23 +282,7 @@ class CalViewApp : Application(), Configuration.Provider {
             socialRequest
         )
         
-        // 3. Group Notification Worker - checks every 15 mins for new messages/likes/members
-        val groupRequest = PeriodicWorkRequestBuilder<GroupNotificationWorker>(
-            15, TimeUnit.MINUTES
-        )
-            .setInitialDelay(5, TimeUnit.MINUTES)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
-        
-        workManager.enqueueUniquePeriodicWork(
-            GroupNotificationWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            groupRequest
-        )
+
         
         Log.d("CalViewApp", "🎮 Scheduled social and gamification workers")
     }

@@ -41,8 +41,28 @@ interface StorageRepository {
     suspend fun uploadProfilePhoto(localPath: String, userId: String): String?
 
     /**
+     * Upload a group message image to Firebase Storage.
+     */
+    suspend fun uploadMessageImage(localPath: String, groupId: String): String?
+
+    /**
      * Delete all images for a specific user.
      * @param userId The ID of the user whose images should be deleted.
      */
     suspend fun deleteAllUserImages(userId: String)
+
+    /**
+     * Upload a voice note to Firebase Storage.
+     */
+    suspend fun uploadVoiceNote(localPath: String, groupId: String): String?
+
+    /**
+     * Delete a message image from Firebase Storage.
+     */
+    suspend fun deleteMessageImage(imageUrl: String)
+
+    /**
+     * Delete a voice note from Firebase Storage.
+     */
+    suspend fun deleteVoiceNote(audioUrl: String)
 }

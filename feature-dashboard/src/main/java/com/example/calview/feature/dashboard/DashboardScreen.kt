@@ -130,7 +130,8 @@ fun DashboardScreen(
     onScrollHandled: () -> Unit = {},
     onSuggestionsClick: () -> Unit = {},
     onFastingClick: () -> Unit = {},
-    onChallengesClick: () -> Unit = {}
+    onChallengesClick: () -> Unit = {},
+    onShowHealthConnect: (Boolean) -> Unit = {}
 ) {
     val state by viewModel.dashboardState.collectAsState()
     val context = LocalContext.current
@@ -309,6 +310,10 @@ fun DashboardScreen(
     }
     
     // Show Health Connect Onboarding or Dashboard
+    LaunchedEffect(showHealthOnboarding) {
+        onShowHealthConnect(showHealthOnboarding)
+    }
+
     if (showHealthOnboarding) {
         HealthConnectOnboardingScreen(
             onGoBack = { showHealthOnboarding = false },
@@ -856,6 +861,7 @@ fun DashboardContent(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
                 ),
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.onPositionedRect { recentMealsRect = it }
             )
         }
@@ -875,9 +881,9 @@ fun DashboardContent(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(RecentMealIcon, null, modifier = Modifier.size(60.dp), tint = Color(0xFFE8F5E9))
+                        Icon(RecentMealIcon, null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(stringResource(R.string.empty_meals_message), color = Color.Gray, fontSize = 14.sp)
+                        Text(stringResource(R.string.empty_meals_message), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
                 }
             }

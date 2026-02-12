@@ -105,6 +105,26 @@ class StorageRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun uploadMessageImage(localPath: String, groupId: String): String? {
+        if (localPath.isEmpty()) return null
+        val file = File(localPath)
+        if (!file.exists()) return null
+
+        return try {
+            val uuid = java.util.UUID.randomUUID().toString()
+            val storageRef = storage.reference
+                .child("message_images")
+                .child(groupId)
+                .child("$uuid.jpg")
+            
+            storageRef.putFile(android.net.Uri.fromFile(file)).await()
+            storageRef.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error uploading message image", e)
+            null
+        }
+    }
+
     override suspend fun deleteMealImage(imageUrl: String) {
         if (imageUrl.isEmpty()) return
         
@@ -136,6 +156,44 @@ class StorageRepositoryImpl @Inject constructor(
             Log.d(TAG, "Successfully deleted all storage images for user: $userId")
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting all user images from storage", e)
+        }
+    }
+
+    override suspend fun uploadVoiceNote(localPath: String, groupId: String): String? {
+        if (localPath.isEmpty()) return null
+        val file = File(localPath)
+        if (!file.exists()) return null
+
+        return try {
+            val uuid = java.util.UUID.randomUUID().toString()
+            val storageRef = storage.reference
+                .child("voice_notes")
+                .child(groupId)
+                .child("$uuid.m4a")
+            
+            storageRef.putFile(android.net.Uri.fromFile(file)).await()
+            storageRef.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error uploading voice note", e)
+            null
+        }
+    }
+
+    override suspend fun deleteMessageImage(imageUrl: String) {
+        if (imageUrl.isBlank()) return
+        try {
+            storage.getReferenceFromUrl(imageUrl).delete().await()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting message image: $imageUrl", e)
+        }
+    }
+
+    override suspend fun deleteVoiceNote(audioUrl: String) {
+        if (audioUrl.isBlank()) return
+        try {
+            storage.getReferenceFromUrl(audioUrl).delete().await()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting voice note: $audioUrl", e)
         }
     }
 }
